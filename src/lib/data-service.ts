@@ -23,6 +23,13 @@ export class DataService {
       process.env.CONTENTSTACK_DELIVERY_TOKEN
     );
     
+    console.log('DataService initialized:', {
+      useContentstack: this.useContentstack,
+      hasApiKey: !!process.env.CONTENTSTACK_API_KEY,
+      hasDeliveryToken: !!process.env.CONTENTSTACK_DELIVERY_TOKEN,
+      environment: process.env.CONTENTSTACK_ENVIRONMENT
+    });
+    
     if (!this.useContentstack) {
       console.log('Using mock data fallback - Contentstack not configured');
     }

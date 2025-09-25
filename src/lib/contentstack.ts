@@ -153,6 +153,10 @@ export class ContentstackService {
       }
 
       const result = await Query.toJSON().find();
+      console.log(`Contentstack ${contentType} query result:`, {
+        count: result[0]?.length || 0,
+        data: result[0]?.length > 0 ? result[0][0] : 'No entries found'
+      });
       return result[0] || [];
     } catch (error) {
       console.error(`Error fetching ${contentType}:`, error);
@@ -171,6 +175,11 @@ export class ContentstackService {
       Query.where('uid', uid);
       
       const result = await Query.toJSON().find();
+      console.log(`Contentstack ${contentType} single entry result:`, {
+        found: !!result[0]?.[0],
+        uid: uid,
+        data: result[0]?.[0] ? 'Entry found' : 'No entry found'
+      });
       return result[0]?.[0] || null;
     } catch (error) {
       console.error(`Error fetching ${contentType} entry ${uid}:`, error);
