@@ -7,12 +7,8 @@ const nextConfig = {
       'cdn.contentstack.io'
     ],
   },
-  env: {
-    CONTENTSTACK_API_KEY: process.env.CONTENTSTACK_API_KEY,
-    CONTENTSTACK_DELIVERY_TOKEN: process.env.CONTENTSTACK_DELIVERY_TOKEN,
-    CONTENTSTACK_ENVIRONMENT: process.env.CONTENTSTACK_ENVIRONMENT,
-    CONTENTSTACK_REGION: process.env.CONTENTSTACK_REGION,
-  }
+  // Remove the env section - let Next.js handle environment variables automatically
+  // This allows both build-time and runtime access to environment variables
 }
 
 module.exports = nextConfig

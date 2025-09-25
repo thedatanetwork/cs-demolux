@@ -16,16 +16,23 @@ export default async function BlogPage() {
     dataService.getSiteSettings()
   ]);
 
-  if (!siteSettings) {
-    return <div>Error loading site settings</div>;
-  }
+  // Fallback to default settings if Contentstack is not available
+  const fallbackSiteSettings = siteSettings || {
+    uid: 'fallback',
+    site_name: 'Demolux',
+    tagline: 'Premium Wearable Tech & Technofurniture',
+    logo: undefined,
+    contact_info: undefined,
+    social_links: undefined,
+    seo: undefined
+  };
 
   return (
     <div className="min-h-screen bg-white">
       <Header 
         navigation={navigation}
-        siteName={siteSettings.site_name}
-        logoUrl={siteSettings.logo?.url}
+        siteName={fallbackSiteSettings.site_name}
+        logoUrl={fallbackSiteSettings.logo?.url}
       />
 
       <main>
@@ -83,7 +90,7 @@ export default async function BlogPage() {
         </section>
       </main>
 
-      <Footer navigation={navigation} siteSettings={siteSettings} />
+      <Footer navigation={navigation} siteSettings={fallbackSiteSettings} />
     </div>
   );
 }

@@ -13,6 +13,13 @@ let Stack: any = null;
 
 if (stackConfig.api_key && stackConfig.delivery_token) {
   try {
+    console.log('Contentstack config:', {
+      api_key: stackConfig.api_key ? `${stackConfig.api_key.substring(0, 10)}...` : 'missing',
+      delivery_token: stackConfig.delivery_token ? `${stackConfig.delivery_token.substring(0, 10)}...` : 'missing',
+      environment: stackConfig.environment,
+      region: stackConfig.region
+    });
+    
     Stack = Contentstack.Stack({
       api_key: stackConfig.api_key,
       delivery_token: stackConfig.delivery_token,

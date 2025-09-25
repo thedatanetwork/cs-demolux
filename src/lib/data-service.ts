@@ -2,6 +2,17 @@
 import { contentstack, Product, BlogPost, NavigationMenu, SiteSettings } from './contentstack';
 import { getMockData } from '@/data/mock-data';
 
+// Fallback site settings for when Contentstack is not available
+export const createFallbackSiteSettings = (): SiteSettings => ({
+  uid: 'fallback',
+  site_name: 'Demolux',
+  tagline: 'Premium Wearable Tech & Technofurniture',
+  logo: undefined,
+  contact_info: undefined,
+  social_links: undefined,
+  seo: undefined
+});
+
 export class DataService {
   private useContentstack: boolean;
 
@@ -91,6 +102,12 @@ export class DataService {
       }
     }
     return getMockData.siteSettings();
+  }
+
+  // Get site settings with guaranteed fallback
+  async getSiteSettingsWithFallback(): Promise<SiteSettings> {
+    const settings = await this.getSiteSettings();
+    return settings || createFallbackSiteSettings();
   }
 
   // Helper methods for common queries
