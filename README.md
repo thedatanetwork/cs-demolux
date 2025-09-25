@@ -200,6 +200,24 @@ npm run start    # Production server
 
 This is a client project. For feature requests or issues, please contact the development team.
 
+## 🔒 Security & Git Guidelines
+
+### ⚠️ Before Committing to Git
+- ✅ All sensitive credentials are in `.env.local` (ignored by Git)
+- ✅ Script credentials are in `scripts/.env` (ignored by Git)  
+- ✅ Only `.env.example` files are committed (safe templates)
+- ❌ **Never commit real API keys or management tokens**
+
+### Git Safety
+- Management tokens have full CMS access - keep them local only
+- The `.gitignore` files are configured to protect all sensitive data
+- See [SECURITY.md](./SECURITY.md) for complete security guidelines
+
+### Token Security
+- **API Keys & Delivery Tokens**: Safe to be public (read-only)
+- **Management Tokens**: ⚠️ **KEEP SECRET** (full write access)
+- Rotate tokens regularly and never hardcode them
+
 ## License
 
 Proprietary - © 2024 Demolux. All rights reserved.
