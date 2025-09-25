@@ -5,7 +5,7 @@ import { dataService } from '@/lib/data-service';
 
 export const metadata = {
   title: 'Blog | Demolux',
-  description: 'Stay informed about the latest trends, innovations, and insights in wearable technology and technofurniture.',
+  description: 'Stay informed about the latest trends, innovations, and insights in wearable technologies and technofurnitures.',
 };
 
 export default async function BlogPage() {
