@@ -4,7 +4,7 @@ import Contentstack from 'contentstack';
 const stackConfig = {
   api_key: process.env.CONTENTSTACK_API_KEY || '',
   delivery_token: process.env.CONTENTSTACK_DELIVERY_TOKEN || '',
-  environment: process.env.CONTENTSTACK_ENVIRONMENT || 'development',
+  environment: process.env.CONTENTSTACK_ENVIRONMENT || 'dev',
   region: (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US'
 };
 
@@ -40,6 +40,7 @@ export interface Product {
   title: string;
   url: string;
   description: string;
+  detailed_description?: string; // New field for product detail pages
   featured_image: Array<{
     uid: string;
     url: string;
@@ -52,6 +53,7 @@ export interface Product {
     url: string;
   };
   category?: string;
+  product_tags?: string[]; // New field for product tags
   created_at: string;
   updated_at: string;
 }
@@ -143,10 +145,24 @@ export class ContentstackService {
     try {
       const Query = this.stack.ContentType(contentType).Query();
       
+      // Include all fields for product and blog content types
+      if (contentType === 'product') {
+        Query.includeReference(['featured_image']);
+        Query.includeMetadata();
+      } else if (contentType === 'blog_post') {
+        Query.includeReference(['featured_image']);
+        Query.includeMetadata();
+      }
+      
       // Apply any additional query parameters
       if (query) {
         Object.keys(query).forEach(key => {
-          if (typeof Query[key] === 'function') {
+          if (key === 'where' && query[key]) {
+            // Handle where clause specially for filtering
+            Object.keys(query[key]).forEach(fieldName => {
+              Query.where(fieldName, query[key][fieldName]);
+            });
+          } else if (typeof Query[key] === 'function') {
             Query[key](query[key]);
           }
         });
@@ -155,7 +171,11 @@ export class ContentstackService {
       const result = await Query.toJSON().find();
       console.log(`Contentstack ${contentType} query result:`, {
         count: result[0]?.length || 0,
-        data: result[0]?.length > 0 ? result[0][0] : 'No entries found'
+        data: result[0]?.length > 0 ? {
+          uid: result[0][0]?.uid,
+          title: result[0][0]?.title,
+          fields: Object.keys(result[0][0] || {})
+        } : 'No entries found'
       });
       return result[0] || [];
     } catch (error) {
@@ -174,13 +194,25 @@ export class ContentstackService {
       const Query = this.stack.ContentType(contentType).Query();
       Query.where('uid', uid);
       
+      // Include all fields for product and blog content types
+      if (contentType === 'product') {
+        Query.includeReference(['featured_image']);
+        Query.includeMetadata();
+      } else if (contentType === 'blog_post') {
+        Query.includeReference(['featured_image']);
+        Query.includeMetadata();
+      }
+      
       const result = await Query.toJSON().find();
+      const entry = result[0]?.[0];
       console.log(`Contentstack ${contentType} single entry result:`, {
-        found: !!result[0]?.[0],
+        found: !!entry,
         uid: uid,
-        data: result[0]?.[0] ? 'Entry found' : 'No entry found'
+        fields: entry ? Object.keys(entry) : [],
+        hasDetailedDescription: !!(entry?.detailed_description),
+        hasProductTags: !!(entry?.product_tags)
       });
-      return result[0]?.[0] || null;
+      return entry || null;
     } catch (error) {
       console.error(`Error fetching ${contentType} entry ${uid}:`, error);
       return null;
@@ -193,13 +225,32 @@ export class ContentstackService {
     
     if (category) {
       query.where = { category: category };
+      console.log(`Filtering products by category: ${category}`, query);
+    } else {
+      console.log('Fetching all products (no category filter)');
     }
 
-    return this.getEntries<Product>('product', query);
+    const products = await this.getEntries<Product>('product', query);
+    console.log(`Found ${products.length} products for category: ${category || 'all'}`);
+    
+    if (products.length > 0) {
+      console.log('Product categories found:', products.map(p => ({ uid: p.uid, title: p.title, category: p.category })));
+    } else {
+      console.log(`No products found for category: ${category || 'all'}`);
+    }
+    
+    return products;
   }
 
   async getProduct(uid: string): Promise<Product | null> {
     return this.getEntry<Product>('product', uid);
+  }
+
+  async getProductBySlug(slug: string): Promise<Product | null> {
+    const products = await this.getEntries<Product>('product', {
+      where: { url: `/products/${slug}` }
+    });
+    return products[0] || null;
   }
 
   async getBlogPosts(limit?: number): Promise<BlogPost[]> {
@@ -212,8 +263,28 @@ export class ContentstackService {
     return this.getEntries<BlogPost>('blog_post', query);
   }
 
+  // Debug method to list all products
+  async getAllProductUIDs(): Promise<any[]> {
+    try {
+      const query: any = { orderByDescending: 'created_at' };
+      const products = await this.getEntries<any>('product', query);
+      console.log('All product UIDs in Contentstack:', products.map(p => ({ uid: p.uid, title: p.title })));
+      return products;
+    } catch (error) {
+      console.error('Error fetching all products:', error);
+      return [];
+    }
+  }
+
   async getBlogPost(uid: string): Promise<BlogPost | null> {
     return this.getEntry<BlogPost>('blog_post', uid);
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+    const posts = await this.getEntries<BlogPost>('blog_post', {
+      where: { url: `/blog/${slug}` }
+    });
+    return posts[0] || null;
   }
 
   async getNavigationMenus(location?: string): Promise<NavigationMenu[]> {

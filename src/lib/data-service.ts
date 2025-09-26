@@ -62,6 +62,18 @@ export class DataService {
     return getMockData.product(uid);
   }
 
+  async getProductBySlug(slug: string): Promise<Product | null> {
+    if (this.useContentstack) {
+      try {
+        return await contentstack.getProductBySlug(slug);
+      } catch (error) {
+        console.error('Contentstack error, falling back to mock data:', error);
+        return getMockData.productBySlug(slug);
+      }
+    }
+    return getMockData.productBySlug(slug);
+  }
+
   // Blog posts
   async getBlogPosts(limit?: number): Promise<BlogPost[]> {
     if (this.useContentstack) {
@@ -85,6 +97,18 @@ export class DataService {
       }
     }
     return getMockData.blogPost(uid);
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+    if (this.useContentstack) {
+      try {
+        return await contentstack.getBlogPostBySlug(slug);
+      } catch (error) {
+        console.error('Contentstack error, falling back to mock data:', error);
+        return getMockData.blogPostBySlug(slug);
+      }
+    }
+    return getMockData.blogPostBySlug(slug);
   }
 
   // Navigation menus

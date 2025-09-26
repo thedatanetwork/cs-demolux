@@ -15,12 +15,12 @@ interface BlogPostPageProps {
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  // Extract post UID from URL slug
-  const postUid = params.slug;
+  // Get blog post by slug instead of UID
+  const slug = params.slug;
   
   // Fetch data
   const [blogPost, navigation, siteSettings] = await Promise.all([
-    dataService.getBlogPost(postUid),
+    dataService.getBlogPostBySlug(slug),
     dataService.getNavigationMenus(),
     dataService.getSiteSettings()
   ]);
@@ -136,16 +136,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
               {/* Article Content */}
               <div className="prose prose-lg prose-gray max-w-none mb-12">
-                <div className="text-gray-700 leading-relaxed space-y-6">
-                  {/* For now, display the content as plain text */}
-                  {/* In a real implementation, you'd parse and render rich text content */}
-                  <p>{blogPost.content}</p>
-                  
-                  {/* Additional content would be rendered here from Contentstack rich text */}
-                  <p className="text-gray-500 italic">
-                    [Full article content would be rendered here from Contentstack rich text fields]
-                  </p>
-                </div>
+                <div 
+                  className="text-gray-700 leading-relaxed space-y-6"
+                  dangerouslySetInnerHTML={{ __html: blogPost.content }}
+                />
               </div>
 
               {/* Tags */}

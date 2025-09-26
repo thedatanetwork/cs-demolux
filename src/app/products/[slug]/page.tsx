@@ -15,12 +15,12 @@ interface ProductPageProps {
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  // Extract product UID from URL slug
-  const productUid = params.slug;
+  // Get product by slug instead of UID
+  const slug = params.slug;
   
   // Fetch data
   const [product, navigation, siteSettings] = await Promise.all([
-    dataService.getProduct(productUid),
+    dataService.getProductBySlug(slug),
     dataService.getNavigationMenus(),
     dataService.getSiteSettings()
   ]);
@@ -147,9 +147,31 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {/* Description */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {product.description}
-                  </p>
+                  <div className="text-gray-600 leading-relaxed space-y-4">
+                    <p>{product.description}</p>
+                    {product.detailed_description && (
+                      <p className="mt-4 text-sm text-gray-700 leading-relaxed">
+                        {product.detailed_description}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Tags */}
+                  {product.product_tags && product.product_tags.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Features</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {product.product_tags.map((tag, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions */}
