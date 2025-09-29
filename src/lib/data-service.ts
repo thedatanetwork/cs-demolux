@@ -1,5 +1,5 @@
 // Data service that abstracts between Contentstack and mock data
-import { contentstack, Product, BlogPost, NavigationMenu, SiteSettings } from './contentstack';
+import { contentstack, Product, BlogPost, NavigationMenu, SiteSettings, Page, HomePage } from './contentstack';
 import { getMockData } from '@/data/mock-data';
 
 // Fallback site settings for when Contentstack is not available
@@ -111,6 +111,18 @@ export class DataService {
     return getMockData.blogPostBySlug(slug);
   }
 
+  async getPage(slug: string): Promise<Page | null> {
+    if (this.useContentstack) {
+      try {
+        return await contentstack.getPage(slug);
+      } catch (error) {
+        console.error('Contentstack error, falling back to mock data:', error);
+        return getMockData.page(slug);
+      }
+    }
+    return getMockData.page(slug);
+  }
+
   // Navigation menus
   async getNavigationMenus(location?: string): Promise<NavigationMenu[]> {
     if (this.useContentstack) {
@@ -167,6 +179,19 @@ export class DataService {
 
   async getFooterNavigation(): Promise<NavigationMenu[]> {
     return this.getNavigationMenus('footer');
+  }
+
+  // Home Page
+  async getHomePage(): Promise<HomePage | null> {
+    if (this.useContentstack) {
+      try {
+        return await contentstack.getHomePage();
+      } catch (error) {
+        console.error('Contentstack error, falling back to mock data:', error);
+        return getMockData.homePage();
+      }
+    }
+    return getMockData.homePage();
   }
 }
 

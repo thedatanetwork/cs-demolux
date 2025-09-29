@@ -1,11 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from '@/lib/contentstack';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
+import { useCart } from '@/contexts/CartContext';
+import { Check, ShoppingCart } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -13,7 +15,28 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className = '' }: ProductCardProps) {
-  const mainImage = product.featured_image?.[0];
+  const { addItem, isInCart } = useCart();
+  const [isAdding, setIsAdding] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
+  
+  // Handle both array and single object formats for featured_image
+  const mainImage = Array.isArray(product.featured_image) 
+    ? product.featured_image[0] 
+    : product.featured_image;
+
+  const handleAddToCart = async () => {
+    setIsAdding(true);
+    
+    // Add slight delay for better UX
+    setTimeout(() => {
+      addItem(product, 1);
+      setIsAdding(false);
+      setJustAdded(true);
+      
+      // Reset "just added" state after 2 seconds
+      setTimeout(() => setJustAdded(false), 2000);
+    }, 300);
+  };
 
   return (
     <div className={`card-hover group ${className}`}>
@@ -63,14 +86,32 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
         {/* Action Button */}
         <div className="flex gap-2">
           <Button 
-            variant="primary" 
-            className="flex-1"
-            onClick={() => {
-              // Add to cart functionality would go here
-              console.log('Add to cart:', product.uid);
-            }}
+            variant={justAdded ? "success" : "primary"}
+            className="flex-1 relative"
+            onClick={handleAddToCart}
+            disabled={isAdding}
           >
-            Add to Cart
+            {isAdding ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Adding...
+              </>
+            ) : justAdded ? (
+              <>
+                <Check className="h-4 w-4 mr-2" />
+                Added!
+              </>
+            ) : isInCart(product.uid) ? (
+              <>
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Add More
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Add to Cart
+              </>
+            )}
           </Button>
           
           <Link href={product.url} className="flex-1">

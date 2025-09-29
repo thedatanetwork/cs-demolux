@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
+import { ProductActions } from '@/components/product/ProductActions';
 import { dataService } from '@/lib/data-service';
 import { formatPrice } from '@/lib/utils';
-import { ShoppingCart, Heart, Share2, Star, Truck, Shield, RotateCcw } from 'lucide-react';
+import { Star, Truck, Shield, RotateCcw } from 'lucide-react';
 
 interface ProductPageProps {
   params: {
@@ -175,26 +176,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </div>
 
                 {/* Actions */}
-                <div className="space-y-4">
-                  <div className="flex space-x-4">
-                    <Button size="lg" className="flex-1 group">
-                      <ShoppingCart className="mr-2 h-5 w-5" />
-                      Add to Cart
-                    </Button>
-                    
-                    <Button variant="outline" size="lg">
-                      <Heart className="h-5 w-5" />
-                    </Button>
-                    
-                    <Button variant="outline" size="lg">
-                      <Share2 className="h-5 w-5" />
-                    </Button>
-                  </div>
-
-                  <Button variant="gold" size="lg" className="w-full">
-                    Buy Now
-                  </Button>
-                </div>
+                <ProductActions product={product} />
 
                 {/* Features */}
                 <div className="border-t border-gray-200 pt-6">

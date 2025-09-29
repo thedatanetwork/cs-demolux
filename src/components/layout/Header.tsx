@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Menu, X, ShoppingBag, Search } from 'lucide-react';
 import { NavigationMenu } from '@/lib/contentstack';
 import { Button } from '@/components/ui/Button';
+import { useCart } from '@/contexts/CartContext';
 
 interface HeaderProps {
   navigation: NavigationMenu[];
@@ -14,6 +15,7 @@ interface HeaderProps {
 
 export function Header({ navigation, siteName, logoUrl }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { state } = useCart();
 
   const headerNav = navigation.find(nav => nav.menu_location === 'header');
   const menuItems = headerNav?.menu_items?.filter(item => item.is_active) || [];
@@ -25,17 +27,25 @@ export function Header({ navigation, siteName, logoUrl }: HeaderProps) {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              {logoUrl ? (
+              {logoUrl && logoUrl.trim() ? (
                 <img
                   src={logoUrl}
                   alt={siteName}
                   className="h-8 w-auto lg:h-10"
+                  onError={(e) => {
+                    // Fallback to text if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const textSpan = target.nextElementSibling as HTMLSpanElement;
+                    if (textSpan) textSpan.style.display = 'inline';
+                  }}
                 />
-              ) : (
-                <span className="text-2xl font-heading font-bold text-gray-900">
-                  {siteName}
-                </span>
-              )}
+              ) : null}
+              <span 
+                className={`text-2xl font-heading font-bold text-gray-900 ${logoUrl && logoUrl.trim() ? 'hidden' : ''}`}
+              >
+                {siteName}
+              </span>
             </Link>
           </div>
 
@@ -62,10 +72,15 @@ export function Header({ navigation, siteName, logoUrl }: HeaderProps) {
               <Search className="h-5 w-5" />
             </button>
 
-            {/* Shopping Bag */}
-            <button className="text-gray-700 hover:text-gray-900 transition-colors duration-200">
+            {/* Shopping Cart */}
+            <Link href="/cart" className="relative text-gray-700 hover:text-gray-900 transition-colors duration-200 group">
               <ShoppingBag className="h-5 w-5" />
-            </button>
+              {state.itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-gold-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium group-hover:bg-gold-600 transition-colors duration-200">
+                  {state.itemCount > 99 ? '99+' : state.itemCount}
+                </span>
+              )}
+            </Link>
 
             {/* Mobile menu button */}
             <button

@@ -77,6 +77,28 @@ export interface BlogPost {
   updated_at: string;
 }
 
+export interface Page {
+  uid: string;
+  title: string;
+  slug: string;
+  meta_description?: string;
+  hero_section?: {
+    title: string;
+    subtitle?: string;
+    background_image?: Image;
+  };
+  content_sections?: Array<{
+    section_title?: string;
+    content: string;
+    layout?: string;
+  }>;
+  contact_form?: {
+    show_form: boolean;
+    form_title?: string;
+    form_description?: string;
+  };
+}
+
 export interface NavigationItem {
   label: string;
   url: string;
@@ -95,6 +117,84 @@ export interface NavigationMenu {
   menu_items: NavigationItem[];
   menu_style?: 'horizontal' | 'vertical' | 'dropdown' | 'pills' | 'breadcrumb' | 'minimal';
   is_active?: boolean;
+}
+
+export interface Image {
+  uid: string;
+  url: string;
+  title: string;
+  filename: string;
+}
+
+export interface FeatureItem {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface ValueProposition {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface CallToAction {
+  title: string;
+  description: string;
+  primary_button: {
+    text: string;
+    url: string;
+  };
+  secondary_button: {
+    text: string;
+    url: string;
+  };
+  background_color: string;
+}
+
+export interface HomePage {
+  uid: string;
+  title: string;
+  // Hero Section
+  hero_badge_text: string;
+  hero_title: string;
+  hero_subtitle: string;
+  hero_description: string;
+  hero_image: Image[];
+  hero_primary_cta: {
+    text: string;
+    url: string;
+  };
+  hero_secondary_cta: {
+    text: string;
+    url: string;
+  };
+  hero_features: FeatureItem[];
+  
+  // Featured Products Section
+  featured_section_title: string;
+  featured_section_description: string;
+  featured_products_limit: number;
+  
+  // Brand Values Section
+  values_section_title: string;
+  values_section_description: string;
+  value_propositions: ValueProposition[];
+  
+  // Blog Section
+  blog_section_title: string;
+  blog_section_description: string;
+  blog_posts_limit: number;
+  blog_cta_text: string;
+  
+  // Final CTA Section
+  final_cta: CallToAction;
+  
+  // SEO
+  meta_title?: string;
+  meta_description?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SiteSettings {
@@ -287,6 +387,13 @@ export class ContentstackService {
     return posts[0] || null;
   }
 
+  async getPage(slug: string): Promise<Page | null> {
+    const pages = await this.getEntries<Page>('page', {
+      where: { slug: slug }
+    });
+    return pages[0] || null;
+  }
+
   async getNavigationMenus(location?: string): Promise<NavigationMenu[]> {
     const query: any = { 
       where: { is_active: true },
@@ -303,6 +410,37 @@ export class ContentstackService {
   async getSiteSettings(): Promise<SiteSettings | null> {
     const entries = await this.getEntries<SiteSettings>('site_settings', { limit: 1 });
     return entries[0] || null;
+  }
+
+  async getHomePage(): Promise<HomePage | null> {
+    if (!this.isConfigured()) {
+      console.log('Contentstack not configured, returning null for home page');
+      return null;
+    }
+
+    try {
+      console.log('Fetching home page from Contentstack...');
+      const Query = this.stack.ContentType('home_page').Query();
+      Query.includeReference(['hero_image']);
+      Query.includeMetadata();
+      Query.limit(1);
+      
+      const result = await Query.toJSON().find();
+      const entry = result[0]?.[0];
+      console.log('Contentstack home_page query result:', {
+        found: !!entry,
+        uid: entry?.uid,
+        fields: entry ? Object.keys(entry) : [],
+        hasHeroImage: !!(entry?.hero_image),
+        heroImageCount: entry?.hero_image?.length || 0,
+        heroImageUrl: entry?.hero_image?.[0]?.url,
+        heroImageData: entry?.hero_image?.[0]
+      });
+      return entry || null;
+    } catch (error) {
+      console.error('Error fetching home_page:', error);
+      return null;
+    }
   }
 }
 

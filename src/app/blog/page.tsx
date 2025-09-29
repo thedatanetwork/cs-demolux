@@ -36,33 +36,57 @@ export default async function BlogPage() {
       />
 
       <main>
-        {/* Breadcrumb */}
-        <div className="bg-gray-50 border-b border-gray-200">
-          <div className="container-padding">
-            <nav className="py-4">
-              <ol className="flex items-center space-x-2 text-sm">
-                <li>
-                  <a href="/" className="text-gray-500 hover:text-gray-700">Home</a>
-                </li>
-                <li className="text-gray-400">/</li>
-                <li className="text-gray-900 font-medium">Blog</li>
-              </ol>
-            </nav>
+        {/* Fancy Hero Section */}
+        <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-hidden">
+          {/* Background Effects */}
+          <div className="absolute inset-0 bg-black/20"></div>
+          
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0">
+            <div className="absolute top-20 left-10 w-32 h-32 bg-gold-400 rounded-full opacity-10 animate-float"></div>
+            <div className="absolute top-40 right-20 w-20 h-20 bg-white rounded-full opacity-5 animate-float" style={{ animationDelay: '2s' }}></div>
+            <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-gold-400 rounded-full opacity-8 animate-float" style={{ animationDelay: '4s' }}></div>
+            <div className="absolute bottom-40 right-1/3 w-16 h-16 bg-white rounded-full opacity-10 animate-float" style={{ animationDelay: '1s' }}></div>
           </div>
-        </div>
 
-        {/* Page Header */}
-        <section className="section-spacing bg-white">
-          <div className="container-padding">
-            <div className="text-center mb-16">
-              <h1 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                Insights & Innovation
+          {/* Grid Pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
+              backgroundSize: '40px 40px'
+            }}></div>
+          </div>
+          
+          <div className="relative container-padding section-spacing">
+            <div className="max-w-5xl mx-auto text-center">
+              {/* Badge */}
+              <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-8">
+                <div className="w-2 h-2 bg-gold-400 rounded-full"></div>
+                <span className="text-sm font-medium text-white/90">
+                  Demolux Blog
+                </span>
+              </div>
+
+              <h1 className="font-heading text-4xl md:text-7xl font-bold mb-8 text-white">
+                Insights & <span className="text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent">Innovation</span>
               </h1>
-              <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+              
+              <p className="text-xl md:text-2xl text-white/90 leading-relaxed max-w-4xl mx-auto font-light">
                 Stay informed about the latest trends, innovations, and insights in wearable technology, 
                 technofurniture, and the future of luxury design.
               </p>
+
+              {/* Decorative Line */}
+              <div className="mt-12 flex justify-center">
+                <div className="w-32 h-1 bg-gradient-to-r from-transparent via-gold-400 to-transparent"></div>
+              </div>
             </div>
+          </div>
+        </section>
+
+        {/* Blog Posts Section */}
+        <section className="section-spacing bg-white">
+          <div className="container-padding">
 
             {/* Blog Posts */}
             {blogPosts.length > 0 ? (

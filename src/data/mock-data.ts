@@ -1,5 +1,5 @@
 // Mock data for development before Contentstack is fully configured
-import { Product, BlogPost, NavigationMenu, SiteSettings } from '@/lib/contentstack';
+import { Product, BlogPost, NavigationMenu, SiteSettings, Page, HomePage } from '@/lib/contentstack';
 
 // Mock products data
 export const mockProducts: Product[] = [
@@ -228,6 +228,101 @@ export const mockSiteSettings: SiteSettings = {
   }
 };
 
+// Mock home page data
+export const mockHomePage: HomePage = {
+  uid: 'home-page',
+  title: 'Demolux Home Page',
+  // Hero Section
+  hero_badge_text: 'Premium Luxury Technology',
+  hero_title: 'Where Innovation Meets Luxury',
+  hero_subtitle: 'Where Innovation',
+  hero_description: 'Discover the future with Demolux premium wearable technology and innovative technofurniture. Each piece is crafted where cutting-edge design meets exceptional performance.',
+  hero_image: [{
+    uid: 'hero-image',
+    url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80',
+    title: 'Demolux Hero Image',
+    filename: 'hero-image.jpg'
+  }],
+  hero_primary_cta: {
+    text: 'Shop Wearable Tech',
+    url: '/categories/wearable-tech'
+  },
+  hero_secondary_cta: {
+    text: 'Explore Technofurniture',
+    url: '/categories/technofurniture'
+  },
+  hero_features: [
+    {
+      icon: 'Award',
+      title: 'Premium Quality',
+      description: 'Exceptional craftsmanship'
+    },
+    {
+      icon: 'Zap',
+      title: 'Innovation',
+      description: 'Cutting-edge technology'
+    },
+    {
+      icon: 'Star',
+      title: 'Luxury Design',
+      description: 'Sophisticated aesthetics'
+    }
+  ],
+  
+  // Featured Products Section
+  featured_section_title: 'Featured Products',
+  featured_section_description: 'Discover our latest innovations in wearable technology and technofurniture, each designed to elevate your lifestyle with premium functionality and style.',
+  featured_products_limit: 4,
+  
+  // Brand Values Section
+  values_section_title: 'The Demolux Difference',
+  values_section_description: 'We don\'t just create products—we craft experiences that seamlessly blend innovation, luxury, and functionality for the modern lifestyle.',
+  value_propositions: [
+    {
+      icon: 'Sparkles',
+      title: 'Innovation First',
+      description: 'We pioneer breakthrough technologies that redefine what\'s possible, from quantum processors to neural interfaces.'
+    },
+    {
+      icon: 'Users',
+      title: 'Human-Centered Design',
+      description: 'Every product is designed with the user at the center, ensuring intuitive experiences that enhance daily life naturally.'
+    },
+    {
+      icon: 'Globe',
+      title: 'Sustainable Luxury',
+      description: 'Premium quality doesn\'t compromise our planet. We use sustainable materials and responsible manufacturing processes.'
+    }
+  ],
+  
+  // Blog Section
+  blog_section_title: 'Latest Insights',
+  blog_section_description: 'Stay informed about the latest trends, innovations, and insights in technology and design.',
+  blog_posts_limit: 3,
+  blog_cta_text: 'View All Posts',
+  
+  // Final CTA Section
+  final_cta: {
+    title: 'Ready to Experience the Future?',
+    description: 'Join thousands of innovators who have already transformed their lives with Demolux premium technology.',
+    primary_button: {
+      text: 'Shop Wearable Tech',
+      url: '/categories/wearable-tech'
+    },
+    secondary_button: {
+      text: 'Explore Technofurniture',
+      url: '/categories/technofurniture'
+    },
+    background_color: 'dark'
+  },
+  
+  // SEO
+  meta_title: 'Demolux - Where Innovation Meets Luxury',
+  meta_description: 'Discover the future with Demolux premium wearable technology and innovative technofurniture. Each piece is crafted where cutting-edge design meets exceptional performance.',
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-15T10:30:00Z'
+};
+
 // Helper functions to simulate API calls
 export const getMockData = {
   products: (category?: string): Product[] => {
@@ -259,6 +354,51 @@ export const getMockData = {
   blogPostBySlug: (slug: string): BlogPost | null => {
     return mockBlogPosts.find(post => post.url === `/blog/${slug}`) || null;
   },
+
+  page: (slug: string): Page | null => {
+    const mockPages: Page[] = [
+      {
+        uid: 'about',
+        title: 'About Us',
+        slug: 'about',
+        meta_description: 'Learn about Demolux - pioneers in luxury wearable technology and technofurniture.',
+        hero_section: {
+          title: 'Redefining Luxury Through Innovation',
+          subtitle: 'At Demolux, we craft the future of premium lifestyle technology, where cutting-edge innovation meets timeless design.'
+        },
+        content_sections: [
+          {
+            section_title: 'Our Story',
+            content: 'Founded in 2020, Demolux emerged from a simple yet revolutionary idea: technology should enhance life without compromising on style or luxury.',
+            layout: 'two-column'
+          }
+        ]
+      },
+      {
+        uid: 'contact',
+        title: 'Contact Us',
+        slug: 'contact',
+        meta_description: 'Get in touch with Demolux. Contact our team for inquiries, support, or to schedule a private viewing.',
+        hero_section: {
+          title: 'Get in Touch',
+          subtitle: 'Experience the future of luxury technology. Contact us to schedule a private viewing or discuss custom solutions.'
+        },
+        content_sections: [
+          {
+            section_title: 'Contact Information',
+            content: '<p>Email: hello@demolux.com<br>Phone: +45 3333 7000</p>',
+            layout: 'centered'
+          }
+        ],
+        contact_form: {
+          show_form: true,
+          form_title: 'Send us a message',
+          form_description: 'We\'d love to hear from you.'
+        }
+      }
+    ];
+    return mockPages.find(page => page.slug === slug) || null;
+  },
   
   navigationMenus: (location?: string): NavigationMenu[] => {
     if (location) {
@@ -269,5 +409,9 @@ export const getMockData = {
   
   siteSettings: (): SiteSettings => {
     return mockSiteSettings;
+  },
+  
+  homePage: (): HomePage => {
+    return mockHomePage;
   }
 };
