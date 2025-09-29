@@ -40,7 +40,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     seo: undefined
   };
 
-  const featuredImage = blogPost.featured_image?.[0];
+  const featuredImage = Array.isArray(blogPost.featured_image) 
+    ? blogPost.featured_image[0] 
+    : blogPost.featured_image;
 
   return (
     <div className="min-h-screen bg-white">

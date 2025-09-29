@@ -46,7 +46,12 @@ export interface Product {
     url: string;
     title: string;
     filename: string;
-  }>;
+  }> | {
+    uid: string;
+    url: string;
+    title: string;
+    filename: string;
+  };
   price: number;
   call_to_action?: {
     title: string;
@@ -68,7 +73,12 @@ export interface BlogPost {
     url: string;
     title: string;
     filename: string;
-  }>;
+  }> | {
+    uid: string;
+    url: string;
+    title: string;
+    filename: string;
+  };
   excerpt?: string;
   author?: string;
   publish_date: string;

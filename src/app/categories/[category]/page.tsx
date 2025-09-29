@@ -68,15 +68,19 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         title: products[0].title,
         hasImage: !!products[0].featured_image,
         imageIsArray: Array.isArray(products[0].featured_image),
-        imageLength: products[0].featured_image?.length,
-        imageUrl: products[0].featured_image?.[0]?.url || products[0].featured_image?.url,
+        imageLength: Array.isArray(products[0].featured_image) ? products[0].featured_image.length : undefined,
+        imageUrl: Array.isArray(products[0].featured_image) 
+          ? products[0].featured_image[0]?.url 
+          : products[0].featured_image?.url,
         rawImageData: products[0].featured_image
       } : null,
       allProducts: products.map(p => ({
         uid: p.uid,
         title: p.title,
         hasImage: !!p.featured_image,
-        imageUrl: p.featured_image?.[0]?.url || p.featured_image?.url
+        imageUrl: Array.isArray(p.featured_image) 
+          ? p.featured_image[0]?.url 
+          : p.featured_image?.url
       }))
     });
   }

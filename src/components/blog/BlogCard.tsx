@@ -11,7 +11,9 @@ interface BlogCardProps {
 }
 
 export function BlogCard({ post, className = '' }: BlogCardProps) {
-  const featuredImage = post.featured_image?.[0];
+  const featuredImage = Array.isArray(post.featured_image) 
+    ? post.featured_image[0] 
+    : post.featured_image;
 
   return (
     <article className={`card-hover group ${className}`}>

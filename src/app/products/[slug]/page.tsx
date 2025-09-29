@@ -44,6 +44,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const categoryPath = product.category === 'wearable-tech' ? 'wearable-tech' : 'technofurniture';
   const categoryName = product.category === 'wearable-tech' ? 'Wearable Tech' : 'Technofurniture';
 
+  // Handle featured_image as either array or single object
+  const images = Array.isArray(product.featured_image) ? product.featured_image : (product.featured_image ? [product.featured_image] : []);
+  const mainImage = images[0];
+
   return (
     <div className="min-h-screen bg-white">
       <Header 
@@ -80,13 +84,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               {/* Product Images */}
               <div className="space-y-4">
-                {product.featured_image && product.featured_image.length > 0 ? (
+                {mainImage ? (
                   <div className="space-y-4">
                     {/* Main Image */}
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                       <Image
-                        src={product.featured_image[0].url}
-                        alt={product.featured_image[0].title || product.title}
+                        src={mainImage.url}
+                        alt={mainImage.title || product.title}
                         width={600}
                         height={600}
                         className="w-full h-full object-cover"
@@ -94,9 +98,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     </div>
                     
                     {/* Thumbnail Gallery */}
-                    {product.featured_image.length > 1 && (
+                    {images.length > 1 && (
                       <div className="grid grid-cols-4 gap-4">
-                        {product.featured_image.map((image, index) => (
+                        {images.map((image, index) => (
                           <div key={image.uid} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                             <Image
                               src={image.url}
