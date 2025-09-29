@@ -77,13 +77,6 @@ export default async function HomePage() {
             }}></div>
           </div>
 
-          {/* Floating Elements */}
-          <div className="absolute inset-0">
-            <div className="absolute top-20 left-10 w-24 h-24 bg-gold-400 rounded-full opacity-5 animate-float"></div>
-            <div className="absolute top-40 right-20 w-16 h-16 bg-gray-400 rounded-full opacity-3 animate-float" style={{ animationDelay: '2s' }}></div>
-            <div className="absolute bottom-20 left-1/4 w-20 h-20 bg-gold-400 rounded-full opacity-4 animate-float" style={{ animationDelay: '4s' }}></div>
-            <div className="absolute bottom-40 right-1/3 w-12 h-12 bg-gray-400 rounded-full opacity-5 animate-float" style={{ animationDelay: '1s' }}></div>
-          </div>
 
           <div className="container-padding relative">
             <div className="text-center mb-16">
@@ -124,8 +117,6 @@ export default async function HomePage() {
             <div className="text-center">
               <div className="inline-flex flex-col sm:flex-row gap-4 p-8 bg-white rounded-2xl shadow-xl border border-gray-200 relative">
                 {/* Decorative elements */}
-                <div className="absolute -top-2 -right-2 w-16 h-16 bg-gold-400 rounded-full opacity-10"></div>
-                <div className="absolute -bottom-3 -left-3 w-20 h-20 bg-gray-900 rounded-full opacity-5"></div>
                 
                 <Link href="/categories/wearable-tech" className="relative z-10">
                   <Button variant="primary" size="lg" className="group">
@@ -145,11 +136,6 @@ export default async function HomePage() {
 
         {/* Brand Values Section */}
         <section className="section-spacing bg-white relative overflow-hidden">
-          {/* Background Elements */}
-          <div className="absolute inset-0 opacity-3">
-            <div className="absolute top-40 left-20 w-32 h-32 bg-gold-400 rounded-full opacity-20 animate-float"></div>
-            <div className="absolute bottom-40 right-20 w-24 h-24 bg-gray-400 rounded-full opacity-15 animate-float" style={{ animationDelay: '3s' }}></div>
-          </div>
 
           <div className="container-padding relative">
             <div className="text-center mb-20">
@@ -192,8 +178,6 @@ export default async function HomePage() {
                   <div key={index} className="relative group">
                     <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 text-center relative overflow-hidden group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
                       {/* Card decorative elements */}
-                      <div className="absolute -top-4 -right-4 w-20 h-20 bg-gold-400 rounded-full opacity-5 group-hover:opacity-10 transition-opacity"></div>
-                      <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gray-900 rounded-full opacity-3 group-hover:opacity-5 transition-opacity"></div>
                       
                       <div className="relative z-10">
                         <div className="w-20 h-20 bg-gradient-to-br from-gold-400 to-gold-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -225,11 +209,6 @@ export default async function HomePage() {
               }}></div>
             </div>
 
-            {/* Floating Elements */}
-            <div className="absolute inset-0">
-              <div className="absolute top-32 right-16 w-20 h-20 bg-gold-400 rounded-full opacity-4 animate-float" style={{ animationDelay: '1s' }}></div>
-              <div className="absolute bottom-32 left-16 w-16 h-16 bg-gray-400 rounded-full opacity-3 animate-float" style={{ animationDelay: '3s' }}></div>
-            </div>
 
             <div className="container-padding relative">
               <div className="text-center mb-16">
@@ -270,7 +249,6 @@ export default async function HomePage() {
               <div className="text-center">
                 <div className="inline-block p-6 bg-white rounded-2xl shadow-xl border border-gray-200 relative">
                   {/* Decorative elements */}
-                  <div className="absolute -top-2 -right-2 w-12 h-12 bg-gold-400 rounded-full opacity-10"></div>
                   
                   <Link href="/blog" className="relative z-10">
                     <Button variant="primary" size="lg" className="group">
@@ -289,13 +267,6 @@ export default async function HomePage() {
           {/* Background Effects */}
           <div className="absolute inset-0 bg-black/30"></div>
           
-          {/* Animated Background Elements */}
-          <div className="absolute inset-0">
-            <div className="absolute top-16 left-16 w-40 h-40 bg-gold-400 rounded-full opacity-5 animate-float"></div>
-            <div className="absolute top-32 right-24 w-24 h-24 bg-white rounded-full opacity-3 animate-float" style={{ animationDelay: '2s' }}></div>
-            <div className="absolute bottom-16 left-1/4 w-32 h-32 bg-gold-400 rounded-full opacity-4 animate-float" style={{ animationDelay: '4s' }}></div>
-            <div className="absolute bottom-32 right-1/3 w-20 h-20 bg-white rounded-full opacity-5 animate-float" style={{ animationDelay: '1s' }}></div>
-          </div>
 
           {/* Grid Pattern */}
           <div className="absolute inset-0 opacity-5">
@@ -335,8 +306,6 @@ export default async function HomePage() {
 
             <div className="inline-flex flex-col sm:flex-row gap-6 p-8 bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 relative">
               {/* Decorative elements */}
-              <div className="absolute -top-6 -right-6 w-24 h-24 bg-gold-400 rounded-full opacity-10"></div>
-              <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white rounded-full opacity-5"></div>
               
               <Link href={homePage?.final_cta?.primary_button?.url || '/categories/wearable-tech'} className="relative z-10">
                 <Button variant="gold" size="lg" className="group shadow-2xl">
