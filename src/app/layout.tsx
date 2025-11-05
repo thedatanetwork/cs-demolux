@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
 import Script from 'next/script'
+import { Suspense } from 'react'
 import './globals.css'
 import { CartProvider } from '@/contexts/CartContext'
 import LyticsTracker from '@/components/LyticsTracker'
@@ -41,7 +42,9 @@ export default function RootLayout({
         </Script>
         
         <CartProvider>
-          <LyticsTracker />
+          <Suspense fallback={null}>
+            <LyticsTracker />
+          </Suspense>
           {children}
         </CartProvider>
       </body>
