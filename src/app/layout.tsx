@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter, Playfair_Display } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import { CartProvider } from '@/contexts/CartContext'
+import LyticsTracker from '@/components/LyticsTracker'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ 
@@ -23,7 +25,23 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="min-h-screen bg-white">
+        {/* Lytics Tracking Tag */}
+        <Script id="lytics-tracking" strategy="afterInteractive">
+          {`
+            !function(){"use strict";var o=window.jstag||(window.jstag={}),r=[];function n(e){o[e]=function(){for(var n=arguments.length,t=new Array(n),i=0;i<n;i++)t[i]=arguments[i];r.push([e,t])}}n("send"),n("mock"),n("identify"),n("pageView"),n("unblock"),n("getid"),n("setid"),n("loadEntity"),n("getEntity"),n("on"),n("once"),n("call"),o.loadScript=function(n,t,i){var e=document.createElement("script");e.async=!0,e.src=n,e.onload=t,e.onerror=i;var o=document.getElementsByTagName("script")[0],r=o&&o.parentNode||document.head||document.body,c=o||r.lastChild;return null!=c?r.insertBefore(e,c):r.appendChild(e),this},o.init=function n(t){return this.config=t,this.loadScript(t.src,function(){if(o.init===n)throw new Error("Load error!");o.init(o.config),function(){for(var n=0;n<r.length;n++){var t=r[n][0],i=r[n][1];o[t].apply(o,i)}r=void 0}()}),this}}();
+
+            // Define config and initialize Lytics tracking tag.
+            jstag.init({
+              src: 'https://c.lytics.io/api/tag/52ef8e900f3baf8a724220d3c8fab234/latest.min.js'
+            });
+
+            // Send page view
+            jstag.pageView();
+          `}
+        </Script>
+        
         <CartProvider>
+          <LyticsTracker />
           {children}
         </CartProvider>
       </body>
