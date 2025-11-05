@@ -33,7 +33,7 @@ export default function RootLayout({
 
             // Define config and initialize Lytics tracking tag.
             jstag.init({
-              src: 'https://c.lytics.io/api/tag/52ef8e900f3baf8a724220d3c8fab234/latest.min.js'
+              src: 'https://c.lytics.io/api/tag/9e2a626dd287ef0c763ca4d1212aa636/latest.min.js'
             });
 
             // Send page view
