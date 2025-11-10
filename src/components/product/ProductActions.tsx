@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { useCart } from '@/contexts/CartContext';
 import { Product } from '@/lib/contentstack';
 import { ShoppingCart, Heart, Share2, Check } from 'lucide-react';
+import { useProductTracking } from '@/components/PersonalizeEventTracker';
 
 interface ProductActionsProps {
   product: Product;
@@ -12,12 +13,16 @@ interface ProductActionsProps {
 
 export function ProductActions({ product }: ProductActionsProps) {
   const { addItem, isInCart } = useCart();
+  const { trackAddToCart } = useProductTracking();
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
 
   const handleAddToCart = async () => {
     setIsAdding(true);
+    
+    // Track add to cart event for personalization
+    trackAddToCart(product.uid, selectedQuantity);
     
     // Add slight delay for better UX
     setTimeout(() => {

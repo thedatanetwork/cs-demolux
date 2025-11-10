@@ -3,9 +3,11 @@
 Demolux is a sophisticated ecommerce website built with Next.js for a high-end accessories brand specializing in wearable technology and technofurniture. The site features seamless Contentstack CMS integration with JSON fallbacks for development.
 
 ## Features
-
+   
 - **🏪 Full Ecommerce Experience**: Product catalogs, categories, detailed product pages
 - **📝 Dynamic Content Management**: Contentstack CMS integration with fallback mock data
+- **🎯 Personalization**: Contentstack Personalize SDK for targeted content and A/B testing
+- **📊 Event Tracking**: User behavior tracking for personalization and analytics
 - **📱 Responsive Design**: Mobile-first, luxury-focused UI/UX
 - **⚡ Modern Stack**: Next.js 14, TypeScript, Tailwind CSS
 - **🎨 Luxury Branding**: Premium design with gold accents and sophisticated typography
@@ -28,6 +30,8 @@ Demolux is a sophisticated ecommerce website built with Next.js for a high-end a
 - **Frontend**: Next.js 14, React 18, TypeScript
 - **Styling**: Tailwind CSS with custom luxury theme
 - **CMS**: Contentstack (with JSON mock fallbacks)
+- **Personalization**: Contentstack Personalize Edge SDK
+- **Analytics**: Lytics tracking + Personalize event tracking
 - **Icons**: Lucide React
 - **Fonts**: Inter, Playfair Display
 - **Deployment**: Optimized for modern hosting platforms
@@ -87,6 +91,21 @@ Demolux is a sophisticated ecommerce website built with Next.js for a high-end a
 
    See [CONTENTSTACK_SETUP.md](./CONTENTSTACK_SETUP.md) for detailed setup instructions.
 
+4. **Option C: Add Personalization (Optional)**
+   
+   Enable personalized content experiences with Contentstack Personalize:
+   
+   ```bash
+   # Add your Personalize Project UID to .env.local
+   NEXT_PUBLIC_CONTENTSTACK_PERSONALIZE_PROJECT_UID=your_project_uid
+   ```
+   
+   See [PERSONALIZE_QUICKSTART.md](./PERSONALIZE_QUICKSTART.md) for a 5-minute setup guide.
+   
+   📖 **Personalization Documentation**:
+   - Quick Start: [PERSONALIZE_QUICKSTART.md](./PERSONALIZE_QUICKSTART.md)
+   - Full Guide: [PERSONALIZE_SETUP.md](./PERSONALIZE_SETUP.md)
+
 ## Project Structure
 
 ```
@@ -102,9 +121,14 @@ src/
 │   ├── layout/           # Layout components
 │   ├── product/          # Product-specific components
 │   ├── blog/             # Blog components
-│   └── home/             # Homepage components
+│   ├── home/             # Homepage components
+│   └── PersonalizeEventTracker.tsx  # Event tracking utilities
+├── contexts/             # React contexts
+│   ├── CartContext.tsx   # Shopping cart state
+│   └── PersonalizeContext.tsx  # Personalization state
 ├── lib/                  # Core utilities
 │   ├── contentstack.ts   # Contentstack SDK setup
+│   ├── personalize.ts    # Personalize SDK setup
 │   ├── data-service.ts   # Data abstraction layer
 │   └── utils.ts          # Helper functions
 └── data/                 # Mock data
@@ -121,6 +145,49 @@ The app is designed to work seamlessly with Contentstack CMS:
 2. **Blog Post**: Blog content and insights  
 3. **Navigation Menu**: Dynamic navigation
 4. **Site Settings**: Global site configuration
+
+## Personalization Features
+
+The site includes full Contentstack Personalize integration for delivering targeted experiences:
+
+### What's Included
+
+- ✅ **SDK Integration**: Personalize Edge SDK configured and ready
+- ✅ **Event Tracking**: Pre-built hooks for product views, cart actions, CTA clicks
+- ✅ **User Attributes**: Set custom attributes for audience targeting
+- ✅ **Content Variants**: Automatic variant delivery based on active experiences
+- ✅ **React Hooks**: Easy-to-use hooks for all personalization features
+
+### Quick Start
+
+```typescript
+// Track events
+import { useProductTracking } from '@/components/PersonalizeEventTracker';
+
+const { trackProductView, trackAddToCart } = useProductTracking();
+trackProductView(productId);
+trackAddToCart(productId, quantity);
+
+// Set user attributes
+import { usePersonalizeAttributes } from '@/contexts/PersonalizeContext';
+
+const { setAttributes } = usePersonalizeAttributes();
+setAttributes({ age: 25, interests: ['tech'] });
+
+// Access personalization data
+import { usePersonalize } from '@/contexts/PersonalizeContext';
+
+const { experiences, variantAliases, isConfigured } = usePersonalize();
+```
+
+### Where Tracking is Implemented
+
+- **Product Pages**: Automatic view tracking on all product detail pages
+- **Add to Cart**: Track when users add products to cart
+- **Hero CTAs**: Track CTA clicks on homepage
+- **Custom Events**: Easy-to-add custom event tracking
+
+See [PERSONALIZE_QUICKSTART.md](./PERSONALIZE_QUICKSTART.md) for complete setup instructions.
 
 ### Development Without Contentstack
 

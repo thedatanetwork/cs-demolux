@@ -1,6 +1,5 @@
-// Data service that abstracts between Contentstack and mock data
+// Data service that provides access to Contentstack CMS
 import { contentstack, Product, BlogPost, NavigationMenu, SiteSettings, Page, HomePage } from './contentstack';
-import { getMockData } from '@/data/mock-data';
 
 // Fallback site settings for when Contentstack is not available
 export const createFallbackSiteSettings = (): SiteSettings => ({
@@ -23,130 +22,80 @@ export class DataService {
       process.env.CONTENTSTACK_DELIVERY_TOKEN
     );
     
-    // Ensure environment variables are properly evaluated during initialization
-    const envCheck = {
-      apiKey: process.env.CONTENTSTACK_API_KEY,
-      deliveryToken: process.env.CONTENTSTACK_DELIVERY_TOKEN,
-      environment: process.env.CONTENTSTACK_ENVIRONMENT
-    };
-    
-    console.log('DataService initialized with Contentstack:', this.useContentstack ? 'enabled' : 'disabled');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('DataService initialized with Contentstack:', this.useContentstack ? 'enabled' : 'disabled');
+    }
     
     if (!this.useContentstack) {
-      console.log('Using mock data fallback - Contentstack not configured');
+      console.warn('⚠️ CONTENTSTACK NOT CONFIGURED - Add credentials to .env.local');
     }
   }
 
   // Products
-  async getProducts(category?: string): Promise<Product[]> {
-    if (this.useContentstack) {
-      try {
-        return await contentstack.getProducts(category);
-      } catch (error) {
-        console.error('Contentstack error, falling back to mock data:', error);
-        return getMockData.products(category);
-      }
+  async getProducts(category?: string, variantAliases?: string[]): Promise<Product[]> {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return getMockData.products(category);
+    return await contentstack.getProducts(category, variantAliases);
   }
 
-  async getProduct(uid: string): Promise<Product | null> {
-    if (this.useContentstack) {
-      try {
-        return await contentstack.getProduct(uid);
-      } catch (error) {
-        console.error('Contentstack error, falling back to mock data:', error);
-        return getMockData.product(uid);
-      }
+  async getProduct(uid: string, variantAliases?: string[]): Promise<Product | null> {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return getMockData.product(uid);
+    return await contentstack.getProduct(uid, variantAliases);
   }
 
-  async getProductBySlug(slug: string): Promise<Product | null> {
-    if (this.useContentstack) {
-      try {
-        return await contentstack.getProductBySlug(slug);
-      } catch (error) {
-        console.error('Contentstack error, falling back to mock data:', error);
-        return getMockData.productBySlug(slug);
-      }
+  async getProductBySlug(slug: string, variantAliases?: string[]): Promise<Product | null> {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return getMockData.productBySlug(slug);
+    return await contentstack.getProductBySlug(slug, variantAliases);
   }
 
   // Blog posts
-  async getBlogPosts(limit?: number): Promise<BlogPost[]> {
-    if (this.useContentstack) {
-      try {
-        return await contentstack.getBlogPosts(limit);
-      } catch (error) {
-        console.error('Contentstack error, falling back to mock data:', error);
-        return getMockData.blogPosts(limit);
-      }
+  async getBlogPosts(limit?: number, variantAliases?: string[]): Promise<BlogPost[]> {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return getMockData.blogPosts(limit);
+    return await contentstack.getBlogPosts(limit, variantAliases);
   }
 
-  async getBlogPost(uid: string): Promise<BlogPost | null> {
-    if (this.useContentstack) {
-      try {
-        return await contentstack.getBlogPost(uid);
-      } catch (error) {
-        console.error('Contentstack error, falling back to mock data:', error);
-        return getMockData.blogPost(uid);
-      }
+  async getBlogPost(uid: string, variantAliases?: string[]): Promise<BlogPost | null> {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return getMockData.blogPost(uid);
+    return await contentstack.getBlogPost(uid, variantAliases);
   }
 
-  async getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
-    if (this.useContentstack) {
-      try {
-        return await contentstack.getBlogPostBySlug(slug);
-      } catch (error) {
-        console.error('Contentstack error, falling back to mock data:', error);
-        return getMockData.blogPostBySlug(slug);
-      }
+  async getBlogPostBySlug(slug: string, variantAliases?: string[]): Promise<BlogPost | null> {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return getMockData.blogPostBySlug(slug);
+    return await contentstack.getBlogPostBySlug(slug, variantAliases);
   }
 
   async getPage(slug: string): Promise<Page | null> {
-    if (this.useContentstack) {
-      try {
-        return await contentstack.getPage(slug);
-      } catch (error) {
-        console.error('Contentstack error, falling back to mock data:', error);
-        return getMockData.page(slug);
-      }
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return getMockData.page(slug);
+    return await contentstack.getPage(slug);
   }
 
   // Navigation menus
   async getNavigationMenus(location?: string): Promise<NavigationMenu[]> {
-    if (this.useContentstack) {
-      try {
-        return await contentstack.getNavigationMenus(location);
-      } catch (error) {
-        console.error('Contentstack error, falling back to mock data:', error);
-        return getMockData.navigationMenus(location);
-      }
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return getMockData.navigationMenus(location);
+    return await contentstack.getNavigationMenus(location);
   }
 
   // Site settings
   async getSiteSettings(): Promise<SiteSettings | null> {
-    if (this.useContentstack) {
-      try {
-        return await contentstack.getSiteSettings();
-      } catch (error) {
-        console.error('Contentstack error, falling back to mock data:', error);
-        return getMockData.siteSettings();
-      }
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return getMockData.siteSettings();
+    return await contentstack.getSiteSettings();
   }
 
   // Get site settings with guaranteed fallback
@@ -183,15 +132,10 @@ export class DataService {
 
   // Home Page
   async getHomePage(): Promise<HomePage | null> {
-    if (this.useContentstack) {
-      try {
-        return await contentstack.getHomePage();
-      } catch (error) {
-        console.error('Contentstack error, falling back to mock data:', error);
-        return getMockData.homePage();
-      }
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return getMockData.homePage();
+    return await contentstack.getHomePage();
   }
 }
 

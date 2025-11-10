@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ArrowRight, Star, Award, Zap, Sparkles, Users, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { HomePage, FeatureItem } from '@/lib/contentstack';
+import { useCTATracking } from '@/components/PersonalizeEventTracker';
 
 interface HeroSectionProps {
   heroData?: HomePage;
@@ -22,6 +23,12 @@ const iconMap = {
 };
 
 export function HeroSection({ heroData }: HeroSectionProps) {
+  const { trackCTAClick } = useCTATracking();
+
+  const handleCTAClick = (ctaId: string, destination: string) => {
+    trackCTAClick(ctaId, destination);
+  };
+
   return (
     <section className="hero-gradient min-h-screen flex items-center">
       <div className="container-padding w-full">
@@ -53,14 +60,20 @@ export function HeroSection({ heroData }: HeroSectionProps) {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                <Link href={heroData?.hero_primary_cta?.url || '/categories/wearable-tech'}>
+                <Link 
+                  href={heroData?.hero_primary_cta?.url || '/categories/wearable-tech'}
+                  onClick={() => handleCTAClick('hero_primary_cta', heroData?.hero_primary_cta?.url || '/categories/wearable-tech')}
+                >
                   <Button size="xl" className="w-full sm:w-auto group">
                     {heroData?.hero_primary_cta?.text || 'Shop Wearable Tech'}
                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
                   </Button>
                 </Link>
                 
-                <Link href={heroData?.hero_secondary_cta?.url || '/categories/technofurniture'}>
+                <Link 
+                  href={heroData?.hero_secondary_cta?.url || '/categories/technofurniture'}
+                  onClick={() => handleCTAClick('hero_secondary_cta', heroData?.hero_secondary_cta?.url || '/categories/technofurniture')}
+                >
                   <Button variant="outline" size="xl" className="w-full sm:w-auto">
                     {heroData?.hero_secondary_cta?.text || 'Explore Technofurniture'}
                   </Button>

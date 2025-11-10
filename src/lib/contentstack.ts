@@ -246,14 +246,26 @@ export class ContentstackService {
     return !!this.stack;
   }
 
+
   // Generic method to fetch content
-  async getEntries<T>(contentType: string, query?: any): Promise<T[]> {
+  async getEntries<T>(contentType: string, query?: any, variantAliases?: string[]): Promise<T[]> {
     if (!this.isConfigured()) {
       return [];
     }
 
     try {
       const Query = this.stack.ContentType(contentType).Query();
+      
+      // Add variant aliases if provided for personalized content
+      // Using the .variants() method as per Contentstack documentation
+      if (variantAliases && variantAliases.length > 0) {
+        console.log('🎯 Adding variant aliases to Contentstack query:', {
+          contentType,
+          variantAliases,
+          variantParam: variantAliases.join(',')
+        });
+        Query.variants(variantAliases.join(','));
+      }
       
       // Include all fields for product and blog content types
       if (contentType === 'product') {
@@ -295,7 +307,7 @@ export class ContentstackService {
   }
 
   // Get single entry
-  async getEntry<T>(contentType: string, uid: string): Promise<T | null> {
+  async getEntry<T>(contentType: string, uid: string, variantAliases?: string[]): Promise<T | null> {
     if (!this.isConfigured()) {
       return null;
     }
@@ -303,6 +315,12 @@ export class ContentstackService {
     try {
       const Query = this.stack.ContentType(contentType).Query();
       Query.where('uid', uid);
+      
+      // Add variant aliases if provided for personalized content
+      // Using the .variants() method as per Contentstack documentation
+      if (variantAliases && variantAliases.length > 0) {
+        Query.variants(variantAliases.join(','));
+      }
       
       // Include all fields for product and blog content types
       if (contentType === 'product') {
@@ -330,7 +348,7 @@ export class ContentstackService {
   }
 
   // Specific methods for our content types
-  async getProducts(category?: string): Promise<Product[]> {
+  async getProducts(category?: string, variantAliases?: string[]): Promise<Product[]> {
     const query: any = { orderByDescending: 'created_at' };
     
     if (category) {
@@ -340,7 +358,7 @@ export class ContentstackService {
       console.log('Fetching all products (no category filter)');
     }
 
-    const products = await this.getEntries<Product>('product', query);
+    const products = await this.getEntries<Product>('product', query, variantAliases);
     console.log(`Found ${products.length} products for category: ${category || 'all'}`);
     
     if (products.length > 0) {
@@ -352,25 +370,41 @@ export class ContentstackService {
     return products;
   }
 
-  async getProduct(uid: string): Promise<Product | null> {
-    return this.getEntry<Product>('product', uid);
+  async getProduct(uid: string, variantAliases?: string[]): Promise<Product | null> {
+    return this.getEntry<Product>('product', uid, variantAliases);
   }
 
-  async getProductBySlug(slug: string): Promise<Product | null> {
+  async getProductBySlug(slug: string, variantAliases?: string[]): Promise<Product | null> {
+    console.log('🔍 ContentstackService.getProductBySlug called:', {
+      slug,
+      variantAliases,
+      hasVariants: !!(variantAliases && variantAliases.length > 0)
+    });
+    
     const products = await this.getEntries<Product>('product', {
       where: { url: `/products/${slug}` }
+    }, variantAliases);
+    
+    console.log('📦 ContentstackService.getProductBySlug result:', {
+      found: products.length,
+      firstProduct: products[0] ? {
+        uid: products[0].uid,
+        title: products[0].title,
+        price: products[0].price
+      } : null
     });
+    
     return products[0] || null;
   }
 
-  async getBlogPosts(limit?: number): Promise<BlogPost[]> {
+  async getBlogPosts(limit?: number, variantAliases?: string[]): Promise<BlogPost[]> {
     const query: any = { orderByDescending: 'publish_date' };
     
     if (limit) {
       query.limit = limit;
     }
 
-    return this.getEntries<BlogPost>('blog_post', query);
+    return this.getEntries<BlogPost>('blog_post', query, variantAliases);
   }
 
   // Debug method to list all products
@@ -386,14 +420,14 @@ export class ContentstackService {
     }
   }
 
-  async getBlogPost(uid: string): Promise<BlogPost | null> {
-    return this.getEntry<BlogPost>('blog_post', uid);
+  async getBlogPost(uid: string, variantAliases?: string[]): Promise<BlogPost | null> {
+    return this.getEntry<BlogPost>('blog_post', uid, variantAliases);
   }
 
-  async getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  async getBlogPostBySlug(slug: string, variantAliases?: string[]): Promise<BlogPost | null> {
     const posts = await this.getEntries<BlogPost>('blog_post', {
       where: { url: `/blog/${slug}` }
-    });
+    }, variantAliases);
     return posts[0] || null;
   }
 

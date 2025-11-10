@@ -4,6 +4,7 @@ import Script from 'next/script'
 import { Suspense } from 'react'
 import './globals.css'
 import { CartProvider } from '@/contexts/CartContext'
+import { PersonalizeProvider } from '@/contexts/PersonalizeContext'
 import LyticsTracker from '@/components/LyticsTracker'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -42,10 +43,12 @@ export default function RootLayout({
         </Script>
         
         <CartProvider>
-          <Suspense fallback={null}>
-            <LyticsTracker />
-          </Suspense>
-          {children}
+          <PersonalizeProvider>
+            <Suspense fallback={null}>
+              <LyticsTracker />
+            </Suspense>
+            {children}
+          </PersonalizeProvider>
         </CartProvider>
       </body>
     </html>

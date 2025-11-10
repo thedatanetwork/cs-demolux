@@ -1,0 +1,164 @@
+'use client';
+
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { PersonalizeSDK, Experience, personalizeService } from '@/lib/personalize';
+
+interface PersonalizeContextType {
+  sdk: PersonalizeSDK | null;
+  experiences: Experience[];
+  variantAliases: string[];
+  isLoading: boolean;
+  isConfigured: boolean;
+  triggerEvent: (eventKey: string, data?: Record<string, any>) => Promise<void>;
+  setUserAttributes: (attributes: Record<string, any>) => Promise<void>;
+}
+
+const PersonalizeContext = createContext<PersonalizeContextType | undefined>(undefined);
+
+interface PersonalizeProviderProps {
+  children: ReactNode;
+  userId?: string;
+  liveAttributes?: Record<string, any>;
+}
+
+export function PersonalizeProvider({ 
+  children, 
+  userId,
+  liveAttributes 
+}: PersonalizeProviderProps) {
+  const [sdk, setSdk] = useState<PersonalizeSDK | null>(null);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [variantAliases, setVariantAliases] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isConfigured] = useState(personalizeService.isConfigured());
+
+  // Define initialize outside useEffect so it can be reused
+  const initialize = async () => {
+      if (!isConfigured) {
+        console.log('Personalize not configured, skipping initialization');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        
+        // Extract query parameters from URL for targeting
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryParams: Record<string, string> = {};
+        urlParams.forEach((value, key) => {
+          queryParams[key] = value;
+        });
+        
+        // Merge URL params with any provided live attributes
+        const mergedAttributes = {
+          ...queryParams,
+          ...liveAttributes
+        };
+        
+        console.log('🔍 Initializing Personalize with attributes:', mergedAttributes);
+        
+        const personalizeSDK = await personalizeService.initializeClient(
+          userId,
+          mergedAttributes
+        );
+
+        if (personalizeSDK) {
+          setSdk(personalizeSDK);
+          
+          // Get experiences and variant aliases
+          const exp = personalizeSDK.getExperiences();
+          const aliases = personalizeSDK.getVariantAliases();
+          
+          setExperiences(exp);
+          setVariantAliases(aliases);
+          
+          console.log('Personalize initialized with experiences:', exp);
+          console.log('Variant aliases:', aliases);
+        }
+      } catch (error) {
+        console.error('Error initializing Personalize:', error);
+      } finally {
+        setIsLoading(false);
+      }
+  };
+
+  useEffect(() => {
+    initialize();
+  }, [userId, liveAttributes, isConfigured]);
+
+  const triggerEvent = async (eventKey: string, data?: Record<string, any>) => {
+    if (!sdk) {
+      console.warn('Personalize SDK not initialized, cannot trigger event:', eventKey);
+      return;
+    }
+
+    try {
+      await sdk.triggerEvent(eventKey, data);
+      console.log('Event triggered:', eventKey, data);
+    } catch (error) {
+      console.error('Error triggering event:', eventKey, error);
+    }
+  };
+
+  const setUserAttributes = async (attributes: Record<string, any>) => {
+    if (!sdk) {
+      console.warn('Personalize SDK not initialized, cannot set attributes');
+      return;
+    }
+
+    try {
+      await sdk.set(attributes);
+      console.log('User attributes set:', attributes);
+    } catch (error) {
+      console.error('Error setting user attributes:', error);
+    }
+  };
+
+  const value: PersonalizeContextType = {
+    sdk,
+    experiences,
+    variantAliases,
+    isLoading,
+    isConfigured,
+    triggerEvent,
+    setUserAttributes,
+  };
+
+  return (
+    <PersonalizeContext.Provider value={value}>
+      {children}
+    </PersonalizeContext.Provider>
+  );
+}
+
+export function usePersonalize(): PersonalizeContextType {
+  const context = useContext(PersonalizeContext);
+  
+  if (context === undefined) {
+    throw new Error('usePersonalize must be used within a PersonalizeProvider');
+  }
+  
+  return context;
+}
+
+// Hook for easy event tracking
+export function usePersonalizeEvent() {
+  const { triggerEvent, isConfigured } = usePersonalize();
+  
+  return {
+    trackEvent: triggerEvent,
+    isConfigured,
+  };
+}
+
+// Hook for user attributes
+export function usePersonalizeAttributes() {
+  const { setUserAttributes, isConfigured } = usePersonalize();
+  
+  return {
+    setAttributes: setUserAttributes,
+    isConfigured,
+  };
+}
+

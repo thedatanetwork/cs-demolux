@@ -1,0 +1,18 @@
+# Add this to your .env.local file for Contentstack Personalize
+
+# Contentstack Personalize Configuration
+# Get your Project UID from: Contentstack → Personalize → Projects
+NEXT_PUBLIC_CONTENTSTACK_PERSONALIZE_PROJECT_UID=your_project_uid_here
+
+# Important: The NEXT_PUBLIC_ prefix is required for the SDK to work in the browser
+# This enables client-side event tracking and real-time personalization
+
+# Example:
+# NEXT_PUBLIC_CONTENTSTACK_PERSONALIZE_PROJECT_UID=abc123def456
+
+# Keep your existing Contentstack CMS variables:
+# CONTENTSTACK_API_KEY=your_api_key
+# CONTENTSTACK_DELIVERY_TOKEN=your_delivery_token
+# CONTENTSTACK_ENVIRONMENT=development
+# CONTENTSTACK_REGION=US
+
