@@ -5,6 +5,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { dataService } from '@/lib/data-service';
+import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import { ValueProposition } from '@/lib/contentstack';
 import Link from 'next/link';
 import { ArrowRight, Sparkles, Users, Globe } from 'lucide-react';
@@ -17,7 +18,10 @@ const iconMap = {
 };
 
 export default async function HomePage() {
-  // Fetch data for the homepage
+  // Get variant aliases from cookies (for personalization without flicker)
+  const variantAliases = await getVariantAliasesFromCookies();
+  
+  // Fetch data for the homepage with personalization
   const [
     homePage,
     featuredProducts,
@@ -26,8 +30,8 @@ export default async function HomePage() {
     siteSettings
   ] = await Promise.all([
     dataService.getHomePage(),
-    dataService.getFeaturedProducts(4),
-    dataService.getRecentBlogPosts(3),
+    dataService.getFeaturedProducts(4, variantAliases),
+    dataService.getRecentBlogPosts(3, variantAliases),
     dataService.getNavigationMenus(),
     dataService.getSiteSettings()
   ]);

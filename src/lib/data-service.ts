@@ -105,21 +105,21 @@ export class DataService {
   }
 
   // Helper methods for common queries
-  async getWearableTech(): Promise<Product[]> {
-    return this.getProducts('wearable-tech');
+  async getWearableTech(variantAliases?: string[]): Promise<Product[]> {
+    return this.getProducts('wearable-tech', variantAliases);
   }
 
-  async getTechnofurniture(): Promise<Product[]> {
-    return this.getProducts('technofurniture');
+  async getTechnofurniture(variantAliases?: string[]): Promise<Product[]> {
+    return this.getProducts('technofurniture', variantAliases);
   }
 
-  async getFeaturedProducts(limit: number = 4): Promise<Product[]> {
-    const products = await this.getProducts();
+  async getFeaturedProducts(limit: number = 4, variantAliases?: string[]): Promise<Product[]> {
+    const products = await this.getProducts(undefined, variantAliases);
     return products.slice(0, limit);
   }
 
-  async getRecentBlogPosts(limit: number = 3): Promise<BlogPost[]> {
-    return this.getBlogPosts(limit);
+  async getRecentBlogPosts(limit: number = 3, variantAliases?: string[]): Promise<BlogPost[]> {
+    return this.getBlogPosts(limit, variantAliases);
   }
 
   async getHeaderNavigation(): Promise<NavigationMenu[]> {

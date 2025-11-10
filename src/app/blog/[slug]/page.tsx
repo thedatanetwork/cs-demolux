@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { dataService } from '@/lib/data-service';
+import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import { formatDate } from '@/lib/utils';
 import { Calendar, User, ArrowLeft, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -18,9 +19,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   // Get blog post by slug instead of UID
   const slug = params.slug;
   
-  // Fetch data
+  // Get variant aliases from cookies (for personalization without flicker)
+  const variantAliases = await getVariantAliasesFromCookies();
+  
+  // Fetch data with personalization
   const [blogPost, navigation, siteSettings] = await Promise.all([
-    dataService.getBlogPostBySlug(slug),
+    dataService.getBlogPostBySlug(slug, variantAliases),
     dataService.getNavigationMenus(),
     dataService.getSiteSettings()
   ]);

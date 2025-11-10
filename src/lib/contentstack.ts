@@ -31,7 +31,8 @@ if (stackConfig.api_key && stackConfig.delivery_token) {
     console.error('Failed to initialize Contentstack:', error);
   }
 } else {
-  console.warn('Contentstack credentials not configured. Using mock data fallbacks.');
+  console.error('⚠️ CONTENTSTACK NOT CONFIGURED - Add credentials to .env.local file');
+  console.error('Required: CONTENTSTACK_API_KEY, CONTENTSTACK_DELIVERY_TOKEN, CONTENTSTACK_ENVIRONMENT');
 }
 
 // Type definitions for our content models

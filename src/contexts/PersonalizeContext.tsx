@@ -73,6 +73,13 @@ export function PersonalizeProvider({
           setExperiences(exp);
           setVariantAliases(aliases);
           
+          // Store variant aliases in cookie for server-side access
+          // This enables SSR to fetch personalized content without flicker
+          if (aliases && aliases.length > 0) {
+            document.cookie = `cs_personalize_variants=${encodeURIComponent(JSON.stringify(aliases))}; path=/; max-age=86400; SameSite=Lax`;
+            console.log('🍪 Client: Stored variant aliases in cookie:', aliases);
+          }
+          
           console.log('Personalize initialized with experiences:', exp);
           console.log('Variant aliases:', aliases);
         }

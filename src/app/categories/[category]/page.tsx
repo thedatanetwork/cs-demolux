@@ -3,6 +3,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProductCard } from '@/components/product/ProductCard';
 import { dataService } from '@/lib/data-service';
+import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 
 interface CategoryPageProps {
   params: {
@@ -52,9 +53,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     notFound();
   }
 
-  // Fetch data
+  // Get variant aliases from cookies (for personalization without flicker)
+  const variantAliases = await getVariantAliasesFromCookies();
+
+  // Fetch data with personalization
   const [products, navigation, siteSettings] = await Promise.all([
-    dataService.getProducts(params.category),
+    dataService.getProducts(params.category, variantAliases),
     dataService.getNavigationMenus(),
     dataService.getSiteSettings()
   ]);

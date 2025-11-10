@@ -2,6 +2,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { dataService } from '@/lib/data-service';
+import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 
 export const metadata = {
   title: 'Blog | Demolux',
@@ -9,9 +10,12 @@ export const metadata = {
 };
 
 export default async function BlogPage() {
-  // Fetch data
+  // Get variant aliases from cookies (for personalization without flicker)
+  const variantAliases = await getVariantAliasesFromCookies();
+  
+  // Fetch data with personalization
   const [blogPosts, navigation, siteSettings] = await Promise.all([
-    dataService.getBlogPosts(),
+    dataService.getBlogPosts(undefined, variantAliases),
     dataService.getNavigationMenus(),
     dataService.getSiteSettings()
   ]);
