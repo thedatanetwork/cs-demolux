@@ -168,29 +168,30 @@ export function SearchOverlay({ isOpen, onClose, products }: SearchOverlayProps)
                     key={product.uid}
                     href={product.url}
                     onClick={() => handleResultClick(product)}
-                    className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl hover:border-gold-400 transition-all duration-300 group"
+                    className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl hover:border-gold-400 transition-all duration-300 group flex"
                   >
-                    <div className="flex">
                       {/* Product Image */}
                       {imageUrl && (
-                        <div className="w-32 h-32 flex-shrink-0 bg-gray-100">
+                        <div className="w-32 h-full flex-shrink-0 bg-gray-100 relative">
                           <img
                             src={imageUrl}
                             alt={product.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                           />
                         </div>
                       )}
 
                       {/* Product Info */}
-                      <div className="flex-1 p-4">
-                        <h3 className="font-heading text-lg font-semibold text-gray-900 mb-2 group-hover:text-gold-600 transition-colors">
-                          {product.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                          {product.description}
-                        </p>
-                        <div className="flex items-center justify-between">
+                      <div className={`flex-1 p-4 flex flex-col justify-between ${!imageUrl ? 'pl-4' : ''}`}>
+                        <div>
+                          <h3 className="font-heading text-lg font-semibold text-gray-900 mb-2 group-hover:text-gold-600 transition-colors">
+                            {product.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                            {product.description}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
                           <span className="text-lg font-bold text-gray-900">
                             ${product.price?.toLocaleString()}
                           </span>
@@ -199,7 +200,6 @@ export function SearchOverlay({ isOpen, onClose, products }: SearchOverlayProps)
                           </span>
                         </div>
                       </div>
-                    </div>
                   </Link>
                 );
               })}
