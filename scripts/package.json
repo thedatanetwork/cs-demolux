@@ -4,8 +4,13 @@
   "description": "Scripts for managing DemoLux Contentstack content",
   "main": "create-about-page.js",
   "scripts": {
+    "test-connection": "node test-connection.js",
     "create-about-page": "node create-about-page.js",
-    "test-connection": "node test-connection.js"
+    "create-privacy-page": "node create-privacy-page.js",
+    "create-terms-page": "node create-terms-page.js",
+    "create-shipping-page": "node create-shipping-page.js",
+    "create-support-page": "node create-support-page.js",
+    "create-all-pages": "node create-about-page.js && node create-privacy-page.js && node create-terms-page.js && node create-shipping-page.js && node create-support-page.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",
