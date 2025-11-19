@@ -138,10 +138,10 @@ export default async function AboutPage() {
                       {/* Decorative elements */}
                       <div className="absolute -top-4 -right-4 w-24 h-24 bg-gold-400 rounded-full opacity-10"></div>
                       <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gray-900 rounded-full opacity-5"></div>
-                      
-                      <div 
-                        className="prose prose-xl max-w-none leading-relaxed relative z-10"
-                        style={{ 
+
+                      <div
+                        className="prose prose-xl max-w-none leading-relaxed relative z-10 [&_p]:mb-6"
+                        style={{
                           color: '#111827',
                           fontSize: '1.125rem',
                           lineHeight: '1.8'

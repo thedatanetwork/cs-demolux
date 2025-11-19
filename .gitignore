@@ -71,8 +71,9 @@ temp/
 .env*
 !.env.example
 
-# Contentstack setup scripts (contain Management API code - keep private)
-scripts/
+# Scripts .env files (contain sensitive tokens)
+scripts/.env
+scripts/**/.env
 
 # Local development files
 .vercel
