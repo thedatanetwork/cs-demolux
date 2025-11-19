@@ -23,7 +23,7 @@ export default async function ProductsPage() {
 
   console.log('All Products Page:', {
     totalProducts: products.length,
-    categories: [...new Set(products.map(p => p.category))],
+    categories: Array.from(new Set(products.map(p => p.category))),
     products: products.map(p => ({ uid: p.uid, title: p.title, category: p.category }))
   });
 
