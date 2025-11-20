@@ -11,17 +11,6 @@ interface SearchOverlayProps {
   products: Product[];
 }
 
-// Type declaration for Lytics jstag
-declare global {
-  interface Window {
-    jstag?: {
-      send: (data: { stream: string; data: any }) => void;
-      pageView: () => void;
-      loadEntity: (callback?: (profile: any) => void) => void;
-    };
-  }
-}
-
 export function SearchOverlay({ isOpen, onClose, products }: SearchOverlayProps) {
   const [query, setQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);

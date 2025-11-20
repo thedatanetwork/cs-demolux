@@ -33,7 +33,7 @@ export default function LyticsTracker() {
 // Type declaration for jstag
 declare global {
   interface Window {
-    jstag: {
+    jstag?: {
       pageView: () => void;
       loadEntity: (callback?: (profile: any) => void) => void;
       getEntity: (callback?: (entity: any) => void) => void;
