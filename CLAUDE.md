@@ -186,7 +186,34 @@ CONTENTSTACK_APP_HOST=app.contentstack.com
 CONTENTSTACK_LIVE_PREVIEW=true
 ```
 
+### Management Token for Scripts
+
+For scripts that modify CMS schemas or create content programmatically, the **Contentstack Management Token** is stored in `scripts/.env` (not `.env.local`). This keeps write-access credentials separate from the main application.
+
+**Script Environment Variables** (`scripts/.env`):
+```bash
+CONTENTSTACK_API_KEY=
+CONTENTSTACK_MANAGEMENT_TOKEN=   # Required for schema modifications
+CONTENTSTACK_DELIVERY_TOKEN=
+CONTENTSTACK_ENVIRONMENT=dev
+CONTENTSTACK_REGION=US
+```
+
 **Security**: Management tokens have full CMS write access - never commit them. API keys and delivery tokens are read-only and safe to be public.
+
+### Management Scripts
+
+The `scripts/` directory contains utilities for programmatically managing Contentstack content and schemas:
+
+```bash
+cd scripts
+npm run test-connection        # Test Contentstack connection
+npm run add-product-images     # Add additional_images field to Product content type
+npm run create-about-page      # Create/update About page
+npm run create-new-products    # Create new product entries
+```
+
+See `scripts/README.md` for full documentation.
 
 ## TypeScript
 

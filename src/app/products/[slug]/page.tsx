@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProductViewTracker } from '@/components/product/ProductViewTracker';
 import { ProductActions } from '@/components/product/ProductActions';
+import { ProductImageGallery } from '@/components/product/ProductImageGallery';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import { formatPrice } from '@/lib/utils';
@@ -48,12 +48,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const categoryPath = product.category === 'wearable-tech' ? 'wearable-tech' : 'technofurniture';
   const categoryName = product.category === 'wearable-tech' ? 'Wearable Tech' : 'Technofurniture';
 
-  // Handle featured_image as either array or single object
-  const images = Array.isArray(product.featured_image)
-    ? product.featured_image
-    : (product.featured_image ? [product.featured_image] : []);
-  const mainImage = images[0];
-
   return (
     <div className="min-h-screen bg-white">
       {/* Track product view for personalization */}
@@ -91,45 +85,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <section className="section-spacing">
           <div className="container-padding">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              {/* Product Images */}
-              <div className="space-y-4">
-                {mainImage ? (
-                  <div className="space-y-4">
-                    {/* Main Image */}
-                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                      <Image
-                        src={mainImage.url}
-                        alt={mainImage.title || product.title}
-                        width={600}
-                        height={600}
-                        className="w-full h-full object-cover"
-                        priority
-                      />
-                    </div>
-
-                    {/* Thumbnail Gallery */}
-                    {images.length > 1 && (
-                      <div className="grid grid-cols-4 gap-4">
-                        {images.map((image, index) => (
-                          <div key={image.uid} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                            <Image
-                              src={image.url}
-                              alt={image.title || `${product.title} ${index + 1}`}
-                              width={150}
-                              height={150}
-                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span className="text-gray-400">No Image Available</span>
-                  </div>
-                )}
-              </div>
+              {/* Product Images Gallery */}
+              <ProductImageGallery
+                productTitle={product.title}
+                featuredImage={product.featured_image}
+                additionalImages={product.additional_images}
+              />
 
               {/* Product Info */}
               <div className="space-y-6">

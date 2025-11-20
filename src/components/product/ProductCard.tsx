@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from '@/lib/contentstack';
@@ -18,11 +18,44 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
   const { addItem, isInCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
-  
-  // Handle both array and single object formats for featured_image
-  const mainImage = Array.isArray(product.featured_image) 
-    ? product.featured_image[0] 
-    : product.featured_image;
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Combine featured_image and additional_images into a single array
+  const featuredImages = Array.isArray(product.featured_image)
+    ? product.featured_image
+    : product.featured_image ? [product.featured_image] : [];
+
+  const additionalImages = product.additional_images || [];
+  const allImages = [...featuredImages, ...additionalImages];
+  const hasMultipleImages = allImages.length > 1;
+
+  const currentImage = allImages[currentImageIndex] || null;
+
+  // Cycle through images on hover
+  useEffect(() => {
+    if (isHovering && hasMultipleImages) {
+      intervalRef.current = setInterval(() => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % allImages.length);
+      }, 800); // Change image every 800ms
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      // Reset to first image when not hovering
+      if (!isHovering) {
+        setCurrentImageIndex(0);
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [isHovering, hasMultipleImages, allImages.length]);
 
   const handleAddToCart = async () => {
     setIsAdding(true);
@@ -41,21 +74,34 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
   return (
     <div className={`card-hover group ${className}`}>
       {/* Product Image */}
-      <div className="relative aspect-square overflow-hidden bg-gray-100">
-        {mainImage ? (
-          <Image
-            src={mainImage.url}
-            alt={mainImage.title || product.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
+      <div
+        className="relative aspect-square overflow-hidden bg-gray-100"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      >
+        {currentImage ? (
+          <>
+            <Image
+              src={currentImage.url}
+              alt={currentImage.title || product.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+
+            {/* Image counter indicator */}
+            {hasMultipleImages && (
+              <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                {currentImageIndex + 1}/{allImages.length}
+              </div>
+            )}
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200">
             <span className="text-gray-400">No Image</span>
           </div>
         )}
-        
+
         {/* Overlay on hover */}
         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300" />
       </div>

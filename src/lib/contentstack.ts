@@ -53,6 +53,12 @@ export interface Product {
     title: string;
     filename: string;
   };
+  additional_images?: Array<{
+    uid: string;
+    url: string;
+    title: string;
+    filename: string;
+  }>; // New field for additional product images
   price: number;
   call_to_action?: {
     title: string;
@@ -270,7 +276,7 @@ export class ContentstackService {
       
       // Include all fields for product and blog content types
       if (contentType === 'product') {
-        Query.includeReference(['featured_image']);
+        Query.includeReference(['featured_image', 'additional_images']);
         Query.includeMetadata();
       } else if (contentType === 'blog_post') {
         Query.includeReference(['featured_image']);
@@ -325,7 +331,7 @@ export class ContentstackService {
       
       // Include all fields for product and blog content types
       if (contentType === 'product') {
-        Query.includeReference(['featured_image']);
+        Query.includeReference(['featured_image', 'additional_images']);
         Query.includeMetadata();
       } else if (contentType === 'blog_post') {
         Query.includeReference(['featured_image']);
