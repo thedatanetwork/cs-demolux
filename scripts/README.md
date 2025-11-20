@@ -54,6 +54,82 @@ This will:
 - Publish the page to the configured environment
 - Make it immediately visible at `/about`
 
+### Create New Products
+Create and publish 8 new luxury products to the catalog:
+
+```bash
+npm run create-new-products
+```
+
+This will:
+- Create 8 new product entries (2 wearable-tech, 6 technofurniture)
+- Automatically publish all products to the configured environment
+- Skip any products that already exist (safe to re-run)
+- Show a summary of created vs skipped products
+
+**Products Created:**
+- LuminFrame™ Ambient Display Mirror ($4,299)
+- HaloVibe™ Resonance Table ($3,599)
+- FluxBand™ Kinetic Wearable Display ($899)
+- EtherSphere™ Floating Light Orb ($599)
+- AeroSlate™ Smart Wall Panel ($399)
+- VeloChair™ Motion-Adaptive Lounge Seat ($5,499)
+- PrismFold™ Pocket Hologram Projector ($1,299)
+- PulseLine™ Interactive Floor Strip ($799)
+
+**After running:**
+1. Log into Contentstack
+2. Navigate to Entries → Product
+3. Upload featured images for each new product
+4. Re-publish after adding images
+
+Products will automatically appear on the homepage, category pages, and in search results.
+
+### Add Product Images Field
+Update the Product content type schema to support multiple images:
+
+```bash
+npm run add-product-images
+```
+
+This will:
+- Add an `additional_images` field to the Product content type
+- Configure it as a multiple file field (optional)
+- Enable product galleries and image cycling on hover
+- Safe to re-run (checks if field already exists)
+
+**After running:**
+1. Log into Contentstack
+2. Navigate to Content Models → Product to verify the new field
+3. Edit existing products to upload additional images
+4. Save and publish products
+5. View products on the site to see the new image gallery and hover effects
+
+### Update URL Fields to URL Field Type
+Convert text fields to URL field type for proper URL handling:
+
+```bash
+npm run update-url-fields
+```
+
+This will:
+- Convert `url` field in Product content type from text to URL field
+- Convert `url` field in Blog Post content type from text to URL field
+- Convert `slug` field in Page content type from text to URL field
+- Add helpful placeholder text and instructions for each field
+- Safe to re-run (checks if field is already URL type)
+
+**Benefits:**
+- URL-specific validation and constraints
+- Better content creator experience with guidance
+- Support for unique URL enforcement
+- Designed specifically for webpage routing
+
+**After running:**
+1. Log into Contentstack to verify the changes
+2. Existing content will continue to work (data format unchanged)
+3. New content will benefit from URL field validation and guidance
+
 ## Workflow
 
 1. First, test your connection:
