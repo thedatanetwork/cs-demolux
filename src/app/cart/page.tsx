@@ -240,7 +240,7 @@ export default function CartPage() {
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                   <h3 className="font-semibold text-gray-900 mb-1">
-                                    <Link href={item.product.url} className="hover:text-gold-600 transition-colors">
+                                    <Link href={item.product.url.href} className="hover:text-gold-600 transition-colors">
                                       {item.product.title}
                                     </Link>
                                   </h3>

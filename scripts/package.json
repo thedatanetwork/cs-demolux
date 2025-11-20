@@ -13,7 +13,9 @@
     "create-all-pages": "node create-about-page.js && node create-privacy-page.js && node create-terms-page.js && node create-shipping-page.js && node create-support-page.js",
     "create-new-products": "node create-new-products.js",
     "add-product-images": "node add-product-images.js",
-    "update-url-fields": "node update-url-fields.js"
+    "update-url-fields": "node update-url-fields.js",
+    "revert-url-fields": "node revert-url-fields.js",
+    "restore-product-urls": "node restore-product-urls.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",

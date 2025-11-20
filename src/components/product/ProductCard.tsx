@@ -185,7 +185,7 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
       {/* Product Info */}
       <div className="p-6">
         <div className="mb-4">
-          <Link href={product.url} className="group">
+          <Link href={product.url.href} className="group">
             <h3 className="font-heading text-xl font-semibold text-gray-900 group-hover:text-gray-700 transition-colors duration-200 line-clamp-2">
               {product.title}
             </h3>
@@ -236,7 +236,7 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
             )}
           </Button>
           
-          <Link href={product.url} className="flex-1">
+          <Link href={product.url.href} className="flex-1">
             <Button variant="outline" className="w-full">
               View Details
             </Button>

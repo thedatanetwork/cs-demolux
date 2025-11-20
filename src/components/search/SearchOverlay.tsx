@@ -145,7 +145,7 @@ export function SearchOverlay({ isOpen, onClose, products }: SearchOverlayProps)
                 return (
                   <Link
                     key={product.uid}
-                    href={product.url}
+                    href={product.url.href}
                     onClick={() => handleResultClick(product)}
                     className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl hover:border-gold-400 transition-all duration-300 group flex"
                   >

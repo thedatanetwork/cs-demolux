@@ -188,7 +188,7 @@ export function ProductActions({ product }: ProductActionsProps) {
         isOpen={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
         productTitle={product.title}
-        productUrl={product.url}
+        productUrl={product.url.href}
         onShare={handleShare}
       />
     </div>

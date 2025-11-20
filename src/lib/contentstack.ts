@@ -39,7 +39,10 @@ if (stackConfig.api_key && stackConfig.delivery_token) {
 export interface Product {
   uid: string;
   title: string;
-  url: string;
+  url: {
+    title: string;
+    href: string;
+  };
   description: string;
   detailed_description?: string; // New field for product detail pages
   featured_image: Array<{
@@ -73,7 +76,10 @@ export interface Product {
 export interface BlogPost {
   uid: string;
   title: string;
-  url: string;
+  url: {
+    title: string;
+    href: string;
+  };
   content: string;
   featured_image?: Array<{
     uid: string;
@@ -97,7 +103,10 @@ export interface BlogPost {
 export interface Page {
   uid: string;
   title: string;
-  slug: string;
+  slug: {
+    title: string;
+    href: string;
+  };
   meta_description?: string;
   hero_section?: {
     title: string;
@@ -387,9 +396,9 @@ export class ContentstackService {
       variantAliases,
       hasVariants: !!(variantAliases && variantAliases.length > 0)
     });
-    
+
     const products = await this.getEntries<Product>('product', {
-      where: { url: `/products/${slug}` }
+      where: { 'url.href': `/products/${slug}` }
     }, variantAliases);
     
     console.log('📦 ContentstackService.getProductBySlug result:', {
@@ -433,14 +442,14 @@ export class ContentstackService {
 
   async getBlogPostBySlug(slug: string, variantAliases?: string[]): Promise<BlogPost | null> {
     const posts = await this.getEntries<BlogPost>('blog_post', {
-      where: { url: `/blog/${slug}` }
+      where: { 'url.href': `/blog/${slug}` }
     }, variantAliases);
     return posts[0] || null;
   }
 
   async getPage(slug: string): Promise<Page | null> {
     const pages = await this.getEntries<Page>('page', {
-      where: { slug: slug }
+      where: { 'slug.href': slug }
     });
     return pages[0] || null;
   }
