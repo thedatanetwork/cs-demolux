@@ -448,8 +448,10 @@ export class ContentstackService {
   }
 
   async getPage(slug: string): Promise<Page | null> {
+    // Ensure slug starts with / for consistency with stored values
+    const normalizedSlug = slug.startsWith('/') ? slug : `/${slug}`;
     const pages = await this.getEntries<Page>('page', {
-      where: { 'slug.href': slug }
+      where: { 'slug.href': normalizedSlug }
     });
     return pages[0] || null;
   }
