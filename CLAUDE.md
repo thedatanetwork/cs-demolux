@@ -17,6 +17,25 @@ npm run lint             # Run ESLint
 npm run type-check       # Run TypeScript compiler without emitting files
 ```
 
+## Pre-Commit Checklist
+
+**IMPORTANT**: Before committing and pushing changes, always run the following checks:
+
+```bash
+npm run type-check       # Verify TypeScript types are valid
+npm run build            # Ensure production build succeeds
+```
+
+**Note**: `npm run lint` requires ESLint configuration setup. Skip if not configured.
+
+This ensures:
+- No TypeScript errors in the codebase
+- Production build compiles successfully
+- No runtime errors introduced
+- Changes are production-ready
+
+If any check fails, fix the issues before committing.
+
 ## Architecture
 
 ### Three-Layer Data Architecture
