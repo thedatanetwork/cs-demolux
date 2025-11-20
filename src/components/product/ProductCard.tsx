@@ -7,7 +7,7 @@ import { Product } from '@/lib/contentstack';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/contexts/CartContext';
-import { Check, ShoppingCart } from 'lucide-react';
+import { Check, ShoppingCart, Pause, Play } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -20,6 +20,7 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
   const [justAdded, setJustAdded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Combine featured_image and additional_images into a single array
@@ -33,19 +34,19 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
 
   const currentImage = allImages[currentImageIndex] || null;
 
-  // Cycle through images on hover
+  // Cycle through images on hover (unless paused)
   useEffect(() => {
-    if (isHovering && hasMultipleImages) {
+    if (isHovering && hasMultipleImages && !isPaused) {
       intervalRef.current = setInterval(() => {
         setCurrentImageIndex((prevIndex) => (prevIndex + 1) % allImages.length);
-      }, 800); // Change image every 800ms
+      }, 1600); // Change image every 1600ms (2x slower)
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      // Reset to first image when not hovering
-      if (!isHovering) {
+      // Reset to first image when not hovering (unless paused)
+      if (!isHovering && !isPaused) {
         setCurrentImageIndex(0);
       }
     }
@@ -55,7 +56,13 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isHovering, hasMultipleImages, allImages.length]);
+  }, [isHovering, hasMultipleImages, isPaused, allImages.length]);
+
+  const handleTogglePause = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsPaused(!isPaused);
+  };
 
   const handleAddToCart = async () => {
     setIsAdding(true);
@@ -94,6 +101,21 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
               <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
                 {currentImageIndex + 1}/{allImages.length}
               </div>
+            )}
+
+            {/* Pause/Play button - only show if multiple images */}
+            {hasMultipleImages && isHovering && (
+              <button
+                onClick={handleTogglePause}
+                className="absolute bottom-3 left-3 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all duration-200 z-10"
+                aria-label={isPaused ? "Play slideshow" : "Pause slideshow"}
+              >
+                {isPaused ? (
+                  <Play className="h-4 w-4 text-gray-800" />
+                ) : (
+                  <Pause className="h-4 w-4 text-gray-800" />
+                )}
+              </button>
             )}
           </>
         ) : (
