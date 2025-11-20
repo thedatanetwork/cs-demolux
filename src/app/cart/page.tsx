@@ -43,11 +43,80 @@ export default function CartPage() {
     seo: undefined
   };
 
-  const handleQuantityChange = (productId: string, newQuantity: number) => {
+  const handleQuantityChange = (productId: string, newQuantity: number, product: any) => {
+    // Track quantity change with Lytics
+    if (typeof window !== 'undefined' && window.jstag) {
+      window.jstag.send({
+        stream: 'cart_quantity_change',
+        data: {
+          product_id: productId,
+          product_title: product.title,
+          old_quantity: product.quantity,
+          new_quantity: newQuantity,
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+
     if (newQuantity <= 0) {
       removeItem(productId);
     } else {
       updateQuantity(productId, newQuantity);
+    }
+  };
+
+  const handleRemoveItem = (productId: string, product: any) => {
+    // Track item removal with Lytics
+    if (typeof window !== 'undefined' && window.jstag) {
+      window.jstag.send({
+        stream: 'cart_remove_item',
+        data: {
+          product_id: productId,
+          product_title: product.title,
+          product_price: product.price,
+          product_category: product.category,
+          quantity: product.quantity,
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+
+    removeItem(productId);
+  };
+
+  const handleClearCart = () => {
+    // Track clear cart with Lytics
+    if (typeof window !== 'undefined' && window.jstag) {
+      window.jstag.send({
+        stream: 'cart_clear',
+        data: {
+          items_count: state.itemCount,
+          cart_total: state.total,
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+
+    clearCart();
+  };
+
+  const handleProceedToCheckout = () => {
+    // Track proceed to checkout with Lytics
+    if (typeof window !== 'undefined' && window.jstag) {
+      window.jstag.send({
+        stream: 'proceed_to_checkout',
+        data: {
+          items_count: state.itemCount,
+          cart_total: state.total,
+          items: state.items.map(item => ({
+            product_id: item.product.uid,
+            product_title: item.product.title,
+            quantity: item.quantity,
+            price: item.product.price
+          })),
+          timestamp: new Date().toISOString()
+        }
+      });
     }
   };
 
@@ -150,10 +219,10 @@ export default function CartPage() {
                         Cart Items ({state.itemCount})
                       </h2>
                       {state.items.length > 0 && (
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
-                          onClick={clearCart}
+                          onClick={handleClearCart}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
@@ -212,7 +281,7 @@ export default function CartPage() {
                                   {/* Quantity Controls */}
                                   <div className="flex items-center space-x-1 bg-gray-50 rounded-lg">
                                     <button
-                                      onClick={() => handleQuantityChange(item.product.uid, item.quantity - 1)}
+                                      onClick={() => handleQuantityChange(item.product.uid, item.quantity - 1, item)}
                                       className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
                                       disabled={item.quantity <= 1}
                                     >
@@ -222,7 +291,7 @@ export default function CartPage() {
                                       {item.quantity}
                                     </span>
                                     <button
-                                      onClick={() => handleQuantityChange(item.product.uid, item.quantity + 1)}
+                                      onClick={() => handleQuantityChange(item.product.uid, item.quantity + 1, item)}
                                       className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
                                     >
                                       <Plus className="h-4 w-4" />
@@ -231,7 +300,7 @@ export default function CartPage() {
 
                                   {/* Remove Button */}
                                   <button
-                                    onClick={() => removeItem(item.product.uid)}
+                                    onClick={() => handleRemoveItem(item.product.uid, item.product)}
                                     className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -273,7 +342,7 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    <Link href="/checkout" className="block">
+                    <Link href="/checkout" className="block" onClick={handleProceedToCheckout}>
                       <Button variant="primary" size="lg" className="w-full group shadow-lg">
                         Proceed to Checkout
                         <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />

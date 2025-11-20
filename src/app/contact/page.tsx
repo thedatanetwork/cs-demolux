@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { ContactForm } from '@/components/contact/ContactForm';
 import { dataService } from '@/lib/data-service';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 
@@ -145,79 +146,10 @@ export default async function ContactPage() {
           <section className="section-spacing bg-gray-50">
             <div className="container-padding">
               <div className="max-w-2xl mx-auto">
-                <div className="text-center mb-12">
-                  <h2 className="font-heading text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                    {page.contact_form.form_title}
-                  </h2>
-                  <p className="text-lg text-gray-600">
-                    {page.contact_form.form_description}
-                  </p>
-                </div>
-
-                <form className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-gold-400 focus:border-gold-400"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-gold-400 focus:border-gold-400"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                      Subject
-                    </label>
-                    <input
-                      type="text"
-                      id="subject"
-                      name="subject"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-gold-400 focus:border-gold-400"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                      Message
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      rows={6}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-gold-400 focus:border-gold-400"
-                      required
-                    ></textarea>
-                  </div>
-
-                  <div className="text-center">
-                    <button
-                      type="submit"
-                      className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors"
-                    >
-                      Send Message
-                    </button>
-                  </div>
-                </form>
+                <ContactForm
+                  formTitle={page.contact_form.form_title}
+                  formDescription={page.contact_form.form_description}
+                />
               </div>
             </div>
           </section>
