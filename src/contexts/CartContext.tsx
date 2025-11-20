@@ -54,6 +54,21 @@ const calculateTotals = (items: CartItem[]): { total: number; itemCount: number 
   return { total, itemCount };
 };
 
+// Migrate old URL format to new format
+const migrateProduct = (product: any): Product => {
+  // If URL is a string, convert to object format
+  if (typeof product.url === 'string') {
+    return {
+      ...product,
+      url: {
+        title: product.title,
+        href: product.url
+      }
+    };
+  }
+  return product;
+};
+
 // Cart reducer
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
@@ -134,7 +149,15 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (savedCart) {
       try {
         const parsedCart = JSON.parse(savedCart);
-        dispatch({ type: 'LOAD_CART', payload: parsedCart });
+        // Migrate old product URL format to new format
+        const migratedCart = {
+          ...parsedCart,
+          items: parsedCart.items?.map((item: CartItem) => ({
+            ...item,
+            product: migrateProduct(item.product)
+          })) || []
+        };
+        dispatch({ type: 'LOAD_CART', payload: migratedCart });
       } catch (error) {
         console.error('Error loading cart from localStorage:', error);
       }
