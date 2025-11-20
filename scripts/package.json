@@ -15,7 +15,9 @@
     "add-product-images": "node add-product-images.js",
     "update-url-fields": "node update-url-fields.js",
     "revert-url-fields": "node revert-url-fields.js",
-    "restore-product-urls": "node restore-product-urls.js"
+    "restore-product-urls": "node restore-product-urls.js",
+    "restore-all-urls": "node restore-all-urls.js",
+    "fix-page-urls": "node fix-page-urls.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",
