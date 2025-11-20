@@ -8,6 +8,7 @@ import { Product } from '@/lib/contentstack';
 import { ShoppingCart, Heart, Share2, Check } from 'lucide-react';
 import { useProductTracking } from '@/components/PersonalizeEventTracker';
 import { ShareModal } from './ShareModal';
+import { sendLyticsEvent } from '@/lib/tracking-utils';
 
 interface ProductActionsProps {
   product: Product;
@@ -15,7 +16,7 @@ interface ProductActionsProps {
 
 export function ProductActions({ product }: ProductActionsProps) {
   const router = useRouter();
-  const { addItem, isInCart } = useCart();
+  const { addItem, isInCart, state } = useCart();
   const { trackAddToCart } = useProductTracking();
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
@@ -29,21 +30,20 @@ export function ProductActions({ product }: ProductActionsProps) {
     // Track add to cart event for personalization
     trackAddToCart(product.uid, selectedQuantity);
 
+    // Calculate current cart context
+    const cartItemCount = state.items.reduce((total, item) => total + item.quantity, 0);
+    const cartTotalValue = state.items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+
     // Track with Lytics
-    if (typeof window !== 'undefined' && window.jstag) {
-      window.jstag.send({
-        stream: 'web_events',
-        data: {
-          event_type: 'add_to_cart',
-          product_id: product.uid,
-          product_title: product.title,
-          product_price: product.price,
-          product_category: product.category,
-          quantity: selectedQuantity,
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    await sendLyticsEvent('add_to_cart', {
+      product_id: product.uid,
+      product_title: product.title,
+      product_price: product.price,
+      product_category: product.category,
+      quantity: selectedQuantity,
+      cart_item_count: cartItemCount,
+      cart_total_value: cartTotalValue,
+    });
 
     // Add slight delay for better UX
     setTimeout(() => {
@@ -56,31 +56,30 @@ export function ProductActions({ product }: ProductActionsProps) {
     }, 300);
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     // Add to cart
     addItem(product, selectedQuantity);
 
+    // Calculate current cart context
+    const cartItemCount = state.items.reduce((total, item) => total + item.quantity, 0);
+    const cartTotalValue = state.items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+
     // Track buy now with Lytics
-    if (typeof window !== 'undefined' && window.jstag) {
-      window.jstag.send({
-        stream: 'web_events',
-        data: {
-          event_type: 'buy_now',
-          product_id: product.uid,
-          product_title: product.title,
-          product_price: product.price,
-          product_category: product.category,
-          quantity: selectedQuantity,
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    await sendLyticsEvent('buy_now', {
+      product_id: product.uid,
+      product_title: product.title,
+      product_price: product.price,
+      product_category: product.category,
+      quantity: selectedQuantity,
+      cart_item_count: cartItemCount,
+      cart_total_value: cartTotalValue,
+    });
 
     // Navigate to checkout
     router.push('/checkout');
   };
 
-  const handleFavorite = () => {
+  const handleFavorite = async () => {
     // Attempt to bookmark the page (browser feature)
     if (typeof window !== 'undefined') {
       // Try to add bookmark (this may not work in all browsers due to security)
@@ -90,42 +89,28 @@ export function ProductActions({ product }: ProductActionsProps) {
         setFavorited(!favorited);
 
         // Track favorite with Lytics
-        if (window.jstag) {
-          window.jstag.send({
-            stream: 'web_events',
-            data: {
-              event_type: 'favorite',
-              product_id: product.uid,
-              product_title: product.title,
-              product_price: product.price,
-              product_category: product.category,
-              action: !favorited ? 'add' : 'remove',
-              timestamp: new Date().toISOString()
-            }
-          });
-        }
+        await sendLyticsEvent('favorite', {
+          product_id: product.uid,
+          product_title: product.title,
+          product_price: product.price,
+          product_category: product.category,
+          action: !favorited ? 'add' : 'remove',
+        });
       } catch (error) {
         console.log('Bookmark not supported');
       }
     }
   };
 
-  const handleShare = (platform: string) => {
+  const handleShare = async (platform: string) => {
     // Track share with Lytics
-    if (typeof window !== 'undefined' && window.jstag) {
-      window.jstag.send({
-        stream: 'web_events',
-        data: {
-          event_type: 'share',
-          product_id: product.uid,
-          product_title: product.title,
-          product_price: product.price,
-          product_category: product.category,
-          platform: platform,
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    await sendLyticsEvent('share', {
+      product_id: product.uid,
+      product_title: product.title,
+      product_price: product.price,
+      product_category: product.category,
+      platform: platform,
+    });
   };
 
   return (

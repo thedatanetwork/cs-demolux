@@ -10,6 +10,7 @@ import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/utils';
 import { ArrowLeft, CreditCard, Shield, Truck, ShoppingBag } from 'lucide-react';
 import { dataService } from '@/lib/data-service';
+import { sendLyticsEvent, identifyUserByEmail } from '@/lib/tracking-utils';
 
 interface FormData {
   email: string;
@@ -117,11 +118,34 @@ export default function CheckoutPage() {
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Identify user by email in Lytics
+    identifyUserByEmail(formData.email);
+
+    // Track shipping form submission
+    sendLyticsEvent('checkout_step_completed', {
+      step: 'shipping',
+      step_number: 1,
+      email_provided: true,
+      items_count: state.itemCount,
+      cart_total: state.total,
+    });
+
     setCurrentStep('payment');
   };
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Track payment step (demo completion)
+    sendLyticsEvent('checkout_step_completed', {
+      step: 'payment',
+      step_number: 2,
+      items_count: state.itemCount,
+      cart_total: state.total,
+      demo_mode: true,
+    });
+
     setCurrentStep('demo');
   };
 

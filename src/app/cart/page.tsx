@@ -10,6 +10,7 @@ import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/utils';
 import { Plus, Minus, Trash2, ArrowRight, ShoppingBag } from 'lucide-react';
 import { dataService } from '@/lib/data-service';
+import { sendLyticsEvent } from '@/lib/tracking-utils';
 
 export default function CartPage() {
   const { state, updateQuantity, removeItem, clearCart } = useCart();
@@ -45,19 +46,12 @@ export default function CartPage() {
 
   const handleQuantityChange = (productId: string, newQuantity: number, product: any) => {
     // Track quantity change with Lytics
-    if (typeof window !== 'undefined' && window.jstag) {
-      window.jstag.send({
-        stream: 'web_events',
-        data: {
-          event_type: 'cart_quantity_change',
-          product_id: productId,
-          product_title: product.title,
-          old_quantity: product.quantity,
-          new_quantity: newQuantity,
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    sendLyticsEvent('cart_quantity_change', {
+      product_id: productId,
+      product_title: product.title,
+      old_quantity: product.quantity,
+      new_quantity: newQuantity,
+    });
 
     if (newQuantity <= 0) {
       removeItem(productId);
@@ -68,60 +62,39 @@ export default function CartPage() {
 
   const handleRemoveItem = (productId: string, product: any) => {
     // Track item removal with Lytics
-    if (typeof window !== 'undefined' && window.jstag) {
-      window.jstag.send({
-        stream: 'web_events',
-        data: {
-          event_type: 'cart_remove_item',
-          product_id: productId,
-          product_title: product.title,
-          product_price: product.price,
-          product_category: product.category,
-          quantity: product.quantity,
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    sendLyticsEvent('cart_remove_item', {
+      product_id: productId,
+      product_title: product.title,
+      product_price: product.price,
+      product_category: product.category,
+      quantity: product.quantity,
+    });
 
     removeItem(productId);
   };
 
   const handleClearCart = () => {
     // Track clear cart with Lytics
-    if (typeof window !== 'undefined' && window.jstag) {
-      window.jstag.send({
-        stream: 'web_events',
-        data: {
-          event_type: 'cart_clear',
-          items_count: state.itemCount,
-          cart_total: state.total,
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    sendLyticsEvent('cart_clear', {
+      items_count: state.itemCount,
+      cart_total: state.total,
+    });
 
     clearCart();
   };
 
   const handleProceedToCheckout = () => {
     // Track proceed to checkout with Lytics
-    if (typeof window !== 'undefined' && window.jstag) {
-      window.jstag.send({
-        stream: 'web_events',
-        data: {
-          event_type: 'proceed_to_checkout',
-          items_count: state.itemCount,
-          cart_total: state.total,
-          items: state.items.map(item => ({
-            product_id: item.product.uid,
-            product_title: item.product.title,
-            quantity: item.quantity,
-            price: item.product.price
-          })),
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    sendLyticsEvent('proceed_to_checkout', {
+      items_count: state.itemCount,
+      cart_total: state.total,
+      items: state.items.map(item => ({
+        product_id: item.product.uid,
+        product_title: item.product.title,
+        quantity: item.quantity,
+        price: item.product.price
+      })),
+    });
   };
 
   return (

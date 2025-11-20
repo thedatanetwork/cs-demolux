@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { sendLyticsEvent, identifyUserByEmail } from '@/lib/tracking-utils';
 
 interface ContactFormProps {
   formTitle: string;
@@ -20,36 +21,25 @@ export function ContactForm({ formTitle, formDescription }: ContactFormProps) {
     setFormData(prev => ({ ...prev, [fieldName]: value }));
 
     // Track field interactions with Lytics
-    if (typeof window !== 'undefined' && window.jstag) {
-      window.jstag.send({
-        stream: 'web_events',
-        data: {
-          event_type: 'form_field_interaction',
-          form_type: 'contact_form',
-          field_name: fieldName,
-          field_length: value.length,
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    sendLyticsEvent('form_field_interaction', {
+      form_type: 'contact_form',
+      field_name: fieldName,
+      field_length: value.length,
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Identify user by email in Lytics
+    identifyUserByEmail(formData.email);
+
     // Track form submission with Lytics
-    if (typeof window !== 'undefined' && window.jstag) {
-      window.jstag.send({
-        stream: 'web_events',
-        data: {
-          event_type: 'form_submit',
-          form_type: 'contact_form',
-          subject: formData.subject,
-          message_length: formData.message.length,
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    sendLyticsEvent('form_submit', {
+      form_type: 'contact_form',
+      subject: formData.subject,
+      message_length: formData.message.length,
+    });
 
     // Show success message
     setSubmitted(true);

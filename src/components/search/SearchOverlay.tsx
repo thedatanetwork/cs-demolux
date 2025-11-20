@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { Product } from '@/lib/contentstack';
+import { sendLyticsEvent } from '@/lib/tracking-utils';
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -46,18 +47,11 @@ export function SearchOverlay({ isOpen, onClose, products }: SearchOverlayProps)
     setFilteredProducts(results);
 
     // Send search event to Lytics
-    if (typeof window !== 'undefined' && window.jstag) {
-      window.jstag.send({
-        stream: 'web_events',
-        data: {
-          event_type: 'search',
-          search_query: searchTerm,
-          search_results_count: results.length,
-          timestamp: new Date().toISOString(),
-          search_type: 'product_search'
-        }
-      });
-    }
+    sendLyticsEvent('search', {
+      search_query: searchTerm,
+      search_results_count: results.length,
+      search_type: 'product_search'
+    });
   }, [query, products]);
 
   // Close on escape key
@@ -81,22 +75,16 @@ export function SearchOverlay({ isOpen, onClose, products }: SearchOverlayProps)
   }, [isOpen, onClose]);
 
   const handleResultClick = (product: Product) => {
-    // Send click event to Lytics
-    if (typeof window !== 'undefined' && window.jstag) {
-      window.jstag.send({
-        stream: 'web_events',
-        data: {
-          event_type: 'search_click',
-          search_query: query.toLowerCase().trim(),
-          clicked_product_id: product.uid,
-          clicked_product_title: product.title,
-          clicked_product_category: product.category,
-          clicked_product_price: product.price,
-          timestamp: new Date().toISOString(),
-          search_results_count: filteredProducts.length
-        }
-      });
-    }
+    // Send click event to Lytics (normalized field names)
+    sendLyticsEvent('search_click', {
+      search_query: query.toLowerCase().trim(),
+      product_id: product.uid,
+      product_title: product.title,
+      product_category: product.category,
+      product_price: product.price,
+      search_results_count: filteredProducts.length,
+      click_context: 'search_results'
+    });
 
     setQuery('');
     setFilteredProducts([]);
