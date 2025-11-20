@@ -48,8 +48,9 @@ export function SearchOverlay({ isOpen, onClose, products }: SearchOverlayProps)
     // Send search event to Lytics
     if (typeof window !== 'undefined' && window.jstag) {
       window.jstag.send({
-        stream: 'search',
+        stream: 'web_events',
         data: {
+          event_type: 'search',
           search_query: searchTerm,
           search_results_count: results.length,
           timestamp: new Date().toISOString(),
@@ -83,8 +84,9 @@ export function SearchOverlay({ isOpen, onClose, products }: SearchOverlayProps)
     // Send click event to Lytics
     if (typeof window !== 'undefined' && window.jstag) {
       window.jstag.send({
-        stream: 'search_click',
+        stream: 'web_events',
         data: {
+          event_type: 'search_click',
           search_query: query.toLowerCase().trim(),
           clicked_product_id: product.uid,
           clicked_product_title: product.title,

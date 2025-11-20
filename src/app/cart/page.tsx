@@ -47,8 +47,9 @@ export default function CartPage() {
     // Track quantity change with Lytics
     if (typeof window !== 'undefined' && window.jstag) {
       window.jstag.send({
-        stream: 'cart_quantity_change',
+        stream: 'web_events',
         data: {
+          event_type: 'cart_quantity_change',
           product_id: productId,
           product_title: product.title,
           old_quantity: product.quantity,
@@ -69,8 +70,9 @@ export default function CartPage() {
     // Track item removal with Lytics
     if (typeof window !== 'undefined' && window.jstag) {
       window.jstag.send({
-        stream: 'cart_remove_item',
+        stream: 'web_events',
         data: {
+          event_type: 'cart_remove_item',
           product_id: productId,
           product_title: product.title,
           product_price: product.price,
@@ -88,8 +90,9 @@ export default function CartPage() {
     // Track clear cart with Lytics
     if (typeof window !== 'undefined' && window.jstag) {
       window.jstag.send({
-        stream: 'cart_clear',
+        stream: 'web_events',
         data: {
+          event_type: 'cart_clear',
           items_count: state.itemCount,
           cart_total: state.total,
           timestamp: new Date().toISOString()
@@ -104,8 +107,9 @@ export default function CartPage() {
     // Track proceed to checkout with Lytics
     if (typeof window !== 'undefined' && window.jstag) {
       window.jstag.send({
-        stream: 'proceed_to_checkout',
+        stream: 'web_events',
         data: {
+          event_type: 'proceed_to_checkout',
           items_count: state.itemCount,
           cart_total: state.total,
           items: state.items.map(item => ({

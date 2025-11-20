@@ -32,8 +32,9 @@ export function ProductActions({ product }: ProductActionsProps) {
     // Track with Lytics
     if (typeof window !== 'undefined' && window.jstag) {
       window.jstag.send({
-        stream: 'add_to_cart',
+        stream: 'web_events',
         data: {
+          event_type: 'add_to_cart',
           product_id: product.uid,
           product_title: product.title,
           product_price: product.price,
@@ -62,8 +63,9 @@ export function ProductActions({ product }: ProductActionsProps) {
     // Track buy now with Lytics
     if (typeof window !== 'undefined' && window.jstag) {
       window.jstag.send({
-        stream: 'buy_now',
+        stream: 'web_events',
         data: {
+          event_type: 'buy_now',
           product_id: product.uid,
           product_title: product.title,
           product_price: product.price,
@@ -90,8 +92,9 @@ export function ProductActions({ product }: ProductActionsProps) {
         // Track favorite with Lytics
         if (window.jstag) {
           window.jstag.send({
-            stream: 'favorite',
+            stream: 'web_events',
             data: {
+              event_type: 'favorite',
               product_id: product.uid,
               product_title: product.title,
               product_price: product.price,
@@ -111,8 +114,9 @@ export function ProductActions({ product }: ProductActionsProps) {
     // Track share with Lytics
     if (typeof window !== 'undefined' && window.jstag) {
       window.jstag.send({
-        stream: 'share',
+        stream: 'web_events',
         data: {
+          event_type: 'share',
           product_id: product.uid,
           product_title: product.title,
           product_price: product.price,

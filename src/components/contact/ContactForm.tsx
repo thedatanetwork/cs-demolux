@@ -22,8 +22,9 @@ export function ContactForm({ formTitle, formDescription }: ContactFormProps) {
     // Track field interactions with Lytics
     if (typeof window !== 'undefined' && window.jstag) {
       window.jstag.send({
-        stream: 'form_field_interaction',
+        stream: 'web_events',
         data: {
+          event_type: 'form_field_interaction',
           form_type: 'contact_form',
           field_name: fieldName,
           field_length: value.length,
@@ -39,8 +40,9 @@ export function ContactForm({ formTitle, formDescription }: ContactFormProps) {
     // Track form submission with Lytics
     if (typeof window !== 'undefined' && window.jstag) {
       window.jstag.send({
-        stream: 'form_submit',
+        stream: 'web_events',
         data: {
+          event_type: 'form_submit',
           form_type: 'contact_form',
           subject: formData.subject,
           message_length: formData.message.length,
