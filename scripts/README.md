@@ -130,6 +130,42 @@ This will:
 2. Existing content will continue to work (data format unchanged)
 3. New content will benefit from URL field validation and guidance
 
+### Restore All URLs
+Restore URLs for pages and blog posts after URL field type conversion:
+
+```bash
+npm run restore-all-urls
+```
+
+This will:
+- Restore URL slugs for all pages (About, Contact, Terms, Privacy, Shipping, Support)
+- Restore URLs for all blog posts
+- Auto-generate URLs based on titles where data was lost
+- Publish all updated entries
+
+**Note:** This was needed after the URL field type conversion, which changed
+the data format from strings to objects. Run this once if pages/blog are missing URLs.
+
+### Fix Page URLs
+Correct page slugs to match actual site routes:
+
+```bash
+npm run fix-page-urls
+```
+
+This will:
+- Update page slugs to match exact site routes (e.g., /about instead of /about-us)
+- Ensure all navigation links work correctly
+- Republish all pages
+
+**Page URL mappings:**
+- About Us → /about
+- Contact Us → /contact
+- Privacy Policy → /privacy
+- Terms of Service → /terms
+- Shipping & Returns → /shipping
+- Support → /support
+
 ## Workflow
 
 1. First, test your connection:
