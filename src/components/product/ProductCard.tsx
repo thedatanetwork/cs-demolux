@@ -21,6 +21,7 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isTouching, setIsTouching] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Combine featured_image and additional_images into a single array
@@ -34,9 +35,11 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
 
   const currentImage = allImages[currentImageIndex] || null;
 
-  // Cycle through images on hover (unless paused)
+  // Cycle through images on hover or touch (unless paused)
   useEffect(() => {
-    if (isHovering && hasMultipleImages && !isPaused) {
+    const shouldRotate = (isHovering || isTouching) && hasMultipleImages && !isPaused;
+
+    if (shouldRotate) {
       intervalRef.current = setInterval(() => {
         setCurrentImageIndex((prevIndex) => (prevIndex + 1) % allImages.length);
       }, 1600); // Change image every 1600ms (2x slower)
@@ -45,8 +48,8 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-      // Reset to first image when not hovering (unless paused)
-      if (!isHovering && !isPaused) {
+      // Reset to first image when not interacting (unless paused)
+      if (!isHovering && !isTouching && !isPaused) {
         setCurrentImageIndex(0);
       }
     }
@@ -56,12 +59,22 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isHovering, hasMultipleImages, isPaused, allImages.length]);
+  }, [isHovering, isTouching, hasMultipleImages, isPaused, allImages.length]);
 
   const handleTogglePause = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsPaused(!isPaused);
+  };
+
+  const handleTouchStart = () => {
+    setIsTouching(true);
+    setIsPaused(false); // Unpause when touch starts
+  };
+
+  const handleTouchEnd = () => {
+    setIsTouching(false);
+    setIsPaused(true); // Pause when touch ends to keep current image
   };
 
   const handleAddToCart = async () => {
@@ -85,6 +98,8 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
         className="relative aspect-square overflow-hidden bg-gray-100"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {currentImage ? (
           <>
@@ -103,17 +118,17 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
               </div>
             )}
 
-            {/* Pause/Play button - only show if multiple images */}
-            {hasMultipleImages && isHovering && (
+            {/* Pause/Play button - centered, larger, transparent, no touch on mobile */}
+            {hasMultipleImages && isHovering && !isTouching && (
               <button
                 onClick={handleTogglePause}
-                className="absolute bottom-3 left-3 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all duration-200 z-10"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 p-4 transition-all duration-200 z-10"
                 aria-label={isPaused ? "Play slideshow" : "Pause slideshow"}
               >
                 {isPaused ? (
-                  <Play className="h-4 w-4 text-gray-800" />
+                  <Play className="h-12 w-12 text-white drop-shadow-lg" />
                 ) : (
-                  <Pause className="h-4 w-4 text-gray-800" />
+                  <Pause className="h-12 w-12 text-white drop-shadow-lg" />
                 )}
               </button>
             )}
