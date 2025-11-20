@@ -124,17 +124,17 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
                 <>
                   <button
                     onClick={handlePrevious}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all duration-200 z-10"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-200 z-10 hover:scale-110"
                     aria-label="Previous image"
                   >
-                    <ChevronLeft className="h-5 w-5 text-gray-800" />
+                    <ChevronLeft className="h-10 w-10 text-white/70 hover:text-white drop-shadow-lg" strokeWidth={2.5} />
                   </button>
                   <button
                     onClick={handleNext}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all duration-200 z-10"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 transition-all duration-200 z-10 hover:scale-110"
                     aria-label="Next image"
                   >
-                    <ChevronRight className="h-5 w-5 text-gray-800" />
+                    <ChevronRight className="h-10 w-10 text-white/70 hover:text-white drop-shadow-lg" strokeWidth={2.5} />
                   </button>
                 </>
               )}
