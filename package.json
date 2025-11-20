@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:clean": "npm run clean && next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next",
+    "create-new-products": "cd scripts && npm run create-new-products"
   },
   "dependencies": {
     "@contentstack/personalize-edge-sdk": "^1.0.18",

@@ -12,10 +12,14 @@ Demolux is a Next.js 14 ecommerce site for luxury wearable tech and technofurnit
 # Development
 npm run dev              # Start dev server on localhost:3000
 npm run build            # Production build
+npm run build:clean      # Clean cache and build (recommended when experiencing cache issues)
+npm run clean            # Remove .next cache folder
 npm run start            # Start production server
 npm run lint             # Run ESLint
 npm run type-check       # Run TypeScript compiler without emitting files
 ```
+
+**Tip**: If you experience caching issues or stale builds, use `npm run build:clean` instead of `npm run build`. This removes the `.next` folder before building.
 
 ## Pre-Commit Checklist
 
@@ -23,14 +27,14 @@ npm run type-check       # Run TypeScript compiler without emitting files
 
 ```bash
 npm run type-check       # Verify TypeScript types are valid
-npm run build            # Ensure production build succeeds
+npm run build:clean      # Clean cache and ensure production build succeeds
 ```
 
 **Note**: `npm run lint` requires ESLint configuration setup. Skip if not configured.
 
 This ensures:
 - No TypeScript errors in the codebase
-- Production build compiles successfully
+- Production build compiles successfully with fresh cache
 - No runtime errors introduced
 - Changes are production-ready
 
