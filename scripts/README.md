@@ -85,6 +85,32 @@ This will:
 
 Products will automatically appear on the homepage, category pages, and in search results.
 
+### Create New Blog Posts
+Create and publish 3 new inventive blog posts for the luxury tech brand:
+
+```bash
+npm run create-new-blog-posts
+```
+
+This will:
+- Create 3 thought-provoking blog posts about future technology trends
+- Automatically publish all posts to the configured environment
+- Skip any posts that already exist (safe to re-run)
+- Show a summary of created vs skipped posts
+
+**Blog Posts Created:**
+- "Beyond the Screen: How Haptic Interfaces Will Reshape Human-Tech Interaction in 2026"
+- "The Art of Invisible Technology: Designing Ambiance Without Intrusion"
+- "Biometric Personalization: When Your Home Knows You Better Than You Know Yourself"
+
+**After running:**
+1. Log into Contentstack
+2. Navigate to Entries → Blog Post
+3. Upload featured images for each new post
+4. Re-publish after adding images
+
+Posts will automatically appear on the blog page and homepage.
+
 ### Add Product Images Field
 Update the Product content type schema to support multiple images:
 
