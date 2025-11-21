@@ -50,60 +50,93 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header 
+      <Header
         navigation={navigation}
         siteName={fallbackSiteSettings.site_name}
         logoUrl={fallbackSiteSettings.logo?.url}
       />
 
       <main>
-        {/* Breadcrumb */}
-        <div className="bg-gray-50 border-b border-gray-200">
-          <div className="container-padding">
-            <nav className="py-4">
-              <ol className="flex items-center space-x-2 text-sm">
-                <li>
-                  <Link href="/" className="text-gray-500 hover:text-gray-700">Home</Link>
-                </li>
-                <li className="text-gray-400">/</li>
-                <li>
-                  <Link href="/blog" className="text-gray-500 hover:text-gray-700">Blog</Link>
-                </li>
-                <li className="text-gray-400">/</li>
-                <li className="text-gray-900 font-medium truncate">{blogPost.title}</li>
-              </ol>
-            </nav>
-          </div>
-        </div>
+        {/* Hero Section with Featured Image */}
+        <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-hidden">
+          {/* Background Effects */}
+          <div className="absolute inset-0 bg-black/40"></div>
 
-        <article className="section-spacing">
-          <div className="container-padding">
-            <div className="max-w-4xl mx-auto">
+          {/* Featured Image as Background */}
+          {featuredImage && (
+            <div className="absolute inset-0 opacity-20">
+              <Image
+                src={featuredImage.url}
+                alt={featuredImage.title || blogPost.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          )}
+
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0">
+            <div className="absolute top-20 left-10 w-32 h-32 bg-gold-400 rounded-full opacity-10 animate-float"></div>
+            <div className="absolute top-40 right-20 w-20 h-20 bg-white rounded-full opacity-5 animate-float" style={{ animationDelay: '2s' }}></div>
+            <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-gold-400 rounded-full opacity-8 animate-float" style={{ animationDelay: '4s' }}></div>
+            <div className="absolute bottom-40 right-1/3 w-16 h-16 bg-white rounded-full opacity-10 animate-float" style={{ animationDelay: '1s' }}></div>
+          </div>
+
+          {/* Grid Pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
+              backgroundSize: '40px 40px'
+            }}></div>
+          </div>
+
+          <div className="relative container-padding py-24 md:py-32">
+            <div className="max-w-5xl mx-auto">
               {/* Back Button */}
               <div className="mb-8">
                 <Link href="/blog">
-                  <Button variant="ghost" className="group">
+                  <Button variant="ghost" className="group text-white border-white/20 hover:bg-white/10">
                     <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
                     Back to Blog
                   </Button>
                 </Link>
               </div>
 
+              {/* Badge */}
+              <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-8">
+                <div className="w-2 h-2 bg-gold-400 rounded-full"></div>
+                <span className="text-sm font-medium text-white/90">
+                  Blog Article
+                </span>
+              </div>
+
               {/* Article Header */}
-              <header className="mb-12">
-                <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-6">
-                  {blogPost.title}
+              <header>
+                <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-8 text-white">
+                  {blogPost.title.split(' ').map((word, index, array) => (
+                    <span key={index} className={index === array.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent' : ''}>
+                      {word}{index < array.length - 1 ? ' ' : ''}
+                    </span>
+                  ))}
                 </h1>
 
+                {/* Excerpt */}
+                {blogPost.excerpt && (
+                  <p className="text-xl md:text-2xl text-white/90 leading-relaxed max-w-4xl font-light mb-8">
+                    {blogPost.excerpt}
+                  </p>
+                )}
+
                 {/* Meta Info */}
-                <div className="flex flex-wrap items-center gap-6 text-gray-600 mb-8">
+                <div className="flex flex-wrap items-center gap-6 text-white/80 mb-8">
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-5 w-5" />
                     <time dateTime={blogPost.publish_date}>
                       {formatDate(blogPost.publish_date)}
                     </time>
                   </div>
-                  
+
                   {blogPost.author && (
                     <div className="flex items-center space-x-2">
                       <User className="h-5 w-5" />
@@ -111,52 +144,59 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     </div>
                   )}
 
-                  <Button variant="ghost" size="sm" className="ml-auto">
+                  <Button variant="ghost" size="sm" className="ml-auto text-white border-white/20 hover:bg-white/10">
                     <Share2 className="h-4 w-4 mr-2" />
                     Share
                   </Button>
                 </div>
 
-                {/* Featured Image */}
-                {featuredImage && (
-                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden mb-8">
-                    <Image
-                      src={featuredImage.url}
-                      alt={featuredImage.title || blogPost.title}
-                      width={1200}
-                      height={675}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-
-                {/* Excerpt */}
-                {blogPost.excerpt && (
-                  <div className="bg-gray-50 border-l-4 border-gold-400 p-6 rounded-r-lg">
-                    <p className="text-lg text-gray-700 italic">
-                      {blogPost.excerpt}
-                    </p>
-                  </div>
-                )}
+                {/* Decorative Line */}
+                <div className="flex justify-start">
+                  <div className="w-32 h-1 bg-gradient-to-r from-gold-400 to-transparent"></div>
+                </div>
               </header>
+            </div>
+          </div>
+        </section>
 
-              {/* Article Content */}
-              <div className="prose prose-lg prose-gray max-w-none mb-12">
-                <div 
-                  className="text-gray-700 leading-relaxed space-y-6"
+        {/* Article Content */}
+        <article className="section-spacing relative">
+          {/* Background pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-20 left-10 w-2 h-2 bg-gold-400 rounded-full"></div>
+            <div className="absolute top-32 right-20 w-3 h-3 bg-gray-400 rounded-full"></div>
+            <div className="absolute bottom-20 left-1/4 w-2 h-2 bg-gold-400 rounded-full"></div>
+            <div className="absolute bottom-40 right-1/3 w-1 h-1 bg-gray-400 rounded-full"></div>
+          </div>
+
+          <div className="container-padding">
+            <div className="max-w-4xl mx-auto relative">
+              {/* Content Card */}
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-12 mb-12 relative overflow-hidden">
+                {/* Decorative elements */}
+                <div className="absolute -top-4 -right-4 w-24 h-24 bg-gold-400 rounded-full opacity-10"></div>
+                <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gray-900 rounded-full opacity-5"></div>
+
+                <div
+                  className="prose prose-xl max-w-none leading-relaxed relative z-10 [&_p]:mb-6 [&_h2]:font-heading [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:mt-12 [&_h2]:mb-6 [&_h3]:font-heading [&_h3]:text-2xl [&_h3]:font-semibold [&_h3]:text-gray-900 [&_h3]:mt-8 [&_h3]:mb-4"
+                  style={{
+                    color: '#111827',
+                    fontSize: '1.125rem',
+                    lineHeight: '1.8'
+                  }}
                   dangerouslySetInnerHTML={{ __html: blogPost.content }}
                 />
               </div>
 
               {/* Tags */}
               {blogPost.post_tags && blogPost.post_tags.length > 0 && (
-                <div className="mb-12">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
+                <div className="bg-gradient-to-r from-gray-50 to-white rounded-xl p-6 md:p-8 border border-gray-200">
+                  <h3 className="text-lg font-heading font-semibold text-gray-900 mb-4">Related Topics</h3>
+                  <div className="flex flex-wrap gap-3">
                     {blogPost.post_tags.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors duration-200"
+                        className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-white text-gray-800 border border-gray-300 hover:border-gold-400 hover:bg-gold-50 hover:text-gold-900 transition-all duration-200 shadow-sm"
                       >
                         {tag}
                       </span>
@@ -164,37 +204,33 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   </div>
                 </div>
               )}
-
-              {/* Article Footer */}
-              <footer className="border-t border-gray-200 pt-8">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">
-                      Last updated: {formatDate(blogPost.updated_at)}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-600">Share this article:</span>
-                    <Button variant="ghost" size="sm">
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </footer>
             </div>
           </div>
         </article>
 
-        {/* Related Posts Section */}
-        <section className="section-spacing bg-gray-50">
+        {/* Call to Action */}
+        <section className="section-spacing bg-gradient-to-r from-gold-400 to-gold-600 text-black">
           <div className="container-padding">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 text-center mb-12">
-                Related Articles
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="font-heading text-3xl md:text-4xl font-bold mb-6">
+                Stay Updated with Our Latest Insights
               </h2>
-              <div className="text-center text-gray-600">
-                <p>Related articles will be displayed here based on tags and topics.</p>
+              <p className="text-xl mb-8 opacity-90">
+                Explore more articles about luxury wearable tech, technofurniture, and the future of intelligent living.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  href="/blog"
+                  className="inline-flex items-center justify-center px-8 py-3 border border-black bg-black text-white hover:bg-gray-900 transition-colors font-medium rounded-md"
+                >
+                  View All Articles
+                </Link>
+                <Link
+                  href="/categories/wearable-tech"
+                  className="inline-flex items-center justify-center px-8 py-3 border border-black bg-transparent text-black hover:bg-black hover:text-white transition-colors font-medium rounded-md"
+                >
+                  Shop Wearable Tech
+                </Link>
               </div>
             </div>
           </div>
