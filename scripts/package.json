@@ -29,6 +29,7 @@
     "create-modular-blog-page": "node create-modular-blog-page.js",
     "add-product-modular-blocks": "node add-product-modular-blocks.js",
     "add-value-background-images": "node add-value-background-images.js",
+    "add-background-image-to-values": "node add-background-image-to-values.js",
     "upload-value-images": "node upload-value-images.js"
   },
   "dependencies": {

@@ -97,7 +97,7 @@ async function main() {
     for (let i = 0; i < valuesGridEntry.values.length; i++) {
       const valueRef = valuesGridEntry.values[i];
       const valueUID = valueRef.uid;
-      const valueContentType = valueRef._content_type_uid || 'value_proposition_content';
+      const valueContentType = valueRef._content_type_uid || 'value_proposition';
 
       try {
         // Fetch the value entry

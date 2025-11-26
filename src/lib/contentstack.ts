@@ -864,6 +864,7 @@ export class ContentstackService {
         'page_sections.manual_collections',        // For featured_content_grid_block
         'page_sections.background_media'           // For hero_section_block
       ]);
+      Query.includeEmbeddedItems();  // Fetch all fields from referenced entries
       Query.includeMetadata();
       Query.limit(1);
 
@@ -873,11 +874,24 @@ export class ContentstackService {
 
       const result = await Query.toJSON().find();
       const entry = result[0]?.[0];
-      console.log('Contentstack modular_home_page query result:', {
-        found: !!entry,
-        uid: entry?.uid,
-        sectionsCount: entry?.page_sections?.length || 0
-      });
+
+      if (entry) {
+        console.log('Contentstack modular_home_page query result:', {
+          found: true,
+          uid: entry.uid,
+          sectionsCount: entry.page_sections?.length || 0,
+          sections: entry.page_sections?.map((s: any) => ({
+            uid: s.uid,
+            type: s._content_type_uid,
+            hasValues: !!s.values,
+            valuesCount: s.values?.length || 0,
+            firstValueHasBg: !!s.values?.[0]?.background_image
+          }))
+        });
+      } else {
+        console.log('Contentstack modular_home_page query result: not found');
+      }
+
       return entry || null;
     } catch (error) {
       console.error('Error fetching modular_home_page:', error);
