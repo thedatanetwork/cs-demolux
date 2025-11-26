@@ -29,6 +29,68 @@ This directory contains scripts for managing content in Contentstack CMS.
 
 ## Available Scripts
 
+### Create Modular Content Types (NEW!)
+Automatically create all modular content types for the new architecture:
+
+```bash
+npm run create-modular-content-types
+```
+
+This will:
+- Create **Campaign** content type - Reusable promotional campaigns
+- Create **Value Proposition** content type - Brand values and features
+- Create **Feature Item** content type - Reusable feature highlights
+- Create **Collection** content type - Curated product collections
+- Create **Lookbook Page** content type - Editorial-style galleries
+- Skip any content types that already exist (safe to re-run)
+- Show a summary of created vs skipped content types
+
+**After running:**
+1. Log into Contentstack to verify the new content types
+2. Create sample entries for each content type
+
+### Create Modular Blocks (NEW!)
+Set up visual block building for the modular home page - NO JSON REQUIRED!
+
+```bash
+npm run create-modular-blocks
+```
+
+This will:
+- Create **Hero Section Block** content type
+- Create **Featured Content Grid Block** content type
+- Create **Values Grid Block** content type
+- Create **Campaign CTA Block** content type
+- Update **Modular Home Page** to use visual blocks (not JSON)
+
+**What this gives you:**
+- ✅ Click "Add Entry" to add blocks
+- ✅ Fill in form fields (no code!)
+- ✅ Drag blocks to reorder
+- ✅ Reuse blocks across pages
+
+See `VISUAL_EDITOR_GUIDE.md` for complete usage instructions.
+
+### Fix Collection Products Field
+Fix the Collection products field to allow multiple selections:
+
+```bash
+npm run fix-collection-products
+```
+
+This will:
+- Update the **products** field in Collection content type
+- Enable multiple product selections
+- Fix the issue where only one product could be selected
+3. Visit `/home-modular` to build your modular home page
+4. Check `IMPLEMENTATION_GUIDE.md` for detailed usage instructions
+
+**Benefits:**
+- Build flexible pages with drag-and-drop modular blocks
+- Reuse content across multiple pages
+- No code changes needed for new page layouts
+- Full A/B testing support with Contentstack variants
+
 ### Test Connection
 Verify your Contentstack credentials and connection:
 

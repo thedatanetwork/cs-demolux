@@ -205,11 +205,11 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
           </span>
         </div>
 
-        {/* Action Button */}
-        <div className="flex gap-2">
-          <Button 
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-2">
+          <Button
             variant={justAdded ? "success" : "primary"}
-            className="flex-1 relative"
+            className="w-full relative"
             onClick={handleAddToCart}
             disabled={isAdding}
           >
@@ -235,8 +235,8 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
               </>
             )}
           </Button>
-          
-          <Link href={product.url.href} className="flex-1">
+
+          <Link href={product.url.href} className="w-full">
             <Button variant="outline" className="w-full">
               View Details
             </Button>

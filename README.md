@@ -2,6 +2,32 @@
 
 Demolux is a sophisticated ecommerce website built with Next.js for a high-end accessories brand specializing in wearable technology and technofurniture. The site features seamless Contentstack CMS integration with JSON fallbacks for development.
 
+## 🆕 NEW: Modular Content Architecture
+
+**Demolux now features a world-class modular content architecture inspired by luxury brands like Shinola and Minotti!**
+
+### 🚀 Quick Start
+Get started in 5 minutes with the automated setup:
+
+```bash
+cd scripts
+npm run create-modular-content-types
+```
+
+Then check out the guides:
+- **`QUICK_START.md`** - 5-minute setup guide
+- **`MODULAR_ARCHITECTURE.md`** - Complete technical specification
+- **`IMPLEMENTATION_GUIDE.md`** - Detailed usage instructions
+
+### ✨ What's New
+- **5 Reusable Block Types**: Hero, Content Grid, Values, Campaign CTA, Gallery
+- **3 New Page Types**: Modular Home Page, Collections, Lookbooks
+- **No-Code Page Building**: Compose pages in Contentstack without touching code
+- **Fully Personalized**: A/B test any block with Contentstack variants
+- **Production Ready**: ✅ Type-checked, ✅ Built, ✅ Tested
+
+Visit `/home-modular` to see it in action!
+
 ## Features
    
 - **🏪 Full Ecommerce Experience**: Product catalogs, categories, detailed product pages

@@ -18,7 +18,18 @@
     "restore-product-urls": "node restore-product-urls.js",
     "restore-all-urls": "node restore-all-urls.js",
     "fix-page-urls": "node fix-page-urls.js",
-    "create-new-blog-posts": "node create-new-blog-posts.js"
+    "create-new-blog-posts": "node create-new-blog-posts.js",
+    "create-modular-content-types": "node create-modular-content-types.js",
+    "fix-collection-products": "node fix-collection-products.js",
+    "create-modular-blocks": "node create-modular-blocks.js",
+    "update-modular-home-page": "node update-modular-home-page.js",
+    "create-sample-content": "node create-sample-modular-content.js",
+    "fix-block-permissions": "node fix-block-permissions.js",
+    "create-complete-home-page": "node create-complete-home-page.js",
+    "create-modular-blog-page": "node create-modular-blog-page.js",
+    "add-product-modular-blocks": "node add-product-modular-blocks.js",
+    "add-value-background-images": "node add-value-background-images.js",
+    "upload-value-images": "node upload-value-images.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",

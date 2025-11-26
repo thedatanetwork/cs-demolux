@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/Footer';
 import { ProductViewTracker } from '@/components/product/ProductViewTracker';
 import { ProductActions } from '@/components/product/ProductActions';
 import { ProductImageGallery } from '@/components/product/ProductImageGallery';
+import { ProductBlockRenderer } from '@/components/product/ProductBlockRenderer';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import { formatPrice } from '@/lib/utils';
@@ -185,6 +186,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </div>
           </div>
         </section>
+
+        {/* Product Content Blocks - Modular blocks from CMS */}
+        {product.content_blocks && product.content_blocks.length > 0 && (
+          <div className="bg-white">
+            <ProductBlockRenderer blocks={product.content_blocks} />
+          </div>
+        )}
 
         {/* Related Products */}
         <section className="section-spacing bg-gray-50">
