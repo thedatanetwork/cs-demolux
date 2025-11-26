@@ -30,7 +30,8 @@
     "add-product-modular-blocks": "node add-product-modular-blocks.js",
     "add-value-background-images": "node add-value-background-images.js",
     "add-background-image-to-values": "node add-background-image-to-values.js",
-    "upload-value-images": "node upload-value-images.js"
+    "upload-value-images": "node upload-value-images.js",
+    "fix-collection-urls": "node fix-collection-urls.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",

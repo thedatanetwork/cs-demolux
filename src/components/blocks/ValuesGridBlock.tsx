@@ -51,9 +51,9 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
 
   // Card style classes
   const cardStyleClasses = {
-    elevated: 'bg-white rounded-2xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2',
-    flat: 'bg-white rounded-2xl p-8 hover:bg-gray-50 transition-colors duration-300',
-    bordered: 'bg-transparent rounded-2xl p-8 border-2 border-gray-200 hover:border-gold-400 transition-colors duration-300',
+    elevated: 'bg-white rounded-lg p-8 shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2',
+    flat: 'bg-white rounded-lg p-8 hover:bg-gray-50 transition-colors duration-300',
+    bordered: 'bg-transparent rounded-lg p-8 border-2 border-gray-200 hover:border-gold-400 transition-colors duration-300',
     minimal: 'bg-transparent p-8'
   };
 
@@ -129,27 +129,31 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
                 )}
 
                 <div className="relative z-10">
-                  {/* Icon with Glass-morphism effect */}
-                  <div className={`w-20 h-20 ${hasBackgroundImage ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-2xl' : icon_style === 'gradient' ? 'bg-gradient-to-br from-gold-400 to-gold-600' : 'bg-gold-400'} rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-all duration-300`}>
-                    <IconComponent className={`h-10 w-10 ${hasBackgroundImage ? 'text-white' : 'text-white'}`} />
+                  {/* Icon - no background, gold color */}
+                  <div className="flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all duration-300">
+                    <IconComponent className={`h-12 w-12 ${hasBackgroundImage ? 'text-gold-400' : 'text-gold-500'} drop-shadow-lg`} />
                   </div>
 
-                  {/* Title */}
-                  <h3 className={`font-heading text-2xl font-bold mb-4 text-center ${hasBackgroundImage ? 'text-white' : 'text-gray-900'}`}>
-                    {value.title}
-                  </h3>
+                  {/* Title in frosted glass bubble */}
+                  <div className="flex justify-center mb-6">
+                    <div className={`inline-flex px-6 py-2.5 ${hasBackgroundImage ? 'bg-white/10 backdrop-blur-md border border-white/20' : 'bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200'} rounded-full shadow-sm`}>
+                      <h3 className={`font-heading text-xl font-bold text-center ${hasBackgroundImage ? 'text-white' : 'text-gray-900'}`}>
+                        {value.title}
+                      </h3>
+                    </div>
+                  </div>
 
                   {/* Description */}
-                  <p className={`leading-relaxed text-lg text-center ${hasBackgroundImage ? 'text-white/90' : 'text-gray-600'}`}>
+                  <p className={`leading-relaxed text-base text-center ${hasBackgroundImage ? 'text-white/90' : 'text-gray-600'}`}>
                     {value.description}
                   </p>
 
                   {/* Optional Link */}
                   {'link_url' in value && 'link_text' in value && value.link_url && value.link_text && (
-                    <div className="mt-4 text-center">
+                    <div className="mt-6 text-center">
                       <a
                         href={value.link_url}
-                        className={`font-semibold inline-flex items-center transition-colors ${hasBackgroundImage ? 'text-white hover:text-gold-200' : 'text-gold-600 hover:text-gold-700'}`}
+                        className={`inline-flex items-center px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300 ${hasBackgroundImage ? 'bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30' : 'bg-gold-500 text-white hover:bg-gold-600 shadow-md hover:shadow-lg'}`}
                       >
                         {value.link_text}
                         <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
