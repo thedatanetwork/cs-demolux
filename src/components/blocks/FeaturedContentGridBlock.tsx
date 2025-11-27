@@ -19,9 +19,6 @@ export function FeaturedContentGridBlock({ block }: FeaturedContentGridBlockProp
     section_description,
     badge_text,
     manual_items = [],
-    manual_products = [],
-    manual_blog_posts = [],
-    manual_collections = [],
     layout_style,
     show_cta,
     cta_text,
@@ -29,13 +26,8 @@ export function FeaturedContentGridBlock({ block }: FeaturedContentGridBlockProp
     background_style
   } = block;
 
-  // Combine all manual content into a single array
-  const allItems = [
-    ...manual_items,
-    ...manual_products,
-    ...manual_blog_posts,
-    ...manual_collections
-  ];
+  // Use manual_items directly
+  const allItems = manual_items;
 
   // Background styles
   const backgroundClasses = {
