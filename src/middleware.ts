@@ -2,26 +2,37 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  // Get the raw URL path from the request URL string
+  // request.nextUrl.pathname may already be normalized, so check the raw URL
+  const url = request.url;
+  const origin = request.nextUrl.origin;
 
-  // Check for multiple consecutive slashes in the pathname
-  if (pathname !== '/' && pathname.includes('//')) {
-    // Normalize the pathname by replacing multiple slashes with a single slash
-    const normalizedPathname = pathname.replace(/\/+/g, '/');
+  // Extract the path portion after the origin
+  const pathWithQuery = url.slice(origin.length);
 
-    // Create a new URL with the normalized pathname
-    const url = request.nextUrl.clone();
-    url.pathname = normalizedPathname;
+  // Check for multiple consecutive slashes at the start of the path
+  if (pathWithQuery.startsWith('//')) {
+    // Normalize by removing extra leading slashes
+    const normalizedPath = pathWithQuery.replace(/^\/+/, '/');
 
     // Redirect to the normalized URL
-    return NextResponse.redirect(url, 308);
+    return NextResponse.redirect(new URL(normalizedPath, origin), 308);
+  }
+
+  // Also check for double slashes anywhere in the pathname
+  const { pathname } = request.nextUrl;
+  if (pathname.includes('//')) {
+    const normalizedPathname = pathname.replace(/\/+/g, '/');
+    const newUrl = request.nextUrl.clone();
+    newUrl.pathname = normalizedPathname;
+    return NextResponse.redirect(newUrl, 308);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  // Match all paths except static files and API routes that shouldn't be processed
+  // Match all request paths
   matcher: [
     /*
      * Match all request paths except for:
