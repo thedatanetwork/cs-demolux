@@ -40,11 +40,14 @@ export class DataService {
       process.env.CONTENTSTACK_DELIVERY_TOKEN
     );
     
-    if (process.env.NODE_ENV === 'development') {
+    // Only log on server side (client won't have env vars)
+    const isServer = typeof window === 'undefined';
+
+    if (isServer && process.env.NODE_ENV === 'development') {
       console.log('DataService initialized with Contentstack:', this.useContentstack ? 'enabled' : 'disabled');
     }
-    
-    if (!this.useContentstack) {
+
+    if (isServer && !this.useContentstack) {
       console.warn('⚠️ CONTENTSTACK NOT CONFIGURED - Add credentials to .env.local');
     }
   }

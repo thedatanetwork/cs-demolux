@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { BlogPost } from '@/lib/contentstack';
+import type { BlogPost } from '@/lib/contentstack';
 import { formatDate } from '@/lib/utils';
 import { Calendar, User } from 'lucide-react';
 

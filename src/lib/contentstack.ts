@@ -11,26 +11,35 @@ const stackConfig = {
 // Initialize Contentstack
 let Stack: any = null;
 
+// Only initialize on server side (env vars not available on client)
+const isServer = typeof window === 'undefined';
+
 if (stackConfig.api_key && stackConfig.delivery_token) {
   try {
-    console.log('Contentstack config:', {
-      api_key: stackConfig.api_key ? `${stackConfig.api_key.substring(0, 10)}...` : 'missing',
-      delivery_token: stackConfig.delivery_token ? `${stackConfig.delivery_token.substring(0, 10)}...` : 'missing',
-      environment: stackConfig.environment,
-      region: stackConfig.region
-    });
-    
+    if (isServer) {
+      console.log('Contentstack config:', {
+        api_key: stackConfig.api_key ? `${stackConfig.api_key.substring(0, 10)}...` : 'missing',
+        delivery_token: stackConfig.delivery_token ? `${stackConfig.delivery_token.substring(0, 10)}...` : 'missing',
+        environment: stackConfig.environment,
+        region: stackConfig.region
+      });
+    }
+
     Stack = Contentstack.Stack({
       api_key: stackConfig.api_key,
       delivery_token: stackConfig.delivery_token,
       environment: stackConfig.environment,
       region: Contentstack.Region[stackConfig.region] || Contentstack.Region.US
     });
-    console.log('Contentstack initialized successfully');
+
+    if (isServer) {
+      console.log('Contentstack initialized successfully');
+    }
   } catch (error) {
     console.error('Failed to initialize Contentstack:', error);
   }
-} else {
+} else if (isServer) {
+  // Only warn on server - client-side won't have env vars and that's expected
   console.error('⚠️ CONTENTSTACK NOT CONFIGURED - Add credentials to .env.local file');
   console.error('Required: CONTENTSTACK_API_KEY, CONTENTSTACK_DELIVERY_TOKEN, CONTENTSTACK_ENVIRONMENT');
 }
