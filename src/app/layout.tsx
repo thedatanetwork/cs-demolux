@@ -6,7 +6,6 @@ import './globals.css'
 import { CartProvider } from '@/contexts/CartContext'
 import { PersonalizeProvider } from '@/contexts/PersonalizeContext'
 import LyticsTracker from '@/components/LyticsTracker'
-import { URLNormalizer } from '@/components/URLNormalizer'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ 
@@ -28,9 +27,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="min-h-screen bg-white">
-        {/* URL Normalizer - fixes double slash URLs */}
-        <URLNormalizer />
-
         {/* Lytics Tracking Tag */}
         <Script id="lytics-tracking" strategy="afterInteractive">
           {`
