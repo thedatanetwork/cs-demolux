@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import Link from 'next/link';
-import { Product } from '@/lib/contentstack';
+import type { Product } from '@/lib/contentstack';
 import { sendLyticsEvent } from '@/lib/tracking-utils';
 
 interface SearchOverlayProps {

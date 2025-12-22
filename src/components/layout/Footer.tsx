@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Instagram, Twitter, Linkedin, Youtube } from 'lucide-react';
-import { NavigationMenu, SiteSettings } from '@/lib/contentstack';
+import type { NavigationMenu, SiteSettings } from '@/lib/contentstack';
 
 interface FooterProps {
   navigation: NavigationMenu[];

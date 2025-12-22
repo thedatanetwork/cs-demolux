@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, ShoppingBag, Search } from 'lucide-react';
-import { NavigationMenu, Product } from '@/lib/contentstack';
+import type { NavigationMenu, Product } from '@/lib/contentstack';
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/contexts/CartContext';
 import { SearchOverlay } from '@/components/search/SearchOverlay';

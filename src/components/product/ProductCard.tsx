@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Product } from '@/lib/contentstack';
+import type { Product } from '@/lib/contentstack';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/contexts/CartContext';

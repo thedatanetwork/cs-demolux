@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { Product } from '@/lib/contentstack';
+import type { Product } from '@/lib/contentstack';
 
 // Cart item type
 export interface CartItem {

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Star, Award, Zap, Sparkles, Users, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { HomePage, FeatureItem } from '@/lib/contentstack';
+import type { HomePage, FeatureItem } from '@/lib/contentstack';
 import { useCTATracking } from '@/components/PersonalizeEventTracker';
 
 interface HeroSectionProps {

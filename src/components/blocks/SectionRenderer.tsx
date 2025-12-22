@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ModularBlock } from '@/lib/contentstack';
+import type { ModularBlock } from '@/lib/contentstack';
 import { HeroSectionBlock } from './HeroSectionBlock';
 import { FeaturedContentGridBlock } from './FeaturedContentGridBlock';
 import { ValuesGridBlock } from './ValuesGridBlock';

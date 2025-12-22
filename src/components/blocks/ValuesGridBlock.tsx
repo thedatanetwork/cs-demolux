@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { ValuesGridBlock as ValuesGridBlockType } from '@/lib/contentstack';
+import type { ValuesGridBlock as ValuesGridBlockType } from '@/lib/contentstack';
 import { Sparkles, Users, Globe, Award, Zap, Star, Heart, Shield, TrendingUp } from 'lucide-react';
 
 interface ValuesGridBlockProps {

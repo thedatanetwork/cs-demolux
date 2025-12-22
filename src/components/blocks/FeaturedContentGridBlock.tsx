@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { FeaturedContentGridBlock as FeaturedContentGridBlockType } from '@/lib/contentstack';
+import type { FeaturedContentGridBlock as FeaturedContentGridBlockType } from '@/lib/contentstack';
 import { ProductCard } from '@/components/product/ProductCard';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { Button } from '@/components/ui/Button';

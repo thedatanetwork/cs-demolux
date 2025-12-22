@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { CampaignCTABlock as CampaignCTABlockType, Image as ImageType } from '@/lib/contentstack';
+import type { CampaignCTABlock as CampaignCTABlockType, Image as ImageType } from '@/lib/contentstack';
 import { Button } from '@/components/ui/Button';
 import { ArrowRight } from 'lucide-react';
 import { useCTATracking } from '@/components/PersonalizeEventTracker';

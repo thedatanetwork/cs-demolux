@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { GallerySectionBlock as GallerySectionBlockType } from '@/lib/contentstack';
+import type { GallerySectionBlock as GallerySectionBlockType } from '@/lib/contentstack';
 import { X } from 'lucide-react';
 
 interface GallerySectionBlockProps {

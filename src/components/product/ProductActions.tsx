@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/contexts/CartContext';
-import { Product } from '@/lib/contentstack';
+import type { Product } from '@/lib/contentstack';
 import { ShoppingCart, Heart, Share2, Check } from 'lucide-react';
 import { useProductTracking } from '@/components/PersonalizeEventTracker';
 import { ShareModal } from './ShareModal';
