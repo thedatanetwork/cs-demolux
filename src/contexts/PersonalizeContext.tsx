@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { PersonalizeSDK, Experience, personalizeService } from '@/lib/personalize';
+import { tealiumMockService, TealiumMomentsResponse } from '@/lib/tealium-mock';
 
 interface PersonalizeContextType {
   sdk: PersonalizeSDK | null;
@@ -11,6 +12,8 @@ interface PersonalizeContextType {
   isConfigured: boolean;
   triggerEvent: (eventKey: string, data?: Record<string, any>) => Promise<void>;
   setUserAttributes: (attributes: Record<string, any>) => Promise<void>;
+  tealiumData: TealiumMomentsResponse | null;
+  refreshTealiumData: () => void;
 }
 
 const PersonalizeContext = createContext<PersonalizeContextType | undefined>(undefined);
@@ -21,16 +24,17 @@ interface PersonalizeProviderProps {
   liveAttributes?: Record<string, any>;
 }
 
-export function PersonalizeProvider({ 
-  children, 
+export function PersonalizeProvider({
+  children,
   userId,
-  liveAttributes 
+  liveAttributes
 }: PersonalizeProviderProps) {
   const [sdk, setSdk] = useState<PersonalizeSDK | null>(null);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [variantAliases, setVariantAliases] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isConfigured] = useState(personalizeService.isConfigured());
+  const [tealiumData, setTealiumData] = useState<TealiumMomentsResponse | null>(null);
 
   // Define initialize outside useEffect so it can be reused
   const initialize = async () => {
@@ -42,22 +46,36 @@ export function PersonalizeProvider({
 
       try {
         setIsLoading(true);
-        
+
+        // Get Tealium/CDP data (mock for demo, would be real API call in production)
+        // This simulates calling Tealium Moments API to get audience segments
+        const tealiumResponse = tealiumMockService.getMomentsData(true);
+        setTealiumData(tealiumResponse);
+
+        // Convert Tealium audiences to Personalize-compatible attributes
+        // The cdp_segments field is a comma-delimited string of audience names
+        const tealiumAttributes = tealiumMockService.getPersonalizeAttributes(tealiumResponse);
+
+        console.log('🎯 Tealium audiences:', tealiumResponse.audiences);
+        console.log('🎯 cdp_segments for Personalize:', tealiumAttributes.cdp_segments);
+
         // Extract query parameters from URL for targeting
         const urlParams = new URLSearchParams(window.location.search);
         const queryParams: Record<string, string> = {};
         urlParams.forEach((value, key) => {
           queryParams[key] = value;
         });
-        
-        // Merge URL params with any provided live attributes
+
+        // Merge: URL params + Tealium CDP data + any provided live attributes
+        // Tealium data is merged so Personalize can evaluate cdp_segments rules
         const mergedAttributes = {
           ...queryParams,
+          ...tealiumAttributes,
           ...liveAttributes
         };
-        
+
         console.log('🔍 Initializing Personalize with attributes:', mergedAttributes);
-        
+
         const personalizeSDK = await personalizeService.initializeClient(
           userId,
           mergedAttributes
@@ -122,6 +140,14 @@ export function PersonalizeProvider({
     }
   };
 
+  // Refresh Tealium data and re-initialize Personalize
+  // This simulates a new Moments API call with fresh random audiences
+  const refreshTealiumData = () => {
+    console.log('🔄 Refreshing Tealium data and re-initializing Personalize...');
+    tealiumMockService.clearCache();
+    initialize();
+  };
+
   const value: PersonalizeContextType = {
     sdk,
     experiences,
@@ -130,6 +156,8 @@ export function PersonalizeProvider({
     isConfigured,
     triggerEvent,
     setUserAttributes,
+    tealiumData,
+    refreshTealiumData,
   };
 
   return (
