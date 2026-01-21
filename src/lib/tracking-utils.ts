@@ -1,7 +1,43 @@
 /**
  * Lytics Tracking Utilities
  * Provides consistent tracking context across all events
+ *
+ * Supports two modes:
+ * - Direct Lytics: Events sent via jstag (when GTM is not configured)
+ * - GTM Mode: Events pushed to dataLayer for GTM to handle (when NEXT_PUBLIC_GTM_CONTAINER_ID is set)
  */
+
+// Check if GTM mode is enabled (env var is inlined at build time)
+const isGTMEnabled = !!process.env.NEXT_PUBLIC_GTM_CONTAINER_ID;
+
+// Type declaration for dataLayer
+declare global {
+  interface Window {
+    dataLayer?: Record<string, any>[];
+  }
+}
+
+// Ensure dataLayer exists
+function ensureDataLayer(): void {
+  if (typeof window !== 'undefined') {
+    window.dataLayer = window.dataLayer || [];
+  }
+}
+
+// Push event to dataLayer for GTM
+function pushToDataLayer(event: string, data: Record<string, any>): void {
+  if (typeof window === 'undefined') return;
+
+  ensureDataLayer();
+  window.dataLayer!.push({
+    event,
+    ...data,
+  });
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('GTM dataLayer push:', { event, ...data });
+  }
+}
 
 // Generate a session ID that persists for the browser session
 function getSessionId(): string {
@@ -18,9 +54,9 @@ function getSessionId(): string {
   return sessionId;
 }
 
-// Get Lytics anonymous user ID
+// Get Lytics anonymous user ID (only available in direct Lytics mode)
 function getLyticsUserId(callback: (userId: string) => void): void {
-  if (typeof window !== 'undefined' && window.jstag) {
+  if (!isGTMEnabled && typeof window !== 'undefined' && window.jstag) {
     window.jstag.getid((id: string) => {
       callback(id);
     });
@@ -103,7 +139,7 @@ export async function getBaseTrackingContext(): Promise<Record<string, any>> {
       timestamp: new Date().toISOString(),
     };
 
-    // Add Lytics user ID asynchronously
+    // Add Lytics user ID asynchronously (only in direct Lytics mode)
     getLyticsUserId((userId) => {
       resolve({
         ...context,
@@ -115,10 +151,15 @@ export async function getBaseTrackingContext(): Promise<Record<string, any>> {
 
 // Identify user by email (call when email is captured)
 export function identifyUserByEmail(email: string): void {
-  if (typeof window !== 'undefined' && window.jstag && email) {
-    window.jstag.identify({
-      email: email,
-    });
+  if (typeof window === 'undefined' || !email) return;
+
+  if (isGTMEnabled) {
+    // GTM mode: push identify event to dataLayer
+    pushToDataLayer('identify_user', { email });
+    console.log('GTM: User identify event pushed for email:', email);
+  } else if (window.jstag) {
+    // Direct Lytics mode: call jstag.identify
+    window.jstag.identify({ email });
     console.log('Lytics: User identified with email:', email);
   }
 }
@@ -128,18 +169,32 @@ export async function sendLyticsEvent(
   eventType: string,
   eventData: Record<string, any> = {}
 ): Promise<void> {
-  if (typeof window === 'undefined' || !window.jstag) {
-    return;
-  }
+  if (typeof window === 'undefined') return;
 
-  const baseContext = await getBaseTrackingContext();
-
-  window.jstag.send({
-    stream: 'web_events',
-    data: {
-      event_type: eventType,
-      ...baseContext,
+  if (isGTMEnabled) {
+    // GTM mode: push event to dataLayer
+    // GTM tags will pick up these events and forward to Lytics
+    pushToDataLayer(eventType, {
       ...eventData,
-    }
-  });
+      ...getPageContext(),
+      timestamp: new Date().toISOString(),
+    });
+  } else if (window.jstag) {
+    // Direct Lytics mode: send via jstag
+    const baseContext = await getBaseTrackingContext();
+
+    window.jstag.send({
+      stream: 'web_events',
+      data: {
+        event_type: eventType,
+        ...baseContext,
+        ...eventData,
+      }
+    });
+  }
+}
+
+// Export GTM mode status for components that need to check
+export function isGTMModeEnabled(): boolean {
+  return isGTMEnabled;
 }

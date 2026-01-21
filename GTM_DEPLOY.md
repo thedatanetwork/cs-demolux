@@ -50,18 +50,19 @@ Replace `GTM-MQG24VX6` with your actual GTM container ID.
 **How it works**: When `NEXT_PUBLIC_GTM_CONTAINER_ID` is set, the site automatically:
 1. Loads the GTM script in the `<head>`
 2. Adds the GTM noscript iframe in the `<body>`
+3. **Disables direct Lytics tracking** (jstag is not loaded)
+4. **Pushes all events to `dataLayer`** instead of sending to Lytics directly
 
-When the variable is not set, GTM is not loaded and the site uses direct Lytics tracking.
+When the variable is **not set**:
+- GTM is not loaded
+- Lytics jstag loads directly
+- Events are sent to Lytics via `jstag.send()`
 
-### Step 2: Initialize the Data Layer
+This means you only need to configure GTM tags to forward dataLayer events to Lytics - **the site already pushes all events to dataLayer when GTM mode is enabled**.
 
-Ensure the data layer is initialized before GTM loads. Add this to your tracking code or create a data layer initialization script:
+### Step 2: Data Layer Auto-Initialization
 
-```html
-<script>
-  window.dataLayer = window.dataLayer || [];
-</script>
-```
+The data layer is automatically initialized by the application code. You do not need to add any initialization scripts - the tracking utilities handle this when pushing events.
 
 ---
 
@@ -69,16 +70,22 @@ Ensure the data layer is initialized before GTM loads. Add this to your tracking
 
 The data layer is how your website communicates with GTM. Events are pushed to the data layer, and GTM triggers fire based on those events.
 
+**Important**: When GTM mode is enabled (`NEXT_PUBLIC_GTM_CONTAINER_ID` is set), the Demolux site **automatically pushes all events to `dataLayer`**. You do not need to modify any application code - just configure GTM tags to listen for these events and forward them to Lytics.
+
 ### Data Layer Push Pattern
 
-All events should follow this pattern:
+All events follow this pattern (automatically handled by the app):
 
 ```javascript
 window.dataLayer.push({
   event: 'event_name',
   // Event-specific parameters
   param1: 'value1',
-  param2: 'value2'
+  param2: 'value2',
+  // Page context (automatically added)
+  page_url: 'https://...',
+  page_path: '/products/...',
+  timestamp: '2024-01-15T10:30:00.000Z'
 });
 ```
 
