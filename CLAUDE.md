@@ -207,6 +207,11 @@ NEXT_PUBLIC_CONTENTSTACK_PERSONALIZE_PROJECT_UID=
 CONTENTSTACK_PREVIEW_TOKEN=
 CONTENTSTACK_APP_HOST=app.contentstack.com
 CONTENTSTACK_LIVE_PREVIEW=true
+
+# Optional: Google Tag Manager (for GTM-based Lytics tracking)
+# When set, GTM loads and can be used for event tracking via tag management
+# When not set, direct Lytics tracking via code is used
+NEXT_PUBLIC_GTM_CONTAINER_ID=GTM-XXXXXXX
 ```
 
 ### Management Token for Scripts
