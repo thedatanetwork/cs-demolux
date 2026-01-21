@@ -7,10 +7,10 @@ This guide explains how to send events to Lytics via Google Tag Manager (GTM) in
 1. [Prerequisites](#prerequisites)
 2. [GTM Container Setup](#gtm-container-setup)
 3. [Data Layer Configuration](#data-layer-configuration)
-4. [Events Reference](#events-reference)
-5. [Creating GTM Tags](#creating-gtm-tags)
-6. [Creating GTM Triggers](#creating-gtm-triggers)
-7. [Creating GTM Variables](#creating-gtm-variables)
+4. [**Automatic Click Tracking (Zero Code)**](#automatic-click-tracking-zero-code) ⭐
+5. [Events Reference](#events-reference)
+6. [Creating GTM Variables](#creating-gtm-variables)
+7. [Creating GTM Triggers](#creating-gtm-triggers)
 8. [Lytics Tag Configuration](#lytics-tag-configuration)
 9. [User Identification](#user-identification)
 10. [Testing & Debugging](#testing--debugging)
@@ -88,6 +88,398 @@ window.dataLayer.push({
   timestamp: '2024-01-15T10:30:00.000Z'
 });
 ```
+
+---
+
+## Automatic Click Tracking (Zero Code)
+
+One of the most powerful features of GTM is **automatic behavioral tracking** - capturing every click on your site without writing any code. This provides rich engagement data that can be sent to Lytics for audience building and personalization.
+
+### Why Auto-Click Tracking Matters
+
+- **Zero development effort** - Works immediately with GTM configuration only
+- **Captures everything** - Links, buttons, images, navigation, CTAs
+- **Rich context** - Extracts text, URLs, images, and surrounding content
+- **Behavioral insights** - Understand what users engage with most
+- **Audience building** - Create Lytics segments based on click behavior
+
+### Step 1: Enable Built-in Click Variables
+
+First, enable GTM's built-in click tracking variables:
+
+1. Go to **Variables** > **Configure** (gear icon)
+2. Under **Clicks**, enable ALL of these:
+   - ✅ Click Element
+   - ✅ Click Classes
+   - ✅ Click ID
+   - ✅ Click Target
+   - ✅ Click URL
+   - ✅ Click Text
+
+These are now available as `{{Click Element}}`, `{{Click URL}}`, etc. in your tags.
+
+### Step 2: Create Rich Context Variables
+
+Create these **Custom JavaScript Variables** to extract meaningful context from clicks:
+
+#### Variable: Click - Element Tag Name
+
+Captures what type of element was clicked (A, BUTTON, IMG, DIV, etc.)
+
+1. **Variable Type**: Custom JavaScript
+2. **Name**: `JS - Click Element Tag`
+3. **Code**:
+
+```javascript
+function() {
+  var el = {{Click Element}};
+  return el ? el.tagName : '';
+}
+```
+
+#### Variable: Click - Link Destination
+
+For link clicks, extracts the full destination URL.
+
+1. **Variable Type**: Custom JavaScript
+2. **Name**: `JS - Click Link Href`
+3. **Code**:
+
+```javascript
+function() {
+  var el = {{Click Element}};
+  if (!el) return '';
+
+  // Check the element itself, then traverse up to find nearest link
+  var link = el.closest('a');
+  return link ? link.href : '';
+}
+```
+
+#### Variable: Click - Image Source
+
+For image clicks, extracts the image URL.
+
+1. **Variable Type**: Custom JavaScript
+2. **Name**: `JS - Click Image Src`
+3. **Code**:
+
+```javascript
+function() {
+  var el = {{Click Element}};
+  if (!el) return '';
+
+  // If clicked element is an image
+  if (el.tagName === 'IMG') return el.src;
+
+  // If click was inside a container with an image
+  var img = el.querySelector('img');
+  if (img) return img.src;
+
+  // Check parent for image (common in card layouts)
+  var parent = el.closest('a, button, [class*="card"], [class*="product"]');
+  if (parent) {
+    img = parent.querySelector('img');
+    if (img) return img.src;
+  }
+
+  return '';
+}
+```
+
+#### Variable: Click - Button/CTA Text
+
+Extracts the text content of clicked buttons and CTAs.
+
+1. **Variable Type**: Custom JavaScript
+2. **Name**: `JS - Click Button Text`
+3. **Code**:
+
+```javascript
+function() {
+  var el = {{Click Element}};
+  if (!el) return '';
+
+  // For buttons, get the text content
+  var button = el.closest('button, [role="button"], .btn, [class*="button"]');
+  if (button) {
+    return button.innerText.trim().substring(0, 100);
+  }
+
+  // For links styled as buttons
+  var link = el.closest('a');
+  if (link) {
+    return link.innerText.trim().substring(0, 100);
+  }
+
+  return el.innerText ? el.innerText.trim().substring(0, 100) : '';
+}
+```
+
+#### Variable: Click - Product Context
+
+**This is the most powerful variable** - extracts product information from nearby elements when users click within product cards.
+
+1. **Variable Type**: Custom JavaScript
+2. **Name**: `JS - Click Product Context`
+3. **Code**:
+
+```javascript
+function() {
+  var el = {{Click Element}};
+  if (!el) return null;
+
+  // Find the nearest product container (adjust selectors for your site)
+  var productCard = el.closest(
+    '[class*="product"], [class*="card"], [data-product-id], article, .group'
+  );
+
+  if (!productCard) return null;
+
+  var context = {};
+
+  // Extract product title
+  var title = productCard.querySelector(
+    'h1, h2, h3, h4, [class*="title"], [class*="name"]'
+  );
+  if (title) context.product_title = title.innerText.trim();
+
+  // Extract product price
+  var price = productCard.querySelector(
+    '[class*="price"], .price, [data-price]'
+  );
+  if (price) {
+    var priceText = price.innerText.replace(/[^0-9.]/g, '');
+    context.product_price = parseFloat(priceText) || priceText;
+  }
+
+  // Extract product category
+  var category = productCard.querySelector(
+    '[class*="category"], .category, [data-category]'
+  );
+  if (category) context.product_category = category.innerText.trim();
+
+  // Extract product ID from data attributes
+  if (productCard.dataset.productId) {
+    context.product_id = productCard.dataset.productId;
+  }
+
+  // Extract product URL
+  var link = productCard.querySelector('a[href*="/product"]');
+  if (link) context.product_url = link.href;
+
+  return Object.keys(context).length > 0 ? context : null;
+}
+```
+
+#### Variable: Click - Navigation Section
+
+Identifies which navigation area the click occurred in.
+
+1. **Variable Type**: Custom JavaScript
+2. **Name**: `JS - Click Navigation Section`
+3. **Code**:
+
+```javascript
+function() {
+  var el = {{Click Element}};
+  if (!el) return 'body';
+
+  // Check common navigation containers
+  if (el.closest('header, [class*="header"], nav')) return 'header';
+  if (el.closest('footer, [class*="footer"]')) return 'footer';
+  if (el.closest('[class*="sidebar"], aside')) return 'sidebar';
+  if (el.closest('[class*="hero"]')) return 'hero';
+  if (el.closest('[class*="modal"], [class*="dialog"], [role="dialog"]')) return 'modal';
+  if (el.closest('[class*="cart"]')) return 'cart';
+  if (el.closest('[class*="search"]')) return 'search';
+  if (el.closest('main, [class*="content"]')) return 'main_content';
+
+  return 'body';
+}
+```
+
+#### Variable: Click - Parent Container Text
+
+Captures surrounding text context from the parent container.
+
+1. **Variable Type**: Custom JavaScript
+2. **Name**: `JS - Click Parent Text`
+3. **Code**:
+
+```javascript
+function() {
+  var el = {{Click Element}};
+  if (!el) return '';
+
+  // Find a meaningful parent container
+  var parent = el.closest(
+    'section, article, [class*="card"], [class*="item"], .group, li'
+  );
+
+  if (!parent) {
+    parent = el.parentElement;
+  }
+
+  if (!parent) return '';
+
+  // Get text content, limiting length and cleaning whitespace
+  var text = parent.innerText || '';
+  text = text.replace(/\s+/g, ' ').trim();
+
+  // Return first 200 characters for context
+  return text.substring(0, 200);
+}
+```
+
+### Step 3: Create the All Clicks Trigger
+
+1. Go to **Triggers** > **New**
+2. **Name**: `All Clicks`
+3. **Trigger Type**: Click - All Elements
+4. **This trigger fires on**: All Clicks
+5. Save
+
+### Step 4: Create the Auto-Click Tracking Tag
+
+This single tag captures ALL clicks with rich context and sends them to Lytics.
+
+1. Go to **Tags** > **New**
+2. **Name**: `Lytics - Auto Click Tracking`
+3. **Tag Type**: Custom HTML
+4. **HTML**:
+
+```html
+<script>
+  (function() {
+    if (!window.jstag) return;
+
+    var clickElement = {{Click Element}};
+    if (!clickElement) return;
+
+    // Build the click event data
+    var eventData = {
+      event_type: 'click',
+
+      // Basic click info
+      click_text: {{Click Text}} || '',
+      click_url: {{Click URL}} || '',
+      click_classes: {{Click Classes}} || '',
+      click_id: {{Click ID}} || '',
+      click_target: {{Click Target}} || '',
+
+      // Enhanced context from custom variables
+      element_tag: {{JS - Click Element Tag}},
+      link_destination: {{JS - Click Link Href}},
+      image_src: {{JS - Click Image Src}},
+      button_text: {{JS - Click Button Text}},
+      nav_section: {{JS - Click Navigation Section}},
+      parent_text: {{JS - Click Parent Text}},
+
+      // Page context
+      page_url: {{Page URL}},
+      page_path: {{Page Path}},
+      timestamp: new Date().toISOString()
+    };
+
+    // Add product context if available
+    var productContext = {{JS - Click Product Context}};
+    if (productContext) {
+      eventData.product_context = productContext;
+      eventData.has_product_context = true;
+    }
+
+    // Determine click type for easier filtering
+    var tag = eventData.element_tag;
+    if (tag === 'A' || eventData.link_destination) {
+      eventData.click_type = 'link';
+    } else if (tag === 'BUTTON' || eventData.button_text) {
+      eventData.click_type = 'button';
+    } else if (tag === 'IMG' || eventData.image_src) {
+      eventData.click_type = 'image';
+    } else if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
+      eventData.click_type = 'form_element';
+    } else {
+      eventData.click_type = 'other';
+    }
+
+    // Send to Lytics
+    jstag.send({
+      stream: 'web_events',
+      data: eventData
+    });
+  })();
+</script>
+```
+
+5. **Triggering**: All Clicks
+6. **Tag Sequencing**: Ensure `Lytics - Base Tag` fires first
+7. Save
+
+### What Gets Captured Automatically
+
+With this setup, every click sends rich data to Lytics:
+
+| Field | Example Value | Description |
+|-------|---------------|-------------|
+| `click_type` | `button` | Type: link, button, image, form_element, other |
+| `click_text` | `Add to Cart` | Text content of clicked element |
+| `button_text` | `Add to Cart (1)` | Full button/CTA text |
+| `link_destination` | `https://site.com/products/headset` | Where links point |
+| `image_src` | `https://images.cdn.com/product.jpg` | Image URLs clicked |
+| `nav_section` | `header` | Site area: header, footer, hero, modal, etc. |
+| `parent_text` | `Quantum Neural Headset $2,499 Premium...` | Surrounding context |
+| `product_context.product_title` | `Quantum Neural Headset` | Product name if in product card |
+| `product_context.product_price` | `2499` | Product price if available |
+| `click_classes` | `btn btn-primary` | CSS classes on element |
+
+### Example: What Lytics Receives
+
+When a user clicks "Add to Cart" on a product card:
+
+```json
+{
+  "event_type": "click",
+  "click_type": "button",
+  "click_text": "Add to Cart",
+  "button_text": "Add to Cart (1)",
+  "nav_section": "main_content",
+  "parent_text": "Quantum Neural Headset The future of human-computer interaction... $2,499",
+  "has_product_context": true,
+  "product_context": {
+    "product_title": "Quantum Neural Headset",
+    "product_price": 2499,
+    "product_url": "/products/quantum-neural-headset"
+  },
+  "page_url": "https://demolux.com/categories/wearable-tech",
+  "page_path": "/categories/wearable-tech",
+  "timestamp": "2024-01-15T14:32:00.000Z"
+}
+```
+
+### Building Lytics Audiences from Click Data
+
+With auto-click tracking, you can build powerful audiences:
+
+| Audience | Lytics Query |
+|----------|--------------|
+| Engaged with wearable tech | `click_type = "button" AND parent_text CONTAINS "wearable"` |
+| Viewed product images | `click_type = "image" AND has_product_context = true` |
+| High-intent shoppers | `button_text CONTAINS "Add to Cart" OR button_text CONTAINS "Buy Now"` |
+| Navigation explorers | `nav_section = "header" AND click_type = "link"` |
+| Price-conscious users | `parent_text MATCHES "\$[0-9]+" AND click_type = "link"` |
+
+### Optional: Filter Out Noise
+
+To avoid tracking every tiny click, add conditions to the trigger:
+
+1. Edit the **All Clicks** trigger
+2. Change to "Some Clicks"
+3. Add conditions like:
+   - `Click Classes` does not contain `ignore-tracking`
+   - `Click Element` matches CSS selector `a, button, img, [role="button"]`
+
+This focuses on meaningful interactions while reducing event volume.
 
 ---
 
@@ -685,13 +1077,24 @@ In GTM Preview mode:
 
 Before publishing your GTM container to production:
 
+### Core Setup
 - [ ] **Base Tag**: Lytics base tag loads on all pages
 - [ ] **Variables**: All Data Layer Variables are created
 - [ ] **Triggers**: All Custom Event triggers are created
 - [ ] **Tags**: All Lytics event tags are created and configured
 - [ ] **Tag Sequencing**: All event tags wait for base tag to fire first
+
+### Auto-Click Tracking (Recommended)
+- [ ] **Built-in Click Variables**: All click variables enabled in GTM
+- [ ] **Custom JS Variables**: Rich context variables created (product context, nav section, etc.)
+- [ ] **All Clicks Trigger**: Created and configured
+- [ ] **Auto-Click Tag**: Lytics Auto Click Tracking tag created with all variables
+- [ ] **Click Filtering**: Optional noise filtering conditions added
+
+### Testing
 - [ ] **Preview Testing**: All events fire correctly in GTM Preview
 - [ ] **Data Layer Pushes**: Website pushes correct data to dataLayer
+- [ ] **Click Tracking Test**: Verify clicks capture rich context (product info, nav section)
 - [ ] **Lytics Verification**: Events appear in Lytics data stream
 - [ ] **User Identification**: Email identification works correctly
 - [ ] **No Console Errors**: No JavaScript errors related to tracking
