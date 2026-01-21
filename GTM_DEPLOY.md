@@ -120,7 +120,9 @@ These are now available as `{{Click Element}}`, `{{Click URL}}`, etc. in your ta
 
 ### Step 2: Create Rich Context Variables
 
-Create these **Custom JavaScript Variables** to extract meaningful context from clicks:
+Create these **Custom JavaScript Variables** to extract meaningful context from clicks.
+
+> **Browser Compatibility Note**: These variables use `Element.closest()` which works in all modern browsers (Chrome, Firefox, Safari, Edge) but NOT in IE11. If you need IE11 support, see the [IE11 Polyfill](#ie11-polyfill-optional) section at the end.
 
 #### Variable: Click - Element Tag Name
 
@@ -480,6 +482,28 @@ To avoid tracking every tiny click, add conditions to the trigger:
    - `Click Element` matches CSS selector `a, button, img, [role="button"]`
 
 This focuses on meaningful interactions while reducing event volume.
+
+### IE11 Polyfill (Optional)
+
+If you need IE11 support, add this polyfill as a **Custom HTML Tag** that fires on **All Pages** with high priority (before other tags):
+
+```html
+<script>
+  // Polyfill for Element.closest() - IE11 support
+  if (!Element.prototype.closest) {
+    Element.prototype.closest = function(s) {
+      var el = this;
+      do {
+        if (el.matches ? el.matches(s) : el.msMatchesSelector(s)) return el;
+        el = el.parentElement || el.parentNode;
+      } while (el !== null && el.nodeType === 1);
+      return null;
+    };
+  }
+</script>
+```
+
+Set this tag to fire **before** the Auto-Click Tracking tag using Tag Sequencing.
 
 ---
 
