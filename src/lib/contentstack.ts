@@ -496,6 +496,7 @@ export interface TestimonialsBlock {
 export interface StatisticsBlock {
   block_type: 'statistics';
   section_title?: string;
+  section_description?: string;
   badge_text?: string;
   metrics: Array<{
     value: string;
@@ -503,9 +504,44 @@ export interface StatisticsBlock {
     description?: string;
     icon?: string;
   }>;
-  layout_style: 'horizontal' | 'grid';
-  background_style: 'white' | 'dark' | 'gradient';
+  layout_style: 'horizontal' | 'grid-3' | 'grid-4';
+  background_style: 'white' | 'dark' | 'gradient' | 'gradient-gold';
   animated: boolean;
+}
+
+export interface ProcessStepsBlock {
+  block_type: 'process_steps';
+  section_title: string;
+  section_description?: string;
+  badge_text?: string;
+  steps: Array<{
+    step_number?: number;
+    title: string;
+    description: string;
+    icon?: string;
+    image?: Image;
+    cta?: CTAButton;
+  }>;
+  layout_style: 'horizontal' | 'vertical' | 'alternating';
+  show_step_numbers: boolean;
+  show_connector_lines: boolean;
+  background_style: 'white' | 'gray' | 'gradient';
+}
+
+export interface FAQBlock {
+  block_type: 'faq';
+  section_title: string;
+  section_description?: string;
+  badge_text?: string;
+  faqs: Array<{
+    question: string;
+    answer: string;
+    category?: string;
+  }>;
+  layout_style: 'accordion' | 'two-column' | 'cards';
+  show_categories: boolean;
+  expand_first: boolean;
+  background_style: 'white' | 'gray' | 'gradient';
 }
 
 // Union type of all modular blocks
@@ -519,7 +555,9 @@ export type ModularBlock =
   | GallerySectionBlock
   | CollectionShowcaseBlock
   | TestimonialsBlock
-  | StatisticsBlock;
+  | StatisticsBlock
+  | ProcessStepsBlock
+  | FAQBlock;
 
 // ============================================================================
 // MODULAR PAGE TYPES

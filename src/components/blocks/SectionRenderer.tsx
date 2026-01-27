@@ -7,6 +7,10 @@ import { FeaturedContentGridBlock } from './FeaturedContentGridBlock';
 import { ValuesGridBlock } from './ValuesGridBlock';
 import { CampaignCTABlock } from './CampaignCTABlock';
 import { GallerySectionBlock } from './GallerySectionBlock';
+import { ProcessStepsBlock } from './ProcessStepsBlock';
+import { StatisticsBlock } from './StatisticsBlock';
+import { TestimonialsBlock } from './TestimonialsBlock';
+import { FAQBlock } from './FAQBlock';
 
 interface SectionRendererProps {
   sections: ModularBlock[];
@@ -45,6 +49,22 @@ export function SectionRenderer({ sections }: SectionRendererProps) {
           case 'gallery_section':
             return <GallerySectionBlock key={section.uid || index} block={section} />;
 
+          case 'process_steps_block':
+          case 'process_steps':
+            return <ProcessStepsBlock key={section.uid || index} block={section} />;
+
+          case 'statistics_block':
+          case 'statistics':
+            return <StatisticsBlock key={section.uid || index} block={section} />;
+
+          case 'testimonials_block':
+          case 'testimonials':
+            return <TestimonialsBlock key={section.uid || index} block={section} />;
+
+          case 'faq_block':
+          case 'faq':
+            return <FAQBlock key={section.uid || index} block={section} />;
+
           // Additional block types can be added here as they're implemented
           case 'text_media_section_block':
           case 'text_media_section':
@@ -52,10 +72,6 @@ export function SectionRenderer({ sections }: SectionRendererProps) {
           case 'product_showcase':
           case 'collection_showcase_block':
           case 'collection_showcase':
-          case 'testimonials_block':
-          case 'testimonials':
-          case 'statistics_block':
-          case 'statistics':
             console.warn(`Block type "${blockType}" is not yet implemented`);
             return null;
 
