@@ -97,16 +97,18 @@ function HorizontalLayout({
             </div>
           )}
 
-          <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            {section_title.split(' ').map((word, index, arr) => (
-              <span
-                key={index}
-                className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-600 to-gold-400 bg-clip-text text-transparent' : ''}
-              >
-                {word}{index < arr.length - 1 ? ' ' : ''}
-              </span>
-            ))}
-          </h2>
+          {section_title && (
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              {section_title.split(' ').map((word, index, arr) => (
+                <span
+                  key={index}
+                  className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-600 to-gold-400 bg-clip-text text-transparent' : ''}
+                >
+                  {word}{index < arr.length - 1 ? ' ' : ''}
+                </span>
+              ))}
+            </h2>
+          )}
 
           {section_description && (
             <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
@@ -118,13 +120,13 @@ function HorizontalLayout({
         {/* Steps Grid */}
         <div className="relative">
           {/* Connector Line */}
-          {show_connector_lines && steps.length > 1 && (
+          {show_connector_lines && (steps || []).length > 1 && (
             <div className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gold-300 to-transparent"
                  style={{ left: '15%', right: '15%' }} />
           )}
 
-          <div className={`grid grid-cols-1 md:grid-cols-${Math.min(steps.length, 3)} lg:grid-cols-${Math.min(steps.length, 4)} gap-8 lg:gap-12`}>
-            {steps.map((step, index) => {
+          <div className={`grid grid-cols-1 md:grid-cols-${Math.min((steps || []).length, 3)} lg:grid-cols-${Math.min((steps || []).length, 4)} gap-8 lg:gap-12`}>
+            {(steps || []).map((step, index) => {
               const IconComponent = step.icon ? iconMap[step.icon] : CheckCircle;
               const stepImage = Array.isArray(step.image) ? step.image[0] : step.image;
 
@@ -219,9 +221,9 @@ function VerticalLayout({
 
         {/* Vertical Steps */}
         <div className="max-w-3xl mx-auto">
-          {steps.map((step, index) => {
+          {(steps || []).map((step, index) => {
             const IconComponent = step.icon ? iconMap[step.icon] : CheckCircle;
-            const isLast = index === steps.length - 1;
+            const isLast = index === (steps || []).length - 1;
 
             return (
               <div key={index} className="relative flex gap-6 pb-12">
@@ -306,7 +308,7 @@ function AlternatingLayout({
 
         {/* Alternating Steps */}
         <div className="max-w-5xl mx-auto space-y-16">
-          {steps.map((step, index) => {
+          {(steps || []).map((step, index) => {
             const IconComponent = step.icon ? iconMap[step.icon] : CheckCircle;
             const stepImage = Array.isArray(step.image) ? step.image[0] : step.image;
             const isEven = index % 2 === 0;

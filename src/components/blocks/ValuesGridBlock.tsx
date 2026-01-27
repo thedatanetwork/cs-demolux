@@ -77,16 +77,18 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
           )}
 
           {/* Title */}
-          <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            {section_title.split(' ').map((word, index, arr) => (
-              <span
-                key={index}
-                className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-600 to-gold-400 bg-clip-text text-transparent' : ''}
-              >
-                {word}{index < arr.length - 1 ? ' ' : ''}
-              </span>
-            ))}
-          </h2>
+          {section_title && (
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              {section_title.split(' ').map((word, index, arr) => (
+                <span
+                  key={index}
+                  className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-600 to-gold-400 bg-clip-text text-transparent' : ''}
+                >
+                  {word}{index < arr.length - 1 ? ' ' : ''}
+                </span>
+              ))}
+            </h2>
+          )}
 
           {/* Description */}
           {section_description && (
@@ -103,7 +105,7 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
 
         {/* Values Grid/Scroll */}
         <div className={layout_style === 'horizontal-scroll' ? 'flex overflow-x-auto space-x-6 pb-4 snap-x snap-mandatory' : gridClass}>
-          {values.map((value, index) => {
+          {(values || []).map((value, index) => {
             const IconComponent = iconMap[value.icon] || Sparkles;
             const backgroundImage = Array.isArray(value.background_image) ? value.background_image[0] : value.background_image;
             const hasBackgroundImage = !!backgroundImage?.url;

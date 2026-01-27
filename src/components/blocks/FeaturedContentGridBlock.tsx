@@ -74,16 +74,18 @@ export function FeaturedContentGridBlock({ block }: FeaturedContentGridBlockProp
           )}
 
           {/* Title */}
-          <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            {section_title.split(' ').map((word, index, arr) => (
-              <span
-                key={index}
-                className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-600 to-gold-400 bg-clip-text text-transparent' : ''}
-              >
-                {word}{index < arr.length - 1 ? ' ' : ''}
-              </span>
-            ))}
-          </h2>
+          {section_title && (
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              {section_title.split(' ').map((word, index, arr) => (
+                <span
+                  key={index}
+                  className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-600 to-gold-400 bg-clip-text text-transparent' : ''}
+                >
+                  {word}{index < arr.length - 1 ? ' ' : ''}
+                </span>
+              ))}
+            </h2>
+          )}
 
           {/* Description */}
           {section_description && (

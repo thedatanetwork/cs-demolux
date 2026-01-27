@@ -53,14 +53,15 @@ function AccordionLayout({
   const [openIndex, setOpenIndex] = useState<number | null>(expand_first ? 0 : null);
 
   // Group FAQs by category if show_categories is true
+  const safeFaqs = faqs || [];
   const groupedFaqs = show_categories
-    ? faqs.reduce((acc, faq) => {
+    ? safeFaqs.reduce((acc, faq) => {
         const category = faq.category || 'General';
         if (!acc[category]) acc[category] = [];
         acc[category].push(faq);
         return acc;
-      }, {} as Record<string, typeof faqs>)
-    : { 'All': faqs };
+      }, {} as Record<string, typeof safeFaqs>)
+    : { 'All': safeFaqs };
 
   const toggleFaq = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -267,14 +268,15 @@ function CardsLayout({
   const { section_title, section_description, badge_text, faqs, show_categories } = block;
 
   // Group FAQs by category if show_categories is true
+  const safeFaqs = faqs || [];
   const groupedFaqs = show_categories
-    ? faqs.reduce((acc, faq) => {
+    ? safeFaqs.reduce((acc, faq) => {
         const category = faq.category || 'General';
         if (!acc[category]) acc[category] = [];
         acc[category].push(faq);
         return acc;
-      }, {} as Record<string, typeof faqs>)
-    : { 'All': faqs };
+      }, {} as Record<string, typeof safeFaqs>)
+    : { 'All': safeFaqs };
 
   return (
     <section className={`section-spacing ${bgClass} relative overflow-hidden`}>

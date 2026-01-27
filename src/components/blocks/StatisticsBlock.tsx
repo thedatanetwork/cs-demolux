@@ -110,7 +110,7 @@ export function StatisticsBlock({ block }: StatisticsBlockProps) {
 
         {/* Metrics */}
         <div className={gridClass}>
-          {metrics.map((metric, index) => (
+          {(metrics || []).map((metric, index) => (
             <StatisticItem
               key={index}
               metric={metric}

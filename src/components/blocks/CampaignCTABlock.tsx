@@ -103,16 +103,18 @@ function FullWidthCTA({
           )}
 
           {/* Title */}
-          <h2 className="font-heading text-4xl md:text-6xl font-bold mb-6">
-            {block.title.split(' ').map((word, index, arr) => (
-              <span
-                key={index}
-                className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent' : ''}
-              >
-                {word}{index < arr.length - 1 ? ' ' : ''}
-              </span>
-            ))}
-          </h2>
+          {block.title && (
+            <h2 className="font-heading text-4xl md:text-6xl font-bold mb-6">
+              {block.title.split(' ').map((word, index, arr) => (
+                <span
+                  key={index}
+                  className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent' : ''}
+                >
+                  {word}{index < arr.length - 1 ? ' ' : ''}
+                </span>
+              ))}
+            </h2>
+          )}
 
           {/* Description */}
           {block.description && (
@@ -243,16 +245,18 @@ function CenteredCTA({
           )}
 
           {/* Title */}
-          <h2 className="font-heading text-4xl md:text-5xl font-bold mb-6 text-white">
-            {block.title.split(' ').map((word, index, arr) => (
-              <span
-                key={index}
-                className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent' : ''}
-              >
-                {word}{index < arr.length - 1 ? ' ' : ''}
-              </span>
-            ))}
-          </h2>
+          {block.title && (
+            <h2 className="font-heading text-4xl md:text-5xl font-bold mb-6 text-white">
+              {block.title.split(' ').map((word, index, arr) => (
+                <span
+                  key={index}
+                  className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent' : ''}
+                >
+                  {word}{index < arr.length - 1 ? ' ' : ''}
+                </span>
+              ))}
+            </h2>
+          )}
 
           {/* Description */}
           {block.description && (

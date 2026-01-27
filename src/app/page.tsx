@@ -34,7 +34,6 @@ export default async function HomePage() {
   console.log('HomePage render:', {
     hasModularHomePage: !!modularHomePage,
     sectionsCount: modularHomePage?.page_sections?.length || 0,
-    sections: modularHomePage?.page_sections?.map(s => s.block_type) || []
   });
 
   return (
@@ -48,7 +47,11 @@ export default async function HomePage() {
       <main>
         {/* Render all modular sections dynamically */}
         {modularHomePage?.page_sections && modularHomePage.page_sections.length > 0 ? (
-          <SectionRenderer sections={modularHomePage.page_sections} />
+          <SectionRenderer
+            sections={modularHomePage.page_sections}
+            entry={modularHomePage}
+            fieldPath="page_sections"
+          />
         ) : (
           /* Fallback message if no sections are configured */
           <section className="section-spacing bg-white">

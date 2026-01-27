@@ -54,11 +54,11 @@ function CarouselLayout({
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    setCurrentIndex((prev) => (prev + 1) % (testimonials || []).length);
   };
 
   const goToPrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+    setCurrentIndex((prev) => (prev - 1 + (testimonials || []).length) % (testimonials || []).length);
   };
 
   const currentTestimonial = testimonials[currentIndex];
@@ -152,7 +152,7 @@ function CarouselLayout({
             </div>
 
             {/* Navigation Arrows */}
-            {testimonials.length > 1 && (
+            {(testimonials || []).length > 1 && (
               <>
                 <button
                   onClick={goToPrev}
@@ -173,9 +173,9 @@ function CarouselLayout({
           </div>
 
           {/* Dots Indicator */}
-          {testimonials.length > 1 && (
+          {(testimonials || []).length > 1 && (
             <div className="flex justify-center gap-2 mt-8">
-              {testimonials.map((_, index) => (
+              {(testimonials || []).map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentIndex(index)}
@@ -234,7 +234,7 @@ function GridLayout({
 
         {/* Testimonials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => {
+          {(testimonials || []).map((testimonial, index) => {
             const customerImage = Array.isArray(testimonial.customer_image)
               ? testimonial.customer_image[0]
               : testimonial.customer_image;
