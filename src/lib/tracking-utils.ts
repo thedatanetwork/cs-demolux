@@ -181,15 +181,13 @@ export async function sendLyticsEvent(
     });
   } else if (window.jstag) {
     // Direct Lytics mode: send via jstag
+    // Flat payload structure with event name at top level
     const baseContext = await getBaseTrackingContext();
 
     window.jstag.send({
-      stream: 'web_events',
-      data: {
-        event_type: eventType,
-        ...baseContext,
-        ...eventData,
-      }
+      event: eventType,
+      ...baseContext,
+      ...eventData,
     });
   }
 }

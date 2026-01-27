@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { PersonalizeSDK, Experience, personalizeService } from '@/lib/personalize';
-import { tealiumMockService, TealiumMomentsResponse } from '@/lib/tealium-mock';
+import { cdpMockService, CDPResponse } from '@/lib/cdp-mock';
 
 interface PersonalizeContextType {
   sdk: PersonalizeSDK | null;
@@ -12,8 +12,8 @@ interface PersonalizeContextType {
   isConfigured: boolean;
   triggerEvent: (eventKey: string, data?: Record<string, any>) => Promise<void>;
   setUserAttributes: (attributes: Record<string, any>) => Promise<void>;
-  tealiumData: TealiumMomentsResponse | null;
-  refreshTealiumData: () => void;
+  cdpData: CDPResponse | null;
+  refreshCDPData: () => void;
 }
 
 const PersonalizeContext = createContext<PersonalizeContextType | undefined>(undefined);
@@ -34,7 +34,7 @@ export function PersonalizeProvider({
   const [variantAliases, setVariantAliases] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isConfigured] = useState(personalizeService.isConfigured());
-  const [tealiumData, setTealiumData] = useState<TealiumMomentsResponse | null>(null);
+  const [cdpData, setCdpData] = useState<CDPResponse | null>(null);
 
   // Define initialize outside useEffect so it can be reused
   const initialize = async () => {
@@ -47,17 +47,17 @@ export function PersonalizeProvider({
       try {
         setIsLoading(true);
 
-        // Get Tealium/CDP data (mock for demo, would be real API call in production)
-        // This simulates calling Tealium Moments API to get audience segments
-        const tealiumResponse = tealiumMockService.getMomentsData(true);
-        setTealiumData(tealiumResponse);
+        // Get CDP data (mock for demo, would be real API call in production)
+        // This simulates calling a CDP visitor API (e.g., Tealium, Blueshift, BlueConic)
+        const cdpResponse = cdpMockService.getVisitorData(true);
+        setCdpData(cdpResponse);
 
-        // Convert Tealium audiences to Personalize-compatible attributes
-        // The cdp_segments field is a comma-delimited string of audience names
-        const tealiumAttributes = tealiumMockService.getPersonalizeAttributes(tealiumResponse);
+        // Convert CDP segments to Personalize-compatible attributes
+        // The cdp_segments field is a comma-delimited string of segment names
+        const cdpAttributes = cdpMockService.getPersonalizeAttributes(cdpResponse);
 
-        console.log('🎯 Tealium audiences:', tealiumResponse.audiences);
-        console.log('🎯 cdp_segments for Personalize:', tealiumAttributes.cdp_segments);
+        console.log('🎯 CDP segments:', cdpResponse.segments);
+        console.log('🎯 cdp_segments for Personalize:', cdpAttributes.cdp_segments);
 
         // Extract query parameters from URL for targeting
         const urlParams = new URLSearchParams(window.location.search);
@@ -66,11 +66,11 @@ export function PersonalizeProvider({
           queryParams[key] = value;
         });
 
-        // Merge: URL params + Tealium CDP data + any provided live attributes
-        // Tealium data is merged so Personalize can evaluate cdp_segments rules
+        // Merge: URL params + CDP data + any provided live attributes
+        // CDP data is merged so Personalize can evaluate cdp_segments rules
         const mergedAttributes = {
           ...queryParams,
-          ...tealiumAttributes,
+          ...cdpAttributes,
           ...liveAttributes
         };
 
@@ -140,11 +140,11 @@ export function PersonalizeProvider({
     }
   };
 
-  // Refresh Tealium data and re-initialize Personalize
-  // This simulates a new Moments API call with fresh random audiences
-  const refreshTealiumData = () => {
-    console.log('🔄 Refreshing Tealium data and re-initializing Personalize...');
-    tealiumMockService.clearCache();
+  // Refresh CDP data and re-initialize Personalize
+  // This simulates a new CDP API call with fresh random segments
+  const refreshCDPData = () => {
+    console.log('🔄 Refreshing CDP data and re-initializing Personalize...');
+    cdpMockService.clearCache();
     initialize();
   };
 
@@ -156,8 +156,8 @@ export function PersonalizeProvider({
     isConfigured,
     triggerEvent,
     setUserAttributes,
-    tealiumData,
-    refreshTealiumData,
+    cdpData,
+    refreshCDPData,
   };
 
   return (
