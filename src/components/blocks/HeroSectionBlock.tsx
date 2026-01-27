@@ -37,7 +37,7 @@ export function HeroSectionBlock({ block }: HeroSectionBlockProps) {
   };
 
   const backgroundImage = getImage(block.background_media);
-  const badgeIconComponent = block.badge_icon ? iconMap[block.badge_icon] : Star;
+  const badgeIconComponent = (block.badge_icon && iconMap[block.badge_icon]) || Star;
   const BadgeIcon = badgeIconComponent || Star;
 
   // Render based on variant

@@ -12,7 +12,9 @@ import {
   Heart,
   Zap,
   Globe,
-  CheckCircle
+  CheckCircle,
+  Package,
+  Headphones
 } from 'lucide-react';
 
 interface StatisticsBlockProps {
@@ -30,7 +32,10 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Heart,
   Zap,
   Globe,
-  CheckCircle
+  CheckCircle,
+  Package,
+  Headphones,
+  HeadphonesIcon: Headphones  // Alias for common naming
 };
 
 export function StatisticsBlock({ block }: StatisticsBlockProps) {
@@ -141,7 +146,7 @@ function StatisticItem({
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const IconComponent = metric.icon ? iconMap[metric.icon] : TrendingUp;
+  const IconComponent = (metric.icon && iconMap[metric.icon]) || TrendingUp;
 
   useEffect(() => {
     if (!animated) return;

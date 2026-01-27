@@ -17,7 +17,10 @@ import {
   Heart,
   ShoppingBag,
   Palette,
-  Target
+  Target,
+  Search,
+  Package,
+  HeartHandshake
 } from 'lucide-react';
 
 interface ProcessStepsBlockProps {
@@ -37,7 +40,10 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   ShoppingBag,
   Palette,
   Target,
-  ArrowRight
+  ArrowRight,
+  Search,
+  Package,
+  HeartHandshake
 };
 
 export function ProcessStepsBlock({ block }: ProcessStepsBlockProps) {
@@ -127,7 +133,7 @@ function HorizontalLayout({
 
           <div className={`grid grid-cols-1 md:grid-cols-${Math.min((steps || []).length, 3)} lg:grid-cols-${Math.min((steps || []).length, 4)} gap-8 lg:gap-12`}>
             {(steps || []).map((step, index) => {
-              const IconComponent = step.icon ? iconMap[step.icon] : CheckCircle;
+              const IconComponent = (step.icon && iconMap[step.icon]) || CheckCircle;
               const stepImage = Array.isArray(step.image) ? step.image[0] : step.image;
 
               return (
@@ -222,7 +228,7 @@ function VerticalLayout({
         {/* Vertical Steps */}
         <div className="max-w-3xl mx-auto">
           {(steps || []).map((step, index) => {
-            const IconComponent = step.icon ? iconMap[step.icon] : CheckCircle;
+            const IconComponent = (step.icon && iconMap[step.icon]) || CheckCircle;
             const isLast = index === (steps || []).length - 1;
 
             return (
@@ -309,7 +315,7 @@ function AlternatingLayout({
         {/* Alternating Steps */}
         <div className="max-w-5xl mx-auto space-y-16">
           {(steps || []).map((step, index) => {
-            const IconComponent = step.icon ? iconMap[step.icon] : CheckCircle;
+            const IconComponent = (step.icon && iconMap[step.icon]) || CheckCircle;
             const stepImage = Array.isArray(step.image) ? step.image[0] : step.image;
             const isEven = index % 2 === 0;
 

@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import type { ValuesGridBlock as ValuesGridBlockType } from '@/lib/contentstack';
-import { Sparkles, Users, Globe, Award, Zap, Star, Heart, Shield, TrendingUp } from 'lucide-react';
+import { Sparkles, Users, Globe, Award, Zap, Star, Heart, Shield, TrendingUp, Leaf } from 'lucide-react';
 
 interface ValuesGridBlockProps {
   block: ValuesGridBlockType;
@@ -19,7 +19,8 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Star,
   Heart,
   Shield,
-  TrendingUp
+  TrendingUp,
+  Leaf
 };
 
 export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
