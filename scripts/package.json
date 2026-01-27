@@ -31,7 +31,10 @@
     "add-value-background-images": "node add-value-background-images.js",
     "add-background-image-to-values": "node add-background-image-to-values.js",
     "upload-value-images": "node upload-value-images.js",
-    "fix-collection-urls": "node fix-collection-urls.js"
+    "fix-collection-urls": "node fix-collection-urls.js",
+    "create-stitchfix-block-types": "node create-stitchfix-block-types.js",
+    "create-stitchfix-sample-content": "node create-stitchfix-sample-content.js",
+    "setup-stitchfix-demo": "node create-stitchfix-block-types.js && node create-stitchfix-sample-content.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",
