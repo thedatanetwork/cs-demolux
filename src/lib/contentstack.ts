@@ -1,11 +1,15 @@
 import Contentstack from 'contentstack';
+import ContentstackLivePreview from '@contentstack/live-preview-utils';
 
 // Contentstack configuration
 const stackConfig = {
   api_key: process.env.CONTENTSTACK_API_KEY || '',
   delivery_token: process.env.CONTENTSTACK_DELIVERY_TOKEN || '',
+  preview_token: process.env.CONTENTSTACK_PREVIEW_TOKEN || '',
   environment: process.env.CONTENTSTACK_ENVIRONMENT || 'dev',
-  region: (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US'
+  region: (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US',
+  live_preview: process.env.CONTENTSTACK_LIVE_PREVIEW === 'true',
+  app_host: process.env.CONTENTSTACK_APP_HOST || 'app.contentstack.com',
 };
 
 // Initialize Contentstack
@@ -20,20 +24,31 @@ if (stackConfig.api_key && stackConfig.delivery_token) {
       console.log('Contentstack config:', {
         api_key: stackConfig.api_key ? `${stackConfig.api_key.substring(0, 10)}...` : 'missing',
         delivery_token: stackConfig.delivery_token ? `${stackConfig.delivery_token.substring(0, 10)}...` : 'missing',
+        preview_token: stackConfig.preview_token ? `${stackConfig.preview_token.substring(0, 10)}...` : 'not set',
         environment: stackConfig.environment,
-        region: stackConfig.region
+        region: stackConfig.region,
+        live_preview: stackConfig.live_preview
       });
     }
 
+    // Initialize Stack with Live Preview support
     Stack = Contentstack.Stack({
       api_key: stackConfig.api_key,
       delivery_token: stackConfig.delivery_token,
       environment: stackConfig.environment,
-      region: Contentstack.Region[stackConfig.region] || Contentstack.Region.US
+      region: Contentstack.Region[stackConfig.region] || Contentstack.Region.US,
+      live_preview: stackConfig.live_preview && stackConfig.preview_token ? {
+        preview_token: stackConfig.preview_token,
+        enable: true,
+        host: `rest-preview.${stackConfig.app_host.replace('app.', '')}`
+      } : undefined
     });
 
     if (isServer) {
       console.log('Contentstack initialized successfully');
+      if (stackConfig.live_preview && stackConfig.preview_token) {
+        console.log('Live Preview enabled');
+      }
     }
   } catch (error) {
     console.error('Failed to initialize Contentstack:', error);
@@ -43,6 +58,18 @@ if (stackConfig.api_key && stackConfig.delivery_token) {
   console.error('⚠️ CONTENTSTACK NOT CONFIGURED - Add credentials to .env.local file');
   console.error('Required: CONTENTSTACK_API_KEY, CONTENTSTACK_DELIVERY_TOKEN, CONTENTSTACK_ENVIRONMENT');
 }
+
+// Export Live Preview utilities
+export { ContentstackLivePreview };
+
+// Export stack config for live preview initialization
+export const getStackConfig = () => ({
+  api_key: stackConfig.api_key,
+  environment: stackConfig.environment,
+  preview_token: stackConfig.preview_token,
+  live_preview: stackConfig.live_preview,
+  app_host: stackConfig.app_host,
+});
 
 // Type definitions for our content models
 export interface Product {

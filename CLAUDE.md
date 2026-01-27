@@ -195,24 +195,43 @@ Use the `cn()` utility from `src/lib/utils.ts` for conditional className merging
 Required in `.env.local`:
 
 ```bash
-# Contentstack CMS
+# Contentstack CMS (server-side)
 CONTENTSTACK_API_KEY=
 CONTENTSTACK_DELIVERY_TOKEN=
 CONTENTSTACK_ENVIRONMENT=dev
+CONTENTSTACK_REGION=US
 
 # Contentstack Personalize
 NEXT_PUBLIC_CONTENTSTACK_PERSONALIZE_PROJECT_UID=
 
-# Optional: Live Preview
+# Live Preview & Visual Builder (requires Preview Token from Contentstack)
+# Server-side config
 CONTENTSTACK_PREVIEW_TOKEN=
 CONTENTSTACK_APP_HOST=app.contentstack.com
 CONTENTSTACK_LIVE_PREVIEW=true
+
+# Client-side config (NEXT_PUBLIC_ prefix for browser access)
+NEXT_PUBLIC_CONTENTSTACK_API_KEY=        # Same as CONTENTSTACK_API_KEY
+NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT=dev
+NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN=  # Same as CONTENTSTACK_PREVIEW_TOKEN
+NEXT_PUBLIC_CONTENTSTACK_APP_HOST=app.contentstack.com
+NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW=true
 
 # Optional: Google Tag Manager (for GTM-based Lytics tracking)
 # When set, GTM loads and can be used for event tracking via tag management
 # When not set, direct Lytics tracking via code is used
 NEXT_PUBLIC_GTM_CONTAINER_ID=GTM-XXXXXXX
 ```
+
+### Live Preview Setup
+
+1. In Contentstack, go to Settings → Tokens → Preview Tokens
+2. Create a Preview Token for your stack
+3. Add the token to both `CONTENTSTACK_PREVIEW_TOKEN` and `NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN`
+4. Set `CONTENTSTACK_LIVE_PREVIEW=true` and `NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW=true`
+5. Configure your stack's Live Preview URL to point to your dev server (e.g., `http://localhost:3000`)
+
+The Live Preview provider (`ContentstackLivePreviewProvider`) auto-initializes when running inside the Contentstack Visual Builder iframe.
 
 ### Management Token for Scripts
 

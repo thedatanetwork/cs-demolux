@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import './globals.css'
 import { CartProvider } from '@/contexts/CartContext'
 import { PersonalizeProvider } from '@/contexts/PersonalizeContext'
+import { ContentstackLivePreviewProvider } from '@/components/ContentstackLivePreviewProvider'
 import LyticsTracker from '@/components/LyticsTracker'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -75,11 +76,13 @@ export default function RootLayout({
         
         <CartProvider>
           <PersonalizeProvider>
-            {/* LyticsTracker handles both direct Lytics and GTM modes */}
-            <Suspense fallback={null}>
-              <LyticsTracker />
-            </Suspense>
-            {children}
+            <ContentstackLivePreviewProvider>
+              {/* LyticsTracker handles both direct Lytics and GTM modes */}
+              <Suspense fallback={null}>
+                <LyticsTracker />
+              </Suspense>
+              {children}
+            </ContentstackLivePreviewProvider>
           </PersonalizeProvider>
         </CartProvider>
       </body>

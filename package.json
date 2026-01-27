@@ -1,6 +1,6 @@
 {
   "name": "demolux",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Demolux - Premium wearable tech and technofurniture ecommerce site",
   "private": true,
   "scripts": {
@@ -14,6 +14,7 @@
     "create-new-products": "cd scripts && npm run create-new-products"
   },
   "dependencies": {
+    "@contentstack/live-preview-utils": "^4.2.1",
     "@contentstack/personalize-edge-sdk": "^1.0.18",
     "axios": "^1.6.2",
     "clsx": "^2.0.0",
