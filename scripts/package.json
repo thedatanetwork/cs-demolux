@@ -34,7 +34,8 @@
     "fix-collection-urls": "node fix-collection-urls.js",
     "create-stitchfix-block-types": "node create-stitchfix-block-types.js",
     "create-stitchfix-sample-content": "node create-stitchfix-sample-content.js",
-    "setup-stitchfix-demo": "node create-stitchfix-block-types.js && node create-stitchfix-sample-content.js"
+    "add-stitchfix-blocks-to-home-page": "node add-stitchfix-blocks-to-home-page.js",
+    "setup-stitchfix-demo": "node create-stitchfix-block-types.js && node create-stitchfix-sample-content.js && node add-stitchfix-blocks-to-home-page.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",
