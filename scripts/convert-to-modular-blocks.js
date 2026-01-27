@@ -40,6 +40,19 @@ const updatedSchema = {
         multiple: false,
         non_localizable: false
       },
+      // URL field - required for page content types
+      {
+        data_type: "text",
+        display_name: "URL",
+        uid: "url",
+        mandatory: true,
+        unique: true,
+        multiple: false,
+        non_localizable: false,
+        field_metadata: {
+          instruction: "Page URL path (e.g., /home)"
+        }
+      },
       // Page Sections - TRUE MODULAR BLOCKS
       {
         display_name: "Page Sections",
@@ -747,7 +760,9 @@ async function convertToModularBlocks() {
     if (result.status === 200 || result.status === 201) {
       console.log('\n✅ Content type updated successfully!');
 
-      const blocks = updatedSchema.content_type.schema[1].blocks;
+      // Find the page_sections field (index 2 after adding url field)
+      const pageSectionsField = updatedSchema.content_type.schema.find(f => f.uid === 'page_sections');
+      const blocks = pageSectionsField?.blocks || [];
       console.log(`\n📦 ${blocks.length} Block types now available:`);
       blocks.forEach((block, i) => {
         console.log(`   ${i + 1}. ${block.title} (${block.uid})`);

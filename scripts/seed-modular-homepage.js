@@ -17,6 +17,7 @@ const AUTH_TOKEN = process.env.CONTENTSTACK_MANAGEMENT_TOKEN;
 const homepageContent = {
   entry: {
     title: "Demolux Home",
+    url: "/home",
     page_sections: [
       // Hero Section
       {
