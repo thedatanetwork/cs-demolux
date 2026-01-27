@@ -590,14 +590,35 @@ export type ModularBlock =
 // MODULAR PAGE TYPES
 // ============================================================================
 
+/**
+ * Embedded modular block wrapper
+ * When using true Contentstack modular blocks, each block is wrapped with its type as key:
+ * { hero_section: { variant: '...', ... } }
+ */
+export interface EmbeddedBlock {
+  [blockType: string]: ModularBlock & {
+    _metadata?: { uid: string };
+    $?: Record<string, any>;  // Editable tags for Visual Builder
+  };
+}
+
 export interface ModularHomePage {
   uid: string;
   title: string;
-  page_sections: ModularBlock[];
+  // Supports both reference-based blocks and true embedded modular blocks
+  page_sections: (ModularBlock | EmbeddedBlock)[];
+  seo?: {
+    meta_title?: string;
+    meta_description?: string;
+    og_image?: Image;
+  };
+  // Legacy fields (kept for backwards compatibility)
   meta_title?: string;
   meta_description?: string;
   created_at: string;
   updated_at: string;
+  // Editable tags for Visual Builder
+  $?: Record<string, any>;
 }
 
 export interface BlogPage {

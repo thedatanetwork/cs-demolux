@@ -35,7 +35,9 @@
     "create-stitchfix-block-types": "node create-stitchfix-block-types.js",
     "create-stitchfix-sample-content": "node create-stitchfix-sample-content.js",
     "add-stitchfix-blocks-to-home-page": "node add-stitchfix-blocks-to-home-page.js",
-    "setup-stitchfix-demo": "node create-stitchfix-block-types.js && node create-stitchfix-sample-content.js && node add-stitchfix-blocks-to-home-page.js"
+    "setup-stitchfix-demo": "node create-stitchfix-block-types.js && node create-stitchfix-sample-content.js && node add-stitchfix-blocks-to-home-page.js",
+    "convert-to-modular-blocks": "node convert-to-modular-blocks.js",
+    "seed-modular-homepage": "node seed-modular-homepage.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",
