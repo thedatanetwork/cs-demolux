@@ -8,6 +8,7 @@ import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import { formatDate } from '@/lib/utils';
 import { Calendar, User, ArrowLeft, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { jsonToHTML } from '@contentstack/utils';
 
 interface BlogPostPageProps {
   params: {
@@ -44,8 +45,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     seo: undefined
   };
 
-  const featuredImage = Array.isArray(blogPost.featured_image) 
-    ? blogPost.featured_image[0] 
+  // Convert JSON RTE content to HTML if it's a JSON RTE document object
+  if (blogPost.content && typeof blogPost.content !== 'string') {
+    jsonToHTML({
+      entry: blogPost,
+      paths: ['content'],
+      renderOption: {},
+    });
+  }
+
+  const featuredImage = Array.isArray(blogPost.featured_image)
+    ? blogPost.featured_image[0]
     : blogPost.featured_image;
 
   return (

@@ -117,7 +117,7 @@ export interface BlogPost {
     title: string;
     href: string;
   };
-  content: string;
+  content: any; // JSON RTE document object or HTML string (after jsonToHTML conversion)
   featured_image?: Array<{
     uid: string;
     url: string;
@@ -395,6 +395,7 @@ export interface HeroSectionBlock {
   subtitle?: string;
   description: string;
   background_media?: Image | Video | (Image | Video)[];
+  hero_image?: Image | Image[];
   overlay_style?: 'dark' | 'light' | 'gradient' | 'none';
   primary_cta?: CTAButton;
   secondary_cta?: CTAButton;

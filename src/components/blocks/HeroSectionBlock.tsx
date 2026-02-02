@@ -37,13 +37,14 @@ export function HeroSectionBlock({ block }: HeroSectionBlockProps) {
   };
 
   const backgroundImage = getImage(block.background_media);
+  const heroImage = getImage(block.hero_image) || backgroundImage;
   const badgeIconComponent = (block.badge_icon && iconMap[block.badge_icon]) || Star;
   const BadgeIcon = badgeIconComponent || Star;
 
   // Render based on variant
   switch (block.variant) {
     case 'split_hero':
-      return <SplitHero block={block} backgroundImage={backgroundImage} BadgeIcon={BadgeIcon} onCTAClick={handleCTAClick} />;
+      return <SplitHero block={block} backgroundImage={heroImage} BadgeIcon={BadgeIcon} onCTAClick={handleCTAClick} />;
 
     case 'minimal_hero':
       return <MinimalHero block={block} BadgeIcon={BadgeIcon} onCTAClick={handleCTAClick} />;
