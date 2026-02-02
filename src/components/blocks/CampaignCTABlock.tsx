@@ -63,6 +63,8 @@ function FullWidthCTA({
 
   const height = heightClasses[block.height || 'medium'];
   const isLightText = block.text_color === 'light';
+  const isGoldBg = block.background_style === 'gradient-gold';
+  const accentClass = isGoldBg ? 'text-white' : 'bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent';
 
   return (
     <section className={`relative ${height} overflow-hidden`}>
@@ -108,7 +110,7 @@ function FullWidthCTA({
               {block.title.split(' ').map((word, index, arr) => (
                 <span
                   key={index}
-                  className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent' : ''}
+                  className={index === arr.length - 1 ? accentClass : ''}
                 >
                   {word}{index < arr.length - 1 ? ' ' : ''}
                 </span>
@@ -198,6 +200,8 @@ function CenteredCTA({
   };
 
   const isLightText = block.text_color === 'light';
+  const isGoldBg = block.background_style === 'gradient-gold';
+  const accentClass = isGoldBg ? 'text-white' : 'bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent';
   const heightClasses = {
     full: 'min-h-screen',
     large: 'py-32',
@@ -250,7 +254,7 @@ function CenteredCTA({
               {block.title.split(' ').map((word, index, arr) => (
                 <span
                   key={index}
-                  className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent' : ''}
+                  className={index === arr.length - 1 ? accentClass : ''}
                 >
                   {word}{index < arr.length - 1 ? ' ' : ''}
                 </span>
