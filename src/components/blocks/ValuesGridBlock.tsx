@@ -23,6 +23,13 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Leaf
 };
 
+// Contentstack image API: resize large images via CDN
+function optimizeImageUrl(url: string, width: number = 800): string {
+  if (!url || !url.includes('contentstack.io')) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}width=${width}&auto=webp`;
+}
+
 export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
   const {
     section_title,
@@ -120,11 +127,12 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
                 {hasBackgroundImage && (
                   <>
                     <Image
-                      src={backgroundImage.url}
+                      src={optimizeImageUrl(backgroundImage.url)}
                       alt={backgroundImage.title || value.title}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-110"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      unoptimized
                     />
                     {/* Dark overlay for text readability */}
                     <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70 z-[1]" />
