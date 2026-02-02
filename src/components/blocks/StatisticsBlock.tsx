@@ -93,11 +93,11 @@ export function StatisticsBlock({ block }: StatisticsBlockProps) {
             )}
 
             {section_title && (
-              <h2 className="font-heading text-4xl md:text-5xl font-bold mb-6">
+              <h2 className={`font-heading text-4xl md:text-5xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {section_title.split(' ').map((word, index, arr) => (
                   <span
                     key={index}
-                    className={index === arr.length - 1 ? 'text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent' : ''}
+                    className={index === arr.length - 1 ? 'bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent' : ''}
                   >
                     {word}{index < arr.length - 1 ? ' ' : ''}
                   </span>
