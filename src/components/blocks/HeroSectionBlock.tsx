@@ -90,32 +90,42 @@ function SplitHero({
   const textAlign = block.text_alignment || 'left';
 
   return (
-    <section className={`hero-gradient ${height} flex items-center py-16 lg:py-24`}>
-      <div className="container-padding w-full">
+    <section className={`bg-gradient-to-br from-gray-900 via-gray-900 to-black ${height} flex items-center py-16 lg:py-24 relative overflow-hidden`}>
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-[0.03]">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0)`,
+          backgroundSize: '40px 40px'
+        }}></div>
+      </div>
+      {/* Ambient glow behind image */}
+      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[600px] h-[600px] bg-gold-500/10 rounded-full blur-3xl"></div>
+
+      <div className="container-padding w-full relative">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             {/* Left Column - Content */}
             <div className={`text-${textAlign === 'center' ? 'center lg:text-center' : 'center lg:text-left'}`}>
               {/* Badge */}
               {block.badge_text && (
-                <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm rounded-full px-5 py-2.5 mb-8">
-                  <BadgeIcon className="h-4 w-4 text-gold-500" />
-                  <span className="text-sm font-medium text-gray-900">
+                <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-5 py-2.5 mb-8 border border-white/10">
+                  <BadgeIcon className="h-4 w-4 text-gold-400" />
+                  <span className="text-sm font-medium text-white/90">
                     {block.badge_text}
                   </span>
                 </div>
               )}
 
-              {/* Main Headline - Cleaner structure */}
-              <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-[1.1] mb-8">
-                <span className="text-gradient bg-gradient-to-r from-gold-600 to-gold-400 bg-clip-text text-transparent">
+              {/* Main Headline */}
+              <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-8">
+                <span className="bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent">
                   {block.title}
                 </span>
               </h1>
 
               {/* Description */}
               {block.description && (
-                <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-xl leading-relaxed">
+                <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-xl leading-relaxed">
                   {block.description}
                 </p>
               )}
@@ -147,7 +157,7 @@ function SplitHero({
                       <Button
                         variant={block.secondary_cta.style || 'outline'}
                         size="xl"
-                        className="w-full sm:w-auto"
+                        className="w-full sm:w-auto border-white/20 text-white hover:bg-white/10"
                       >
                         {block.secondary_cta.text}
                       </Button>
@@ -161,7 +171,7 @@ function SplitHero({
             <div className="relative">
               <div className="relative z-10">
                 {backgroundImage?.url ? (
-                  <div className="aspect-[4/3] lg:aspect-square relative rounded-2xl overflow-hidden shadow-2xl">
+                  <div className="aspect-[4/3] lg:aspect-square relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
                     <Image
                       src={optimizeImageUrl(backgroundImage.url)}
                       alt={backgroundImage.title || block.title}
@@ -172,7 +182,7 @@ function SplitHero({
                     />
                   </div>
                 ) : (
-                  <div className="aspect-[4/3] lg:aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl shadow-2xl flex items-center justify-center">
+                  <div className="aspect-[4/3] lg:aspect-square bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl ring-1 ring-white/10 flex items-center justify-center">
                     <div className="text-center">
                       <div className="w-16 h-16 bg-gold-400 rounded-full mx-auto mb-4 flex items-center justify-center">
                         <Zap className="h-8 w-8 text-gray-900" />
@@ -185,23 +195,23 @@ function SplitHero({
 
               {/* Floating Elements */}
               <div className="absolute -top-4 -right-4 w-24 h-24 bg-gold-400 rounded-full opacity-20 animate-float"></div>
-              <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gray-900 rounded-full opacity-10 animate-float" style={{ animationDelay: '2s' }}></div>
+              <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gold-400 rounded-full opacity-10 animate-float" style={{ animationDelay: '2s' }}></div>
             </div>
           </div>
 
-          {/* Feature Items - Moved outside grid for cleaner separation */}
+          {/* Feature Items */}
           {block.feature_items && block.feature_items.length > 0 && (
-            <div className="mt-16 pt-12 border-t border-gray-200">
+            <div className="mt-16 pt-12 border-t border-white/10">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl">
                 {block.feature_items.map((feature, index) => {
                   const FeatureIcon = iconMap[feature.icon] || Star;
                   return (
                     <div key={index} className="flex items-start space-x-4">
-                      <div className="flex-shrink-0 w-12 h-12 bg-gold-50 rounded-xl flex items-center justify-center">
-                        <FeatureIcon className="h-6 w-6 text-gold-600" />
+                      <div className="flex-shrink-0 w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center ring-1 ring-white/10">
+                        <FeatureIcon className="h-6 w-6 text-gold-400" />
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 mb-1">{feature.title}</p>
+                        <p className="font-semibold text-white mb-1">{feature.title}</p>
                         <p className="text-sm text-gray-500 leading-relaxed">{feature.description}</p>
                       </div>
                     </div>
