@@ -23,17 +23,24 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   ChevronRight
 };
 
+// Helper to get first image from array or single object
+function getImage(media: any): ImageType | undefined {
+  if (!media) return undefined;
+  return Array.isArray(media) ? media[0] : media;
+}
+
+// Contentstack image API: append query params to resize large images
+function optimizeImageUrl(url: string, width: number = 1200): string {
+  if (!url || !url.includes('contentstack.io')) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}width=${width}&auto=webp`;
+}
+
 export function HeroSectionBlock({ block }: HeroSectionBlockProps) {
   const { trackCTAClick } = useCTATracking();
 
   const handleCTAClick = (ctaId: string, destination: string) => {
     trackCTAClick(ctaId, destination);
-  };
-
-  // Helper to get first image from array or single object
-  const getImage = (media: any): ImageType | undefined => {
-    if (!media) return undefined;
-    return Array.isArray(media) ? media[0] : media;
   };
 
   const backgroundImage = getImage(block.background_media);
@@ -156,11 +163,12 @@ function SplitHero({
                 {backgroundImage?.url ? (
                   <div className="aspect-[4/3] lg:aspect-square relative rounded-2xl overflow-hidden shadow-2xl">
                     <Image
-                      src={backgroundImage.url}
+                      src={optimizeImageUrl(backgroundImage.url)}
                       alt={backgroundImage.title || block.title}
                       fill
                       className="object-cover"
                       priority
+                      unoptimized
                     />
                   </div>
                 ) : (
@@ -348,11 +356,12 @@ function ImageHero({
       {backgroundImage?.url && (
         <div className="absolute inset-0">
           <Image
-            src={backgroundImage.url}
+            src={optimizeImageUrl(backgroundImage.url, 1920)}
             alt={backgroundImage.title || block.title}
             fill
             className="object-cover"
             priority
+            unoptimized
           />
         </div>
       )}
