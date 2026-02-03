@@ -28,8 +28,32 @@ const nextConfig = {
       }
     ],
   },
-  // Remove the env section - let Next.js handle environment variables automatically
-  // This allows both build-time and runtime access to environment variables
+  // Headers for Contentstack Live Preview / Visual Builder
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: 'https://app.contentstack.com',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' https://app.contentstack.com https://*.contentstack.com",
+          },
+        ],
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig
