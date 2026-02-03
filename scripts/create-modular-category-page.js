@@ -4,6 +4,9 @@
  * Create Modular Category Page Content Type and Entries
  * Creates the modular_category_page content type with modular blocks support
  * and seeds initial entries for wearable-tech and technofurniture categories
+ *
+ * NOTE: This script copies the page_sections blocks schema from modular_home_page
+ * to ensure consistency and avoid schema duplication.
  */
 
 const contentstack = require('@contentstack/management');
@@ -16,147 +19,11 @@ const stackConfig = {
   environment: process.env.CONTENTSTACK_ENVIRONMENT || 'dev',
 };
 
-// Content Type Schema
-const modularCategoryPageSchema = {
-  title: 'Modular Category Page',
-  uid: 'modular_category_page',
-  description: 'Category landing pages with modular block support. Add content sections after the products grid.',
-  schema: [
-    {
-      display_name: 'Title',
-      uid: 'title',
-      data_type: 'text',
-      mandatory: true,
-      help_text: 'Internal title for this category page'
-    },
-    {
-      display_name: 'Category Slug',
-      uid: 'category_slug',
-      data_type: 'text',
-      display_type: 'dropdown',
-      enum: {
-        advanced: false,
-        choices: [
-          { value: 'wearable-tech' },
-          { value: 'technofurniture' }
-        ]
-      },
-      mandatory: true,
-      unique: true,
-      help_text: 'Select which category this page is for (must be unique)'
-    },
-    {
-      display_name: 'Hero Title',
-      uid: 'hero_title',
-      data_type: 'text',
-      mandatory: true,
-      help_text: 'Main heading displayed in the hero section'
-    },
-    {
-      display_name: 'Hero Description',
-      uid: 'hero_description',
-      data_type: 'text',
-      field_metadata: { multiline: true },
-      mandatory: true,
-      help_text: 'Description text displayed under the hero title'
-    },
-    {
-      display_name: 'Hero Badge Text',
-      uid: 'hero_badge_text',
-      data_type: 'text',
-      mandatory: false,
-      help_text: 'Small badge/label shown above the title (optional)'
-    },
-    {
-      display_name: 'Products Display',
-      uid: 'products_display',
-      data_type: 'group',
-      schema: [
-        {
-          display_name: 'Layout',
-          uid: 'layout',
-          data_type: 'text',
-          display_type: 'dropdown',
-          enum: {
-            advanced: false,
-            choices: [
-              { value: 'grid' },
-              { value: 'list' }
-            ]
-          },
-          mandatory: true
-        },
-        {
-          display_name: 'Items Per Row',
-          uid: 'items_per_row',
-          data_type: 'number',
-          min: 2,
-          max: 4,
-          mandatory: true
-        },
-        {
-          display_name: 'Enable Filtering',
-          uid: 'enable_filtering',
-          data_type: 'boolean',
-          mandatory: false
-        },
-        {
-          display_name: 'Enable Sorting',
-          uid: 'enable_sorting',
-          data_type: 'boolean',
-          mandatory: false
-        }
-      ],
-      mandatory: false,
-      help_text: 'Configure how products are displayed'
-    },
-    {
-      display_name: 'Page Sections',
-      uid: 'page_sections',
-      data_type: 'blocks',
-      blocks: [
-        { reference_to: 'hero_section_block', title: 'Hero Section' },
-        { reference_to: 'featured_content_grid_block', title: 'Featured Content Grid' },
-        { reference_to: 'values_grid_block', title: 'Values Grid' },
-        { reference_to: 'campaign_cta_block', title: 'Campaign CTA' },
-        { reference_to: 'gallery_section_block', title: 'Gallery Section' },
-        { reference_to: 'process_steps_block', title: 'Process Steps' },
-        { reference_to: 'statistics_block', title: 'Statistics' },
-        { reference_to: 'testimonials_block', title: 'Testimonials' },
-        { reference_to: 'faq_block', title: 'FAQ' }
-      ],
-      multiple: true,
-      mandatory: false,
-      help_text: 'Add modular content blocks - these appear AFTER the products section'
-    },
-    {
-      display_name: 'Meta Title',
-      uid: 'meta_title',
-      data_type: 'text',
-      mandatory: false,
-      help_text: 'SEO title (defaults to Hero Title if not set)'
-    },
-    {
-      display_name: 'Meta Description',
-      uid: 'meta_description',
-      data_type: 'text',
-      field_metadata: { multiline: true },
-      mandatory: false,
-      help_text: 'SEO description (defaults to Hero Description if not set)'
-    }
-  ],
-  options: {
-    is_page: true,
-    singleton: false,
-    sub_title: ['category_slug'],
-    title: 'title'
-  }
-};
-
 // Initial category entries (matching current hardcoded values)
 const categoryEntries = [
   {
     title: 'Wearable Technology Category Page',
+    url: '/categories/wearable-tech',
     category_slug: 'wearable-tech',
     hero_title: 'Wearable Technology',
     hero_description: 'Revolutionary wearable devices that seamlessly integrate into your lifestyle. From quantum smartwatches to neural fitness bands, discover the future on your wrist.',
@@ -172,6 +39,7 @@ const categoryEntries = [
   },
   {
     title: 'Technofurniture Category Page',
+    url: '/categories/technofurniture',
     category_slug: 'technofurniture',
     hero_title: 'Technofurniture',
     hero_description: 'Smart furniture that adapts to your needs. Experience the perfect fusion of comfort, functionality, and cutting-edge technology in every piece.',
@@ -187,7 +55,26 @@ const categoryEntries = [
   }
 ];
 
-async function createContentType(stack) {
+async function getPageSectionsSchema(stack) {
+  console.log('\n📋 Fetching page_sections schema from modular_home_page...');
+
+  try {
+    const homePageCT = await stack.contentType('modular_home_page').fetch();
+    const pageSectionsField = homePageCT.schema.find(f => f.uid === 'page_sections');
+
+    if (!pageSectionsField) {
+      throw new Error('page_sections field not found in modular_home_page');
+    }
+
+    console.log(`   ✅ Found page_sections with ${pageSectionsField.blocks.length} block types`);
+    return pageSectionsField;
+  } catch (error) {
+    console.error('   ❌ Failed to fetch schema:', error.message);
+    throw error;
+  }
+}
+
+async function createContentType(stack, pageSectionsField) {
   try {
     console.log('\n📋 Creating modular_category_page content type...');
 
@@ -200,9 +87,140 @@ async function createContentType(stack) {
       // Doesn't exist, continue
     }
 
+    // Build the schema with the copied page_sections field
+    const schema = [
+      {
+        display_name: 'Title',
+        uid: 'title',
+        data_type: 'text',
+        mandatory: true,
+        help_text: 'Internal title for this category page'
+      },
+      {
+        display_name: 'URL',
+        uid: 'url',
+        data_type: 'text',
+        mandatory: true,
+        unique: true,
+        help_text: 'URL path for this category page (e.g., /categories/wearable-tech)'
+      },
+      {
+        display_name: 'Category Slug',
+        uid: 'category_slug',
+        data_type: 'text',
+        display_type: 'dropdown',
+        enum: {
+          advanced: false,
+          choices: [
+            { value: 'wearable-tech' },
+            { value: 'technofurniture' }
+          ]
+        },
+        mandatory: true,
+        unique: true,
+        help_text: 'Select which category this page is for (must be unique)'
+      },
+      {
+        display_name: 'Hero Title',
+        uid: 'hero_title',
+        data_type: 'text',
+        mandatory: true,
+        help_text: 'Main heading displayed in the hero section'
+      },
+      {
+        display_name: 'Hero Description',
+        uid: 'hero_description',
+        data_type: 'text',
+        field_metadata: { multiline: true },
+        mandatory: true,
+        help_text: 'Description text displayed under the hero title'
+      },
+      {
+        display_name: 'Hero Badge Text',
+        uid: 'hero_badge_text',
+        data_type: 'text',
+        mandatory: false,
+        help_text: 'Small badge/label shown above the title (optional)'
+      },
+      {
+        display_name: 'Products Display',
+        uid: 'products_display',
+        data_type: 'group',
+        schema: [
+          {
+            display_name: 'Layout',
+            uid: 'layout',
+            data_type: 'text',
+            display_type: 'dropdown',
+            enum: {
+              advanced: false,
+              choices: [
+                { value: 'grid' },
+                { value: 'list' }
+              ]
+            },
+            mandatory: true
+          },
+          {
+            display_name: 'Items Per Row',
+            uid: 'items_per_row',
+            data_type: 'number',
+            min: 2,
+            max: 4,
+            mandatory: true
+          },
+          {
+            display_name: 'Enable Filtering',
+            uid: 'enable_filtering',
+            data_type: 'boolean',
+            mandatory: false
+          },
+          {
+            display_name: 'Enable Sorting',
+            uid: 'enable_sorting',
+            data_type: 'boolean',
+            mandatory: false
+          }
+        ],
+        mandatory: false,
+        help_text: 'Configure how products are displayed'
+      },
+      // Copy the page_sections field from modular_home_page
+      {
+        ...pageSectionsField,
+        help_text: 'Add modular content blocks - these appear AFTER the products section'
+      },
+      {
+        display_name: 'Meta Title',
+        uid: 'meta_title',
+        data_type: 'text',
+        mandatory: false,
+        help_text: 'SEO title (defaults to Hero Title if not set)'
+      },
+      {
+        display_name: 'Meta Description',
+        uid: 'meta_description',
+        data_type: 'text',
+        field_metadata: { multiline: true },
+        mandatory: false,
+        help_text: 'SEO description (defaults to Hero Description if not set)'
+      }
+    ];
+
     // Create the content type
     await stack.contentType().create({
-      content_type: modularCategoryPageSchema
+      content_type: {
+        title: 'Modular Category Page',
+        uid: 'modular_category_page',
+        description: 'Category landing pages with modular block support. Add content sections after the products grid.',
+        schema: schema,
+        options: {
+          is_page: true,
+          singleton: false,
+          sub_title: ['category_slug'],
+          title: 'title'
+        }
+      }
     });
 
     console.log('   ✅ Successfully created modular_category_page content type');
@@ -254,9 +272,9 @@ async function createCategoryEntry(stack, entryData) {
     }
 
     // Create new entry
-    const entry = stack.contentType('modular_category_page').entry();
-    Object.assign(entry, entryData);
-    const createdEntry = await entry.create();
+    const createdEntry = await stack.contentType('modular_category_page').entry().create({
+      entry: entryData
+    });
 
     console.log(`   ✅ Entry created (UID: ${createdEntry.uid})`);
 
@@ -306,20 +324,27 @@ async function main() {
       management_token: stackConfig.management_token
     });
 
-    // Step 1: Create content type
+    // Step 1: Get page_sections schema from modular_home_page
     console.log('\n' + '='.repeat(60));
-    console.log('Step 1: Create Content Type');
+    console.log('Step 1: Copy Block Schemas from modular_home_page');
     console.log('='.repeat(60));
 
-    const contentTypeResult = await createContentType(stack);
+    const pageSectionsField = await getPageSectionsSchema(stack);
+
+    // Step 2: Create content type
+    console.log('\n' + '='.repeat(60));
+    console.log('Step 2: Create Content Type');
+    console.log('='.repeat(60));
+
+    const contentTypeResult = await createContentType(stack, pageSectionsField);
     if (!contentTypeResult.success) {
       console.error('\n❌ Cannot proceed without content type');
       process.exit(1);
     }
 
-    // Step 2: Create entries
+    // Step 3: Create entries
     console.log('\n' + '='.repeat(60));
-    console.log('Step 2: Create Category Entries');
+    console.log('Step 3: Create Category Entries');
     console.log('='.repeat(60));
 
     const entryResults = {
