@@ -10,6 +10,7 @@ const stackConfig = {
   region: (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US',
   live_preview: process.env.CONTENTSTACK_LIVE_PREVIEW === 'true',
   app_host: process.env.CONTENTSTACK_APP_HOST || 'app.contentstack.com',
+  preview_host: process.env.CONTENTSTACK_PREVIEW_HOST || 'rest-preview.contentstack.com',
 };
 
 // Initialize Contentstack
@@ -40,7 +41,7 @@ if (stackConfig.api_key && stackConfig.delivery_token) {
       live_preview: stackConfig.live_preview && stackConfig.preview_token ? {
         preview_token: stackConfig.preview_token,
         enable: true,
-        host: `rest-preview.${stackConfig.app_host.replace('app.', '')}`
+        host: stackConfig.preview_host,  // Use rest-preview.contentstack.com
       } : undefined
     });
 
@@ -62,6 +63,9 @@ if (stackConfig.api_key && stackConfig.delivery_token) {
 // Export Live Preview utilities
 export { ContentstackLivePreview };
 
+// Export Stack for Live Preview SDK initialization
+export { Stack };
+
 // Export stack config for live preview initialization
 export const getStackConfig = () => ({
   api_key: stackConfig.api_key,
@@ -69,6 +73,7 @@ export const getStackConfig = () => ({
   preview_token: stackConfig.preview_token,
   live_preview: stackConfig.live_preview,
   app_host: stackConfig.app_host,
+  preview_host: stackConfig.preview_host,
 });
 
 // Type definitions for our content models
