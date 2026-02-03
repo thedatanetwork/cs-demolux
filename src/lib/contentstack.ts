@@ -666,19 +666,31 @@ export interface LookbookPage {
 
 export interface ModularCategoryPage {
   uid: string;
+  title: string;
   category_slug: 'wearable-tech' | 'technofurniture';
+  // Hero content fields (replaces hardcoded categoryMetadata)
+  hero_title: string;
+  hero_description: string;
+  hero_badge_text?: string;
+  // Optional hero section block (for advanced customization)
   hero_section?: HeroSectionBlock;
-  page_sections?: ModularBlock[];
-  products_display: {
+  // Modular blocks to render AFTER products section
+  page_sections?: (ModularBlock | EmbeddedBlock)[];
+  // Products display configuration
+  products_display?: {
     layout: 'grid' | 'list';
     items_per_row: 2 | 3 | 4;
     enable_filtering: boolean;
     enable_sorting: boolean;
   };
+  // SEO
   meta_title?: string;
   meta_description?: string;
+  // Timestamps
   created_at: string;
   updated_at: string;
+  // Visual Builder support
+  $?: Record<string, any>;
 }
 
 // Contentstack service class

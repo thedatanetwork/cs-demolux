@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProductCard } from '@/components/product/ProductCard';
+import { SectionRenderer } from '@/components/blocks';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 
@@ -11,6 +12,7 @@ interface CategoryPageProps {
   };
 }
 
+// Fallback metadata (used when no CMS entry exists)
 const categoryMetadata = {
   'wearable-tech': {
     title: 'Wearable Technology',
@@ -32,8 +34,23 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: CategoryPageProps) {
+  const variantAliases = await getVariantAliasesFromCookies();
+
+  // Try to get CMS content first
+  try {
+    const modularPage = await dataService.getModularCategoryPage(params.category, variantAliases);
+    if (modularPage) {
+      return {
+        title: modularPage.meta_title || `${modularPage.hero_title} | Demolux`,
+        description: modularPage.meta_description || modularPage.hero_description,
+      };
+    }
+  } catch (error) {
+    // Fall through to hardcoded fallback
+  }
+
+  // Fallback to hardcoded metadata
   const categoryInfo = categoryMetadata[params.category as keyof typeof categoryMetadata];
-  
   if (!categoryInfo) {
     return {
       title: 'Category Not Found | Demolux',
@@ -47,47 +64,43 @@ export async function generateMetadata({ params }: CategoryPageProps) {
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
-  const categoryInfo = categoryMetadata[params.category as keyof typeof categoryMetadata];
-  
-  if (!categoryInfo) {
-    notFound();
-  }
-
   // Get variant aliases from cookies (for personalization without flicker)
   const variantAliases = await getVariantAliasesFromCookies();
 
-  // Fetch data with personalization
-  const [products, navigation, siteSettings] = await Promise.all([
+  // Fetch all data with personalization
+  const [products, navigation, siteSettings, modularPage] = await Promise.all([
     dataService.getProducts(params.category, variantAliases),
     dataService.getNavigationMenus(),
-    dataService.getSiteSettings()
+    dataService.getSiteSettings(),
+    dataService.getModularCategoryPage(params.category, variantAliases).catch(() => null)
   ]);
 
-  // Debug: Check technofurniture products specifically
-  if (params.category === 'technofurniture') {
-    console.log('Technofurniture category debug:', {
-      productCount: products.length,
-      sampleProduct: products[0] ? {
-        uid: products[0].uid,
-        title: products[0].title,
-        hasImage: !!products[0].featured_image,
-        imageIsArray: Array.isArray(products[0].featured_image),
-        imageLength: Array.isArray(products[0].featured_image) ? products[0].featured_image.length : undefined,
-        imageUrl: Array.isArray(products[0].featured_image) 
-          ? products[0].featured_image[0]?.url 
-          : products[0].featured_image?.url,
-        rawImageData: products[0].featured_image
-      } : null,
-      allProducts: products.map(p => ({
-        uid: p.uid,
-        title: p.title,
-        hasImage: !!p.featured_image,
-        imageUrl: Array.isArray(p.featured_image) 
-          ? p.featured_image[0]?.url 
-          : p.featured_image?.url
-      }))
-    });
+  // Determine hero content (CMS or fallback)
+  const fallbackInfo = categoryMetadata[params.category as keyof typeof categoryMetadata];
+
+  if (!modularPage && !fallbackInfo) {
+    notFound();
   }
+
+  // Use CMS content when available, otherwise use hardcoded fallback
+  const heroTitle = modularPage?.hero_title || fallbackInfo?.title || 'Category';
+  const heroDescription = modularPage?.hero_description || fallbackInfo?.description || '';
+  const heroBadge = modularPage?.hero_badge_text || fallbackInfo?.breadcrumb || '';
+
+  // Products display configuration from CMS (with defaults)
+  const productsConfig = modularPage?.products_display || {
+    layout: 'grid',
+    items_per_row: 4,
+    enable_filtering: false,
+    enable_sorting: false
+  };
+
+  // Grid columns based on items_per_row
+  const gridColsClass = {
+    2: 'lg:grid-cols-2',
+    3: 'lg:grid-cols-3',
+    4: 'lg:grid-cols-4'
+  }[productsConfig.items_per_row] || 'lg:grid-cols-4';
 
   // Fallback to default settings if Contentstack is not available
   const fallbackSiteSettings = siteSettings || {
@@ -102,18 +115,18 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header 
+      <Header
         navigation={navigation}
         siteName={fallbackSiteSettings.site_name}
         logoUrl={fallbackSiteSettings.logo?.url}
       />
 
       <main>
-        {/* Fancy Hero Section */}
+        {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-hidden">
           {/* Background Effects */}
           <div className="absolute inset-0 bg-black/20"></div>
-          
+
           {/* Animated Background Elements */}
           <div className="absolute inset-0">
             <div className="absolute top-20 left-10 w-32 h-32 bg-gold-400 rounded-full opacity-10 animate-float"></div>
@@ -129,27 +142,29 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               backgroundSize: '40px 40px'
             }}></div>
           </div>
-          
+
           <div className="relative container-padding section-spacing">
             <div className="max-w-5xl mx-auto text-center">
               {/* Badge */}
-              <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-8">
-                <div className="w-2 h-2 bg-gold-400 rounded-full"></div>
-                <span className="text-sm font-medium text-white/90">
-                  {categoryInfo.breadcrumb}
-                </span>
-              </div>
+              {heroBadge && (
+                <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 mb-8">
+                  <div className="w-2 h-2 bg-gold-400 rounded-full"></div>
+                  <span className="text-sm font-medium text-white/90">
+                    {heroBadge}
+                  </span>
+                </div>
+              )}
 
               <h1 className="font-heading text-4xl md:text-7xl font-bold mb-8 text-white">
-                {categoryInfo.title.split(' ').map((word, index) => (
-                  <span key={index} className={index === categoryInfo.title.split(' ').length - 1 ? 'text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent' : ''}>
-                    {word}{index < categoryInfo.title.split(' ').length - 1 ? ' ' : ''}
+                {heroTitle.split(' ').map((word, index) => (
+                  <span key={index} className={index === heroTitle.split(' ').length - 1 ? 'text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent' : ''}>
+                    {word}{index < heroTitle.split(' ').length - 1 ? ' ' : ''}
                   </span>
                 ))}
               </h1>
-              
+
               <p className="text-xl md:text-2xl text-white/90 leading-relaxed max-w-4xl mx-auto font-light">
-                {categoryInfo.description}
+                {heroDescription}
               </p>
 
               {/* Decorative Line */}
@@ -163,10 +178,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         {/* Products Section */}
         <section className="section-spacing bg-white">
           <div className="container-padding">
-
             {/* Products Grid */}
             {products.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              <div className={`grid grid-cols-1 md:grid-cols-2 ${gridColsClass} gap-8`}>
                 {products.map((product) => (
                   <ProductCard key={product.uid} product={product} />
                 ))}
@@ -182,12 +196,21 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                   No products found
                 </h3>
                 <p className="text-gray-600">
-                  We're working on adding products to this category. Check back soon!
+                  We&apos;re working on adding products to this category. Check back soon!
                 </p>
               </div>
             )}
           </div>
         </section>
+
+        {/* Modular Sections - Rendered AFTER products */}
+        {modularPage?.page_sections && modularPage.page_sections.length > 0 && (
+          <SectionRenderer
+            sections={modularPage.page_sections}
+            entry={modularPage}
+            fieldPath="page_sections"
+          />
+        )}
       </main>
 
       <Footer navigation={navigation} siteSettings={fallbackSiteSettings} />
