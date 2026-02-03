@@ -70,6 +70,9 @@ export default function RootLayout({
 
               // Send page view
               jstag.pageView();
+
+              // Load visitor profile and trigger Lytics experiences/campaigns
+              jstag.loadEntity();
             `}
           </Script>
         )}
