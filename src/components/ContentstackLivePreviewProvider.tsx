@@ -58,7 +58,7 @@ function initializeLivePreviewSDK() {
         host: livePreviewConfig.app_host,
         port: 443,
       },
-      ssr: true,
+      ssr: false,  // Use client-mode for Visual Builder communication
       mode: 'builder',
       editButton: {
         enable: true,
