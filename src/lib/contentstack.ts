@@ -1,5 +1,6 @@
 import Contentstack from 'contentstack';
 import ContentstackLivePreview from '@contentstack/live-preview-utils';
+import { addEditableTags as addTags } from '@contentstack/utils';
 
 // Contentstack configuration
 const stackConfig = {
@@ -75,6 +76,37 @@ export const getStackConfig = () => ({
   app_host: stackConfig.app_host,
   preview_host: stackConfig.preview_host,
 });
+
+/**
+ * Add editable tags to entry for Visual Builder field-level editing
+ *
+ * This function modifies the entry in-place to add a `$` object at each level
+ * containing data-cslp attributes for field editing.
+ *
+ * @param entry - The entry object from Contentstack
+ * @param contentTypeUid - The content type UID
+ * @param locale - The locale (default: 'en-us')
+ * @returns The entry with editable tags added
+ */
+export function addEditableTags<T>(
+  entry: T,
+  contentTypeUid: string,
+  locale: string = 'en-us'
+): T {
+  if (!entry || !stackConfig.live_preview) {
+    return entry;
+  }
+
+  try {
+    // Use Contentstack Utils to add editable tags
+    // tagsAsObject: true for React (returns { 'data-cslp': '...' } instead of string)
+    addTags(entry as any, contentTypeUid, true, locale);
+  } catch (error) {
+    console.warn('Failed to add editable tags:', error);
+  }
+
+  return entry;
+}
 
 // Type definitions for our content models
 export interface Product {

@@ -1,6 +1,7 @@
 // Data service that provides access to Contentstack CMS
 import {
   contentstack,
+  addEditableTags,
   Product,
   BlogPost,
   NavigationMenu,
@@ -100,7 +101,11 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getPage(slug);
+    const entry = await contentstack.getPage(slug);
+    if (entry) {
+      addEditableTags(entry, 'page');
+    }
+    return entry;
   }
 
   // Navigation menus
@@ -156,7 +161,11 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getHomePage();
+    const entry = await contentstack.getHomePage();
+    if (entry) {
+      addEditableTags(entry, 'home_page');
+    }
+    return entry;
   }
 
   // ============================================================================
@@ -168,7 +177,11 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getModularHomePage(variantAliases);
+    const entry = await contentstack.getModularHomePage(variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'modular_home_page');
+    }
+    return entry;
   }
 
   // Blog Page
@@ -176,7 +189,11 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getBlogPage(variantAliases);
+    const entry = await contentstack.getBlogPage(variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'blog_page');
+    }
+    return entry;
   }
 
   // Collections
@@ -233,7 +250,11 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getModularCategoryPage(categorySlug, variantAliases);
+    const entry = await contentstack.getModularCategoryPage(categorySlug, variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'modular_category_page');
+    }
+    return entry;
   }
 
   // Campaigns
