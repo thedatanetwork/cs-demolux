@@ -7,6 +7,7 @@ import { CartProvider } from '@/contexts/CartContext'
 import { PersonalizeProvider } from '@/contexts/PersonalizeContext'
 import { ContentstackLivePreviewProvider } from '@/components/ContentstackLivePreviewProvider'
 import LyticsTracker from '@/components/LyticsTracker'
+import PathforaStyleFix from '@/components/PathforaStyleFix'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ 
@@ -67,6 +68,8 @@ export default function RootLayout({
               <Suspense fallback={null}>
                 <LyticsTracker />
               </Suspense>
+              {/* Strip Pathfora inline styles so our CSS can take effect */}
+              <PathforaStyleFix />
               {children}
             </ContentstackLivePreviewProvider>
           </PersonalizeProvider>
