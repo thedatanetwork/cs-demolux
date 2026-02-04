@@ -9,7 +9,9 @@ import { ArrowRight, Star, Award, Zap, Sparkles, Users, Globe, ChevronRight } fr
 import { useCTATracking } from '@/components/PersonalizeEventTracker';
 
 interface HeroSectionBlockProps {
-  block: HeroSectionBlockType;
+  block: HeroSectionBlockType & {
+    $?: Record<string, any>;  // Editable tags from addEditableTags()
+  };
 }
 
 // Icon mapping for dynamic icon rendering
@@ -74,11 +76,13 @@ function SplitHero({
   BadgeIcon,
   onCTAClick
 }: {
-  block: HeroSectionBlockType;
+  block: HeroSectionBlockType & { $?: Record<string, any> };
   backgroundImage?: ImageType;
   BadgeIcon: React.ComponentType<any>;
   onCTAClick: (id: string, url: string) => void;
 }) {
+  // Get editable tags from the $ object (added by addEditableTags)
+  const $ = block.$ || {};
   const heightClasses = {
     full: 'min-h-screen',
     large: 'min-h-[85vh]',
@@ -110,14 +114,14 @@ function SplitHero({
               {block.badge_text && (
                 <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-5 py-2.5 mb-8 border border-white/10">
                   <BadgeIcon className="h-4 w-4 text-gold-400" />
-                  <span className="text-sm font-medium text-white/90">
+                  <span {...$?.badge_text} className="text-sm font-medium text-white/90">
                     {block.badge_text}
                   </span>
                 </div>
               )}
 
               {/* Main Headline */}
-              <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-8">
+              <h1 {...$?.title} className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-8">
                 <span className="bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent">
                   {block.title}
                 </span>
@@ -125,7 +129,7 @@ function SplitHero({
 
               {/* Description */}
               {block.description && (
-                <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-xl leading-relaxed">
+                <p {...$?.description} className="text-lg md:text-xl text-gray-400 mb-10 max-w-xl leading-relaxed">
                   {block.description}
                 </p>
               )}
@@ -232,10 +236,11 @@ function MinimalHero({
   BadgeIcon,
   onCTAClick
 }: {
-  block: HeroSectionBlockType;
+  block: HeroSectionBlockType & { $?: Record<string, any> };
   BadgeIcon: React.ComponentType<any>;
   onCTAClick: (id: string, url: string) => void;
 }) {
+  const $ = block.$ || {};
   const heightClasses = {
     full: 'min-h-screen',
     large: 'min-h-[80vh]',
@@ -261,17 +266,17 @@ function MinimalHero({
           {block.badge_text && (
             <div className="inline-flex items-center space-x-2 bg-gray-100 backdrop-blur-sm rounded-full px-6 py-3 mb-8">
               <BadgeIcon className="h-4 w-4 text-gold-500" />
-              <span className="text-sm font-medium text-gray-900">
+              <span {...$?.badge_text} className="text-sm font-medium text-gray-900">
                 {block.badge_text}
               </span>
             </div>
           )}
 
           {/* Main Headline */}
-          <h1 className="font-heading text-5xl md:text-7xl font-bold text-gray-900 leading-tight mb-8">
+          <h1 {...$?.title} className="font-heading text-5xl md:text-7xl font-bold text-gray-900 leading-tight mb-8">
             {block.subtitle && (
               <>
-                {block.subtitle}
+                <span {...$?.subtitle}>{block.subtitle}</span>
                 <br />
               </>
             )}
@@ -281,7 +286,7 @@ function MinimalHero({
           </h1>
 
           {/* Description */}
-          <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p {...$?.description} className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
             {block.description}
           </p>
 
@@ -337,11 +342,12 @@ function ImageHero({
   BadgeIcon,
   onCTAClick
 }: {
-  block: HeroSectionBlockType;
+  block: HeroSectionBlockType & { $?: Record<string, any> };
   backgroundImage?: ImageType;
   BadgeIcon: React.ComponentType<any>;
   onCTAClick: (id: string, url: string) => void;
 }) {
+  const $ = block.$ || {};
   const heightClasses = {
     full: 'min-h-screen',
     large: 'min-h-[80vh]',
@@ -386,17 +392,17 @@ function ImageHero({
           {block.badge_text && (
             <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 mb-8">
               <BadgeIcon className="h-4 w-4 text-gold-400" />
-              <span className="text-sm font-medium text-white">
+              <span {...$?.badge_text} className="text-sm font-medium text-white">
                 {block.badge_text}
               </span>
             </div>
           )}
 
           {/* Main Headline */}
-          <h1 className="font-heading text-5xl md:text-7xl font-bold leading-tight mb-8 text-white">
+          <h1 {...$?.title} className="font-heading text-5xl md:text-7xl font-bold leading-tight mb-8 text-white">
             {block.subtitle && (
               <>
-                {block.subtitle}
+                <span {...$?.subtitle}>{block.subtitle}</span>
                 <br />
               </>
             )}
@@ -406,7 +412,7 @@ function ImageHero({
           </h1>
 
           {/* Description */}
-          <p className="text-xl md:text-2xl text-white/90 mb-12 leading-relaxed">
+          <p {...$?.description} className="text-xl md:text-2xl text-white/90 mb-12 leading-relaxed">
             {block.description}
           </p>
 
@@ -458,11 +464,12 @@ function CampaignHero({
   BadgeIcon,
   onCTAClick
 }: {
-  block: HeroSectionBlockType;
+  block: HeroSectionBlockType & { $?: Record<string, any> };
   backgroundImage?: ImageType;
   BadgeIcon: React.ComponentType<any>;
   onCTAClick: (id: string, url: string) => void;
 }) {
+  const $ = block.$ || {};
   return (
     <section className="relative bg-gradient-to-br from-gold-600 via-gold-500 to-gold-700 text-white overflow-hidden">
       {/* Background Pattern */}
@@ -480,19 +487,19 @@ function CampaignHero({
           {block.badge_text && (
             <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 mb-8 animate-pulse">
               <BadgeIcon className="h-5 w-5 text-white" />
-              <span className="text-sm font-bold text-white uppercase tracking-wide">
+              <span {...$?.badge_text} className="text-sm font-bold text-white uppercase tracking-wide">
                 {block.badge_text}
               </span>
             </div>
           )}
 
           {/* Main Headline */}
-          <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-8 text-white drop-shadow-lg">
+          <h1 {...$?.title} className="font-heading text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-8 text-white drop-shadow-lg">
             {block.title}
           </h1>
 
           {/* Description */}
-          <p className="text-2xl md:text-3xl text-white/95 mb-12 leading-relaxed font-light">
+          <p {...$?.description} className="text-2xl md:text-3xl text-white/95 mb-12 leading-relaxed font-light">
             {block.description}
           </p>
 
