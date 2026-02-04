@@ -133,26 +133,53 @@
 
 /* ==========================================================================
    MODAL WIDGET - Clean white with dark accents
+   Override Pathfora's inline styles with high specificity
    ========================================================================== */
-.pf-widget-modal .pf-widget-content {
+
+/* Content container - override inline background-color */
+.pf-widget-modal .pf-widget-content,
+.pf-widget-modal.pf-theme-light .pf-widget-content,
+.pf-widget-modal.pf-form .pf-widget-content,
+.pf-widget.pf-widget-modal .pf-widget-container .pf-widget-content,
+.pf-widget.pf-widget-modal.pf-theme-light.pf-form .pf-widget-content {
   background: #ffffff !important;
+  background-color: #ffffff !important;
   border-radius: 0.75rem !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
   border: 1px solid #e2e8f0 !important;
   overflow: hidden !important;
 }
 
-.pf-widget-modal .pf-widget-headline {
+/* Headline - override inline color */
+.pf-widget-modal .pf-widget-headline,
+.pf-widget-modal.pf-theme-light .pf-widget-headline,
+.pf-widget.pf-widget-modal .pf-widget-headline,
+.pf-widget.pf-widget-modal.pf-theme-light h2.pf-widget-headline {
   color: #0f172a !important;
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 600 !important;
 }
 
-.pf-widget-modal .pf-widget-message {
+/* Message and body text - override inline color */
+.pf-widget-modal .pf-widget-message,
+.pf-widget-modal .pf-widget-body,
+.pf-widget-modal.pf-theme-light .pf-widget-message,
+.pf-widget-modal.pf-theme-light .pf-widget-body,
+.pf-widget.pf-widget-modal p.pf-widget-message,
+.pf-widget.pf-widget-modal .pf-widget-body {
   color: #475569 !important; /* primary-600 */
 }
 
-/* Modal primary button - Gold luxury */
-.pf-widget-modal .pf-widget-ok {
+/* Primary button - override inline background-color and color */
+.pf-widget-modal .pf-widget-ok,
+.pf-widget-modal .pf-widget-btn.pf-widget-ok,
+.pf-widget-modal.pf-theme-light .pf-widget-ok,
+.pf-widget-modal.pf-form .pf-widget-ok,
+.pf-widget.pf-widget-modal button.pf-widget-ok,
+.pf-widget.pf-widget-modal.pf-theme-light.pf-form button.pf-widget-btn.pf-widget-ok,
+.pf-widget.pf-widget-modal form button[type="submit"].pf-widget-ok {
   background: linear-gradient(135deg, #fadc66, #f8cf33) !important;
+  background-color: #fadc66 !important;
   color: #0f172a !important;
   border: none !important;
   border-radius: 0.375rem !important;
@@ -164,14 +191,22 @@
   box-shadow: 0 2px 8px rgba(248, 207, 51, 0.3) !important;
 }
 
-.pf-widget-modal .pf-widget-ok:hover {
+.pf-widget-modal .pf-widget-ok:hover,
+.pf-widget-modal .pf-widget-btn.pf-widget-ok:hover,
+.pf-widget.pf-widget-modal button.pf-widget-ok:hover {
   background: linear-gradient(135deg, #f8cf33, #d4a017) !important;
+  background-color: #f8cf33 !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 4px 12px rgba(248, 207, 51, 0.4) !important;
 }
 
-/* Modal secondary button */
-.pf-widget-modal .pf-widget-cancel {
+/* Secondary/Cancel button - override inline styles */
+.pf-widget-modal .pf-widget-cancel,
+.pf-widget-modal .pf-widget-btn.pf-widget-cancel,
+.pf-widget-modal.pf-theme-light .pf-widget-cancel,
+.pf-widget.pf-widget-modal button.pf-widget-cancel,
+.pf-widget.pf-widget-modal.pf-theme-light.pf-form button.pf-widget-btn.pf-widget-cancel {
+  background: transparent !important;
   background-color: transparent !important;
   color: #475569 !important;
   border: 1px solid #cbd5e1 !important;
@@ -183,19 +218,25 @@
   text-transform: none !important;
 }
 
-.pf-widget-modal .pf-widget-cancel:hover {
+.pf-widget-modal .pf-widget-cancel:hover,
+.pf-widget-modal .pf-widget-btn.pf-widget-cancel:hover,
+.pf-widget.pf-widget-modal button.pf-widget-cancel:hover {
   background-color: #f8fafc !important;
   border-color: #94a3b8 !important;
 }
 
-/* Modal close button */
-.pf-widget-modal .pf-widget-close {
-  color: #94a3b8 !important;
+/* Close button - override inline color */
+.pf-widget-modal .pf-widget-close,
+.pf-widget-modal.pf-theme-light .pf-widget-close,
+.pf-widget.pf-widget-modal button.pf-widget-close {
+  color: #64748b !important;
   opacity: 1 !important;
   transition: color 0.2s ease !important;
+  font-size: 1.5rem !important;
 }
 
-.pf-widget-modal .pf-widget-close:hover {
+.pf-widget-modal .pf-widget-close:hover,
+.pf-widget.pf-widget-modal button.pf-widget-close:hover {
   color: #0f172a !important;
 }
 
@@ -252,22 +293,37 @@
    ========================================================================== */
 .pf-widget input[type="text"],
 .pf-widget input[type="email"],
-.pf-widget textarea {
+.pf-widget textarea,
+.pf-widget-modal input[type="text"],
+.pf-widget-modal input[type="email"],
+.pf-widget.pf-form input[type="text"],
+.pf-widget.pf-form input[type="email"] {
   font-family: Inter, system-ui, sans-serif !important;
   border: 1px solid #cbd5e1 !important;
-  border-radius: 0.375rem !important;
-  padding: 0.75rem 1rem !important;
+  border-radius: 0.5rem !important;
+  padding: 0.875rem 1rem !important;
   color: #1e293b !important;
   background: #ffffff !important;
+  background-color: #ffffff !important;
   transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  font-size: 0.95rem !important;
 }
 
 .pf-widget input[type="text"]:focus,
 .pf-widget input[type="email"]:focus,
-.pf-widget textarea:focus {
+.pf-widget textarea:focus,
+.pf-widget-modal input[type="text"]:focus,
+.pf-widget-modal input[type="email"]:focus {
   outline: none !important;
   border-color: #fadc66 !important;
-  box-shadow: 0 0 0 3px rgba(250, 220, 102, 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(250, 220, 102, 0.25) !important;
+}
+
+.pf-widget input::placeholder,
+.pf-widget-modal input::placeholder {
+  color: #94a3b8 !important;
 }
 
 /* Bar form inputs - light text on dark bg */
