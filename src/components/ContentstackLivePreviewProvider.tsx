@@ -48,6 +48,7 @@ function initializeLivePreviewSDK() {
 
     // Initialize Live Preview SDK
     ContentstackLivePreview.init({
+      enable: true,
       stackSdk: clientStack,
       stackDetails: {
         apiKey: livePreviewConfig.api_key,
@@ -64,6 +65,10 @@ function initializeLivePreviewSDK() {
         enable: true,
       },
     });
+
+    // Expose SDK globally for Visual Builder communication
+    (window as any).ContentstackLivePreview = ContentstackLivePreview;
+    (window as any).contentstackSdk = clientStack;
 
     sdkInitialized = true;
     console.log('Contentstack Live Preview initialized with Visual Builder mode');
