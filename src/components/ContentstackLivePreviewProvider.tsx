@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Contentstack from 'contentstack';
 import ContentstackLivePreview from '@contentstack/live-preview-utils';
@@ -20,88 +20,82 @@ const livePreviewConfig = {
   live_preview: process.env.NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW === 'true',
 };
 
+// Initialize SDK at module load time (not in useEffect) for faster response to Visual Builder
+let sdkInitialized = false;
+let clientStack: ReturnType<typeof Contentstack.Stack> | null = null;
+
+function initializeLivePreviewSDK() {
+  if (sdkInitialized || typeof window === 'undefined') {
+    return;
+  }
+
+  if (!livePreviewConfig.live_preview || !livePreviewConfig.api_key) {
+    return;
+  }
+
+  try {
+    // Create client-side Stack for Live Preview SDK
+    clientStack = Contentstack.Stack({
+      api_key: livePreviewConfig.api_key,
+      delivery_token: livePreviewConfig.delivery_token,
+      environment: livePreviewConfig.environment,
+      live_preview: {
+        enable: true,
+        preview_token: livePreviewConfig.preview_token,
+        host: livePreviewConfig.preview_host,
+      },
+    });
+
+    // Initialize Live Preview SDK
+    ContentstackLivePreview.init({
+      stackSdk: clientStack,
+      stackDetails: {
+        apiKey: livePreviewConfig.api_key,
+        environment: livePreviewConfig.environment,
+      },
+      clientUrlParams: {
+        protocol: 'https',
+        host: livePreviewConfig.app_host,
+        port: 443,
+      },
+      ssr: true,
+      mode: 'builder',
+      editButton: {
+        enable: true,
+      },
+    });
+
+    sdkInitialized = true;
+    console.log('Contentstack Live Preview initialized with Visual Builder mode');
+    console.log(`  Preview host: ${livePreviewConfig.preview_host}`);
+    console.log(`  App host: ${livePreviewConfig.app_host}`);
+  } catch (error) {
+    console.error('Failed to initialize Contentstack Live Preview:', error);
+  }
+}
+
+// Try to initialize immediately when module loads (client-side only)
+if (typeof window !== 'undefined') {
+  initializeLivePreviewSDK();
+}
+
 export function ContentstackLivePreviewProvider({ children }: ContentstackLivePreviewProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isInitialized, setIsInitialized] = useState(false);
-  const stackRef = useRef<ReturnType<typeof Contentstack.Stack> | null>(null);
 
+  // Ensure SDK is initialized (in case module-level init didn't run yet)
   useEffect(() => {
-    // Only initialize if live preview is enabled and we have the required config
-    if (!livePreviewConfig.live_preview || !livePreviewConfig.api_key) {
-      return;
-    }
+    initializeLivePreviewSDK();
+  }, []);
 
-    // Check if we're in the Contentstack preview context (iframe)
-    const isInPreviewMode = typeof window !== 'undefined' &&
-      (window.location.search.includes('live_preview') ||
-       window.parent !== window);
-
-    if (!isInPreviewMode && !isInitialized) {
-      return;
-    }
-
-    if (isInitialized) {
-      return;
-    }
-
-    try {
-      // Create client-side Stack for Live Preview SDK
-      // This is separate from the server-side Stack used for data fetching
-      const clientStack = Contentstack.Stack({
-        api_key: livePreviewConfig.api_key,
-        delivery_token: livePreviewConfig.delivery_token,
-        environment: livePreviewConfig.environment,
-        live_preview: {
-          enable: true,
-          preview_token: livePreviewConfig.preview_token,
-          host: livePreviewConfig.preview_host,
-        },
-      });
-
-      stackRef.current = clientStack;
-
-      // Initialize Live Preview SDK with stackSdk (key difference from before)
-      ContentstackLivePreview.init({
-        stackSdk: clientStack,
-        stackDetails: {
-          apiKey: livePreviewConfig.api_key,
-          environment: livePreviewConfig.environment,
-        },
-        clientUrlParams: {
-          protocol: 'https',
-          host: livePreviewConfig.app_host,
-          port: 443,
-        },
-        ssr: true, // Using Next.js SSR
-        mode: 'builder', // Enable Visual Builder mode
-        editButton: {
-          enable: true,
-        },
-      });
-
-      // Set up callback for content changes
-      ContentstackLivePreview.onEntryChange(() => {
-        router.refresh();
-      });
-
-      setIsInitialized(true);
-      console.log('Contentstack Live Preview initialized with Visual Builder mode');
-      console.log(`  Preview host: ${livePreviewConfig.preview_host}`);
-      console.log(`  App host: ${livePreviewConfig.app_host}`);
-    } catch (error) {
-      console.error('Failed to initialize Contentstack Live Preview:', error);
-    }
-  }, [router, isInitialized]);
-
-  // Re-initialize on route changes if in preview mode
+  // Set up content change handler
   useEffect(() => {
-    if (isInitialized && livePreviewConfig.live_preview) {
+    if (sdkInitialized && livePreviewConfig.live_preview) {
       ContentstackLivePreview.onEntryChange(() => {
         router.refresh();
       });
     }
-  }, [pathname, isInitialized, router]);
+  }, [router, pathname]);
 
   return <>{children}</>;
 }
