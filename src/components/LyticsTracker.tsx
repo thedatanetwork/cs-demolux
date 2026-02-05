@@ -141,13 +141,8 @@ export default function LyticsTracker() {
             if (pf && experiencesToUse && experiencesToUse.length > 0) {
               console.log('[LyticsTracker] Using', experiencesToUse.length, 'experiences for initialization');
 
-              // Log the experience structure to understand targeting
-              console.log('[LyticsTracker] Experience details:', experiencesToUse.map((exp: any) => ({
-                id: exp.id,
-                name: exp.name,
-                type: exp.type,
-                displayConditions: exp.displayConditions,
-              })));
+              // Log the full experience structure
+              console.log('[LyticsTracker] Experience details (full):', JSON.stringify(experiencesToUse, null, 2));
 
               // Restore experiences to the config before reinitializing
               const config = (window as any).jstag?.config?.pathfora?.publish?.candidates;
@@ -156,33 +151,39 @@ export default function LyticsTracker() {
                 console.log('[LyticsTracker] Restored experiences to jstag config');
               }
 
-              // Try different Pathfora methods
-              console.log('[LyticsTracker] Available Pathfora methods:', Object.keys(pf).filter(k => typeof pf[k] === 'function'));
-
               // Clear any existing widgets from DOM
               if (typeof pf.clearAll === 'function') {
                 console.log('[LyticsTracker] Clearing existing widgets from DOM');
                 pf.clearAll();
               }
 
-              // Try reinitialize first (might re-evaluate from config)
-              if (typeof pf.reinitialize === 'function') {
-                console.log('[LyticsTracker] Trying pathfora.reinitialize()');
+              // Try initializeTargetedWidgets - this should re-evaluate targeting
+              if (typeof pf.initializeTargetedWidgets === 'function') {
+                console.log('[LyticsTracker] Trying pathfora.initializeTargetedWidgets()');
                 try {
-                  pf.reinitialize();
-                  console.log('[LyticsTracker] reinitialize completed');
+                  pf.initializeTargetedWidgets(experiencesToUse);
+                  console.log('[LyticsTracker] initializeTargetedWidgets completed');
                 } catch (e) {
-                  console.log('[LyticsTracker] reinitialize error:', e);
-                }
-              }
+                  console.log('[LyticsTracker] initializeTargetedWidgets error:', e);
 
-              // Also try initializeWidgets as fallback
-              console.log('[LyticsTracker] Calling pathfora.initializeWidgets');
-              try {
-                pf.initializeWidgets(experiencesToUse);
-                console.log('[LyticsTracker] initializeWidgets completed successfully');
-              } catch (e) {
-                console.log('[LyticsTracker] initializeWidgets error:', e);
+                  // Fall back to regular initializeWidgets
+                  console.log('[LyticsTracker] Falling back to initializeWidgets');
+                  try {
+                    pf.initializeWidgets(experiencesToUse);
+                    console.log('[LyticsTracker] initializeWidgets completed');
+                  } catch (e2) {
+                    console.log('[LyticsTracker] initializeWidgets error:', e2);
+                  }
+                }
+              } else {
+                // Use initializeWidgets if initializeTargetedWidgets doesn't exist
+                console.log('[LyticsTracker] Calling pathfora.initializeWidgets');
+                try {
+                  pf.initializeWidgets(experiencesToUse);
+                  console.log('[LyticsTracker] initializeWidgets completed successfully');
+                } catch (e) {
+                  console.log('[LyticsTracker] initializeWidgets error:', e);
+                }
               }
             } else {
               console.log('[LyticsTracker] No experiences available to initialize');
