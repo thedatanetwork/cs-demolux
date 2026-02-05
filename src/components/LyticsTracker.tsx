@@ -49,9 +49,9 @@ export default function LyticsTracker() {
 
       // Check immediately in case Lytics is already loaded
       if (!checkForExperiences()) {
-        // Poll every 200ms until we find experiences (max 30 seconds)
+        // Poll every 200ms until we find experiences (max 6 seconds)
         let attempts = 0;
-        const maxAttempts = 150; // 30 seconds
+        const maxAttempts = 30; // 6 seconds
         const pollInterval = setInterval(() => {
           attempts++;
           if (checkForExperiences() || attempts >= maxAttempts) {

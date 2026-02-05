@@ -61,10 +61,10 @@ export default function LyticsTracker() {
       };
 
       if (!checkForExperiences()) {
-        // Poll every 200ms until experiences are found (max 30s)
+        // Poll every 200ms until experiences are found (max 6s)
         let attempts = 0;
         const pollInterval = setInterval(() => {
-          if (checkForExperiences() || ++attempts >= 150) {
+          if (checkForExperiences() || ++attempts >= 30) {
             clearInterval(pollInterval);
           }
         }, 200);
