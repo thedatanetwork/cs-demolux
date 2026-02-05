@@ -74,6 +74,18 @@ export default function LyticsTracker() {
       window.jstag.pageView();
       window.jstag.loadEntity(function(profile) {
         if (window.pathfora && storedExperiences?.length > 0) {
+          // Clear Pathfora impression tracking from localStorage
+          // This allows experiences to re-evaluate on SPA navigation
+          // Note: We keep PathforaClosed_ so dismissed modals stay dismissed
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('PathforaImpressions_') || key === 'PathforaPageView')) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+
           // Clear existing widgets
           window.pathfora.clearAll();
 
@@ -155,6 +167,28 @@ Object.keys(pathfora).filter(k => typeof pathfora[k] === 'function')
 // initializeTargetedWidgets, triggerWidgets, showWidget, closeWidget, etc.
 ```
 
+## Pathfora Impression Tracking
+
+Pathfora tracks widget impressions in localStorage to prevent showing the same experience multiple times. On SPA navigation, these must be cleared (except for user dismissals) to allow experiences to re-evaluate.
+
+### localStorage Keys
+
+| Key Pattern | Purpose | Clear on SPA Nav? |
+|-------------|---------|-------------------|
+| `PathforaImpressions_*` | Tracks which widgets have been shown | ✅ Yes |
+| `PathforaPageView` | Tracks page view count | ✅ Yes |
+| `PathforaClosed_*` | Tracks user-dismissed widgets | ❌ No (respect dismissals) |
+
+### Why This Matters
+
+Without clearing impression tracking:
+1. User sees a banner on page A
+2. User navigates to page B (SPA navigation)
+3. Banner should show on page B, but doesn't
+4. **Reason**: Pathfora thinks it already showed the banner (impression tracked)
+
+The fix clears `PathforaImpressions_*` and `PathforaPageView` but preserves `PathforaClosed_*` so that widgets the user explicitly closed stay closed.
+
 ## Common Pitfalls
 
 ### 1. Calling Pathfora methods directly
@@ -185,45 +219,6 @@ pathfora.initializePageViews();
 If `jstag.config.pathfora.publish.candidates.experiences` is empty, experiences won't show.
 
 **Solution**: Call `loadEntity()` which re-fetches from the API.
-
-## Pathfora Styling
-
-Pathfora applies inline styles with `!important` that override CSS. To customize styling:
-
-### Option 1: Strip inline styles with JavaScript
-
-```tsx
-// PathforaStyleFix.tsx
-'use client';
-import { useEffect } from 'react';
-
-export default function PathforaStyleFix() {
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      document.querySelectorAll('.pf-widget').forEach(widget => {
-        ['.pf-widget-content', '.pf-widget-headline', '.pf-widget-ok', '.pf-widget-cancel']
-          .forEach(selector => {
-            widget.querySelectorAll(selector).forEach(el => {
-              if (el instanceof HTMLElement) {
-                el.style.removeProperty('background-color');
-                el.style.removeProperty('color');
-              }
-            });
-          });
-      });
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, []);
-
-  return null;
-}
-```
-
-### Option 2: Configure colors in Lytics
-
-Set colors directly in the Pathfora module config in Lytics dashboard.
 
 ## Key Objects Reference
 
@@ -264,13 +259,12 @@ window.pathfora = {
 
 - [ ] Experience shows on initial page load (hard refresh)
 - [ ] Experience shows after SPA navigation to a targeted page
+- [ ] Experience re-shows after navigating away and back (impression tracking cleared)
+- [ ] User-dismissed widgets stay dismissed across navigation
 - [ ] Console shows `loadEntity` callback firing on navigation
 - [ ] `jstag.config.pathfora.publish.candidates.experiences` has items after navigation
 - [ ] No duplicate experiences showing
-- [ ] Styling matches site design
 
 ## Related Files in This Project
 
 - `src/components/LyticsTracker.tsx` - SPA navigation tracking
-- `src/components/PathforaStyleFix.tsx` - Strips inline styles for CSS override
-- `src/app/globals.css` - Pathfora widget styling (search for "Pathfora")

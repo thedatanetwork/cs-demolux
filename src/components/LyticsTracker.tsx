@@ -71,6 +71,21 @@ export default function LyticsTracker() {
         });
 
         if (window.jstag) {
+          // Clear Pathfora impression tracking from localStorage BEFORE any Lytics calls
+          // This allows experiences to re-evaluate fresh on SPA navigation
+          // Note: We keep PathforaClosed_ so dismissed modals stay dismissed
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('PathforaImpressions_') || key === 'PathforaPageView')) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(key => {
+            console.log('[LyticsTracker] Clearing localStorage:', key);
+            localStorage.removeItem(key);
+          });
+
           // Track the page view
           console.log('[LyticsTracker] Calling jstag.pageView()');
           window.jstag.pageView();
@@ -86,21 +101,6 @@ export default function LyticsTracker() {
             // Restore and re-initialize Pathfora experiences
             const pf = window.pathfora as any;
             if (pf && storedExperiences && storedExperiences.length > 0) {
-              // Clear Pathfora impression tracking from localStorage
-              // This allows experiences to re-evaluate on SPA navigation
-              // Note: We keep PathforaClosed_ so dismissed modals stay dismissed
-              const keysToRemove: string[] = [];
-              for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && (key.startsWith('PathforaImpressions_') || key === 'PathforaPageView')) {
-                  keysToRemove.push(key);
-                }
-              }
-              keysToRemove.forEach(key => {
-                console.log('[LyticsTracker] Clearing localStorage:', key);
-                localStorage.removeItem(key);
-              });
-
               // Clear any existing widgets from DOM
               if (typeof pf.clearAll === 'function') {
                 console.log('[LyticsTracker] Clearing existing widgets');
