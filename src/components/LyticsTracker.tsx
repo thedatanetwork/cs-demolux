@@ -28,8 +28,11 @@ export default function LyticsTracker() {
     // Skip the very first render - let Lytics handle the initial page load
     if (isFirstRender.current) {
       isFirstRender.current = false;
+      console.log('[LyticsTracker] Skipping first render, letting Lytics handle initial load');
       return;
     }
+
+    console.log('[LyticsTracker] SPA navigation detected:', pathname);
 
     if (isGTMEnabled) {
       // GTM mode: push pageView event to dataLayer
@@ -47,29 +50,33 @@ export default function LyticsTracker() {
       // Direct Lytics mode: track via jstag
       // Use a retry mechanism in case jstag isn't ready yet
       const triggerLyticsSPA = () => {
+        console.log('[LyticsTracker] Attempting to trigger Lytics SPA...', {
+          hasJstag: !!window.jstag,
+          hasPathfora: !!window.pathfora,
+        });
+
         if (window.jstag) {
           // Clear existing Pathfora widgets before re-evaluating
           // This is critical for SPA - without clearing, Pathfora thinks
           // experiences have already been triggered and won't show them again
           if (window.pathfora) {
+            console.log('[LyticsTracker] Calling pathfora.clearAll()');
             window.pathfora.clearAll();
-            if (process.env.NODE_ENV === 'development') {
-              console.log('Pathfora: cleared existing widgets for SPA navigation');
-            }
           }
 
           // Track the page view
+          console.log('[LyticsTracker] Calling jstag.pageView()');
           window.jstag.pageView();
 
           // Re-fetch the visitor profile and trigger Pathfora experiences
           // This is critical for SPA - loadEntity re-evaluates all experiences
+          console.log('[LyticsTracker] Calling jstag.loadEntity()');
           window.jstag.loadEntity((profile: any) => {
-            if (process.env.NODE_ENV === 'development') {
-              console.log('Lytics SPA navigation: profile loaded, experiences re-evaluated', {
-                pathname,
-                profile: profile?.data,
-              });
-            }
+            console.log('[LyticsTracker] loadEntity callback fired', {
+              pathname,
+              hasProfile: !!profile,
+              segments: profile?.data?.segments,
+            });
           });
 
           return true;
@@ -79,20 +86,24 @@ export default function LyticsTracker() {
 
       // Try immediately
       if (!triggerLyticsSPA()) {
+        console.log('[LyticsTracker] jstag not ready, starting retry...');
         // If jstag not ready, retry a few times
         let attempts = 0;
         const maxAttempts = 10;
         const retryInterval = setInterval(() => {
           attempts++;
+          console.log(`[LyticsTracker] Retry attempt ${attempts}/${maxAttempts}`);
           if (triggerLyticsSPA() || attempts >= maxAttempts) {
             clearInterval(retryInterval);
-            if (attempts >= maxAttempts && process.env.NODE_ENV === 'development') {
-              console.warn('Lytics jstag not available after retries');
+            if (attempts >= maxAttempts) {
+              console.warn('[LyticsTracker] jstag not available after retries');
             }
           }
         }, 200);
 
         return () => clearInterval(retryInterval);
+      } else {
+        console.log('[LyticsTracker] Successfully triggered on first attempt');
       }
     }
   }, [pathname, searchParams]);
