@@ -48,6 +48,16 @@ export default function LyticsTracker() {
       // Use a retry mechanism in case jstag isn't ready yet
       const triggerLyticsSPA = () => {
         if (window.jstag) {
+          // Clear existing Pathfora widgets before re-evaluating
+          // This is critical for SPA - without clearing, Pathfora thinks
+          // experiences have already been triggered and won't show them again
+          if (window.pathfora) {
+            window.pathfora.clearAll();
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Pathfora: cleared existing widgets for SPA navigation');
+            }
+          }
+
           // Track the page view
           window.jstag.pageView();
 
@@ -90,7 +100,7 @@ export default function LyticsTracker() {
   return null;
 }
 
-// Type declaration for jstag
+// Type declarations for Lytics
 declare global {
   interface Window {
     jstag?: {
@@ -103,6 +113,12 @@ declare global {
       init: (config: any) => void;
       getid: (callback: (id: string) => void) => void;
       isLoaded: boolean;
+    };
+    pathfora?: {
+      clearAll: () => void;
+      clearById: (ids?: string[]) => void;
+      triggerWidgets: (ids?: string[]) => void;
+      initializeWidgets: (modules: any[], config?: any) => void;
     };
     dataLayer?: Record<string, any>[];
   }
