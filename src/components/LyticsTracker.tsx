@@ -32,6 +32,7 @@ export default function LyticsTracker() {
     // They get cleared after SPA navigation, so we need to preserve them
     if (isFirstRender.current) {
       isFirstRender.current = false;
+      console.log('[LyticsTracker] First render - scheduling experience capture');
 
       const captureExperiences = () => {
         const experiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
@@ -113,10 +114,23 @@ export default function LyticsTracker() {
               storedCount: storedExperiences?.length || 0,
             });
 
-            // Update stored experiences if we got fresh ones
+            // Update stored experiences if we got fresh ones (or if we don't have any yet)
             if (freshExperiences && freshExperiences.length > 0) {
               storedExperiences = JSON.parse(JSON.stringify(freshExperiences));
-              console.log('[LyticsTracker] Updated stored experiences from fresh API response');
+              console.log('[LyticsTracker] Captured/updated experiences from loadEntity');
+            }
+
+            // If still no experiences, wait a bit and try again (Pathfora may still be initializing)
+            if (!storedExperiences || storedExperiences.length === 0) {
+              console.log('[LyticsTracker] No experiences yet, will retry after delay');
+              setTimeout(() => {
+                const retryExperiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
+                if (retryExperiences && retryExperiences.length > 0 && (!storedExperiences || storedExperiences.length === 0)) {
+                  storedExperiences = JSON.parse(JSON.stringify(retryExperiences));
+                  console.log('[LyticsTracker] Captured experiences on retry:', storedExperiences.length);
+                }
+              }, 1000);
+              return;
             }
 
             // Use whatever experiences we have (fresh from API preferred, stored as fallback)
