@@ -33,14 +33,30 @@ export default function LyticsTracker() {
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
-      // Wait a bit for Lytics to fully initialize, then capture experiences
-      setTimeout(() => {
-        const experiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
-        if (experiences && experiences.length > 0) {
+      console.log('[LyticsTracker] First render - will capture experiences after delay');
+
+      // Try capturing at multiple intervals since Lytics load time varies
+      const captureExperiences = () => {
+        const config = (window as any).jstag?.config;
+        const experiences = config?.pathfora?.publish?.candidates?.experiences;
+
+        console.log('[LyticsTracker] Checking for experiences...', {
+          hasJstag: !!(window as any).jstag,
+          hasConfig: !!config,
+          hasPathfora: !!config?.pathfora,
+          experiencesLength: experiences?.length || 0,
+        });
+
+        if (experiences && experiences.length > 0 && !storedExperiences) {
           storedExperiences = JSON.parse(JSON.stringify(experiences)); // Deep copy
           console.log('[LyticsTracker] Captured', storedExperiences?.length, 'Pathfora experiences for SPA navigation');
         }
-      }, 1000);
+      };
+
+      // Try at 1s, 2s, 3s, and 5s
+      [1000, 2000, 3000, 5000].forEach(delay => {
+        setTimeout(captureExperiences, delay);
+      });
 
       console.log('[LyticsTracker] Skipping first render, letting Lytics handle initial load');
       return;
@@ -102,6 +118,15 @@ export default function LyticsTracker() {
               pathname,
               hasProfile: !!profile,
             });
+
+            // Check if we can capture experiences now (fallback if first render didn't capture)
+            if (!storedExperiences || storedExperiences.length === 0) {
+              const experiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
+              if (experiences && experiences.length > 0) {
+                storedExperiences = JSON.parse(JSON.stringify(experiences));
+                console.log('[LyticsTracker] Late capture of', storedExperiences?.length, 'experiences');
+              }
+            }
 
             // Restore and re-initialize Pathfora experiences
             const pf = window.pathfora as any;
