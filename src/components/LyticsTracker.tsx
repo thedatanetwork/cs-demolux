@@ -7,6 +7,9 @@ import { getPageContext } from '@/lib/tracking-utils';
 // Check if GTM mode is enabled (env var is inlined at build time)
 const isGTMEnabled = !!process.env.NEXT_PUBLIC_GTM_CONTAINER_ID;
 
+// Store Pathfora experiences globally so they survive SPA navigation
+let storedExperiences: any[] | null = null;
+
 /**
  * Lytics tracking component for Single Page App (SPA) route changes
  *
@@ -25,9 +28,20 @@ export default function LyticsTracker() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Skip the very first render - let Lytics handle the initial page load
+    // On first render, capture and store the Pathfora experiences
+    // They get cleared after SPA navigation, so we need to preserve them
     if (isFirstRender.current) {
       isFirstRender.current = false;
+
+      // Wait a bit for Lytics to fully initialize, then capture experiences
+      setTimeout(() => {
+        const experiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
+        if (experiences && experiences.length > 0) {
+          storedExperiences = JSON.parse(JSON.stringify(experiences)); // Deep copy
+          console.log('[LyticsTracker] Captured', storedExperiences?.length, 'Pathfora experiences for SPA navigation');
+        }
+      }, 1000);
+
       console.log('[LyticsTracker] Skipping first render, letting Lytics handle initial load');
       return;
     }
@@ -53,6 +67,7 @@ export default function LyticsTracker() {
         console.log('[LyticsTracker] Attempting to trigger Lytics SPA...', {
           hasJstag: !!window.jstag,
           hasPathfora: !!window.pathfora,
+          storedExperiences: storedExperiences?.length || 0,
         });
 
         if (window.jstag) {
@@ -66,22 +81,40 @@ export default function LyticsTracker() {
             console.log('[LyticsTracker] loadEntity callback fired', {
               pathname,
               hasProfile: !!profile,
-              segments: profile?.data?.segments,
             });
 
-            // After profile loads, re-initialize Pathfora widgets for the new page
+            // Restore and re-initialize Pathfora experiences
             const pf = window.pathfora as any;
-            if (pf) {
-              // Initialize page view based experiences
-              if (typeof pf.initializePageViews === 'function') {
-                console.log('[LyticsTracker] Calling pathfora.initializePageViews()');
-                pf.initializePageViews();
+            if (pf && storedExperiences && storedExperiences.length > 0) {
+              // Clear any existing widgets first
+              if (typeof pf.clearAll === 'function') {
+                console.log('[LyticsTracker] Clearing existing widgets');
+                pf.clearAll();
               }
 
-              // Initialize audience targeted experiences
-              if (typeof pf.initializeTargetedWidgets === 'function') {
-                console.log('[LyticsTracker] Calling pathfora.initializeTargetedWidgets()');
-                pf.initializeTargetedWidgets();
+              // Restore experiences to the config
+              const config = (window as any).jstag?.config?.pathfora?.publish?.candidates;
+              if (config) {
+                config.experiences = JSON.parse(JSON.stringify(storedExperiences));
+                console.log('[LyticsTracker] Restored', config.experiences.length, 'experiences to config');
+              }
+
+              // Re-initialize widgets with the stored experiences
+              console.log('[LyticsTracker] Calling pathfora.initializeWidgets with stored experiences');
+              try {
+                pf.initializeWidgets(storedExperiences);
+              } catch (e) {
+                console.log('[LyticsTracker] initializeWidgets error:', e);
+
+                // Try alternative: initializeWidgetArray
+                if (typeof pf.initializeWidgetArray === 'function') {
+                  console.log('[LyticsTracker] Trying pathfora.initializeWidgetArray');
+                  try {
+                    pf.initializeWidgetArray(storedExperiences);
+                  } catch (e2) {
+                    console.log('[LyticsTracker] initializeWidgetArray error:', e2);
+                  }
+                }
               }
             }
           });
