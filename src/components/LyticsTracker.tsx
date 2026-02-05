@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getPageContext } from '@/lib/tracking-utils';
 
@@ -9,6 +9,9 @@ const isGTMEnabled = !!process.env.NEXT_PUBLIC_GTM_CONTAINER_ID;
 
 // Store Pathfora experiences globally so they survive SPA navigation
 let storedExperiences: any[] | null = null;
+
+// Track if we've done initial setup (module-level to survive hydration)
+let hasInitialized = false;
 
 /**
  * Lytics tracking component for Single Page App (SPA) route changes
@@ -23,7 +26,6 @@ let storedExperiences: any[] | null = null;
 export default function LyticsTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const isFirstRender = useRef(true);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -40,8 +42,8 @@ export default function LyticsTracker() {
     };
 
     // On first render, let Lytics handle initial load and just capture experiences
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+    if (!hasInitialized) {
+      hasInitialized = true;
       console.log('[LyticsTracker] First render - scheduling experience capture');
 
       // Try at multiple intervals since Lytics load time varies
@@ -50,14 +52,6 @@ export default function LyticsTracker() {
       });
 
       return;
-    }
-
-    // If we somehow missed first render but don't have experiences, schedule capture now
-    if (!storedExperiences) {
-      console.log('[LyticsTracker] No stored experiences - scheduling capture');
-      [500, 1500, 3000].forEach(delay => {
-        setTimeout(captureExperiences, delay);
-      });
     }
 
     console.log('[LyticsTracker] SPA navigation detected:', pathname);
