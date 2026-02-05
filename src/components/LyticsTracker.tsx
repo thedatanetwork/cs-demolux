@@ -119,34 +119,27 @@ export default function LyticsTracker() {
               hasProfile: !!profile,
             });
 
-            // Check if we can capture experiences now (fallback if first render didn't capture)
-            if (!storedExperiences || storedExperiences.length === 0) {
-              const experiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
-              if (experiences && experiences.length > 0) {
-                storedExperiences = JSON.parse(JSON.stringify(experiences));
-                console.log('[LyticsTracker] Late capture of', storedExperiences?.length, 'experiences');
-              }
+            // After loadEntity, check what experiences Lytics returned for this page
+            const freshExperiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
+            console.log('[LyticsTracker] Fresh experiences from loadEntity:', {
+              count: freshExperiences?.length || 0,
+              storedCount: storedExperiences?.length || 0,
+            });
+
+            // Update stored experiences if we got fresh ones
+            if (freshExperiences && freshExperiences.length > 0) {
+              storedExperiences = JSON.parse(JSON.stringify(freshExperiences));
+              console.log('[LyticsTracker] Updated stored experiences from fresh API response');
             }
 
-            // Restore and re-initialize Pathfora experiences
-            const pf = window.pathfora as any;
-            if (pf && storedExperiences && storedExperiences.length > 0) {
-              // Log current Pathfora internal state
-              console.log('[LyticsTracker] Pathfora state before reinit:', {
-                hasWidgetData: !!pf.widgetData,
-                widgetDataKeys: pf.widgetData ? Object.keys(pf.widgetData) : [],
-                hasInitializedWidgets: !!pf.initializedWidgets,
-              });
+            // Use whatever experiences we have (fresh from API preferred, stored as fallback)
+            const experiencesToUse = freshExperiences && freshExperiences.length > 0
+              ? freshExperiences
+              : storedExperiences;
 
-              // Reset Pathfora's internal widget tracking
-              if (pf.widgetData) {
-                console.log('[LyticsTracker] Clearing Pathfora widgetData');
-                pf.widgetData = {};
-              }
-              if (pf.initializedWidgets) {
-                console.log('[LyticsTracker] Clearing Pathfora initializedWidgets');
-                pf.initializedWidgets = [];
-              }
+            const pf = window.pathfora as any;
+            if (pf && experiencesToUse && experiencesToUse.length > 0) {
+              console.log('[LyticsTracker] Using', experiencesToUse.length, 'experiences for initialization');
 
               // Clear any existing widgets from DOM
               if (typeof pf.clearAll === 'function') {
@@ -154,30 +147,16 @@ export default function LyticsTracker() {
                 pf.clearAll();
               }
 
-              // Restore experiences to the config
-              const config = (window as any).jstag?.config?.pathfora?.publish?.candidates;
-              if (config) {
-                config.experiences = JSON.parse(JSON.stringify(storedExperiences));
-                console.log('[LyticsTracker] Restored', config.experiences.length, 'experiences to config');
-              }
-
-              // Re-initialize widgets with the stored experiences
-              console.log('[LyticsTracker] Calling pathfora.initializeWidgets with stored experiences');
+              // Re-initialize widgets with the experiences
+              console.log('[LyticsTracker] Calling pathfora.initializeWidgets');
               try {
-                pf.initializeWidgets(storedExperiences);
+                pf.initializeWidgets(experiencesToUse);
+                console.log('[LyticsTracker] initializeWidgets completed successfully');
               } catch (e) {
                 console.log('[LyticsTracker] initializeWidgets error:', e);
-
-                // Try alternative: initializeWidgetArray
-                if (typeof pf.initializeWidgetArray === 'function') {
-                  console.log('[LyticsTracker] Trying pathfora.initializeWidgetArray');
-                  try {
-                    pf.initializeWidgetArray(storedExperiences);
-                  } catch (e2) {
-                    console.log('[LyticsTracker] initializeWidgetArray error:', e2);
-                  }
-                }
               }
+            } else {
+              console.log('[LyticsTracker] No experiences available to initialize');
             }
           });
 
