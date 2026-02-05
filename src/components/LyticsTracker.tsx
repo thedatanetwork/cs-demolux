@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getPageContext } from '@/lib/tracking-utils';
 
@@ -9,9 +9,6 @@ const isGTMEnabled = !!process.env.NEXT_PUBLIC_GTM_CONTAINER_ID;
 
 // Store Pathfora experiences globally so they survive SPA navigation
 let storedExperiences: any[] | null = null;
-
-// Track if we've done initial setup (module-level to survive hydration)
-let hasInitialized = false;
 
 /**
  * Lytics tracking component for Single Page App (SPA) route changes
@@ -26,31 +23,42 @@ let hasInitialized = false;
 export default function LyticsTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Helper to capture experiences if not already captured
-    const captureExperiences = () => {
-      const experiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
-      if (experiences && experiences.length > 0 && !storedExperiences) {
-        storedExperiences = JSON.parse(JSON.stringify(experiences));
-        console.log('[LyticsTracker] Captured', storedExperiences?.length, 'Pathfora experiences');
-        return true;
-      }
-      return false;
-    };
+    // On first render, capture and store the Pathfora experiences
+    // They get cleared after SPA navigation, so we need to preserve them
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
 
-    // On first render, let Lytics handle initial load and just capture experiences
-    if (!hasInitialized) {
-      hasInitialized = true;
-      console.log('[LyticsTracker] First render - scheduling experience capture');
+      console.log('[LyticsTracker] First render - will capture experiences after delay');
 
-      // Try at multiple intervals since Lytics load time varies
+      // Try capturing at multiple intervals since Lytics load time varies
+      const captureExperiences = () => {
+        const config = (window as any).jstag?.config;
+        const experiences = config?.pathfora?.publish?.candidates?.experiences;
+
+        console.log('[LyticsTracker] Checking for experiences...', {
+          hasJstag: !!(window as any).jstag,
+          hasConfig: !!config,
+          hasPathfora: !!config?.pathfora,
+          experiencesLength: experiences?.length || 0,
+        });
+
+        if (experiences && experiences.length > 0 && !storedExperiences) {
+          storedExperiences = JSON.parse(JSON.stringify(experiences)); // Deep copy
+          console.log('[LyticsTracker] Captured', storedExperiences?.length, 'Pathfora experiences for SPA navigation');
+        }
+      };
+
+      // Try at 1s, 2s, 3s, and 5s
       [1000, 2000, 3000, 5000].forEach(delay => {
         setTimeout(captureExperiences, delay);
       });
 
+      console.log('[LyticsTracker] Skipping first render, letting Lytics handle initial load');
       return;
     }
 
@@ -118,23 +126,10 @@ export default function LyticsTracker() {
               storedCount: storedExperiences?.length || 0,
             });
 
-            // Update stored experiences if we got fresh ones (or if we don't have any yet)
+            // Update stored experiences if we got fresh ones
             if (freshExperiences && freshExperiences.length > 0) {
               storedExperiences = JSON.parse(JSON.stringify(freshExperiences));
-              console.log('[LyticsTracker] Captured/updated experiences from loadEntity');
-            }
-
-            // If still no experiences, wait a bit and try again (Pathfora may still be initializing)
-            if (!storedExperiences || storedExperiences.length === 0) {
-              console.log('[LyticsTracker] No experiences yet, will retry after delay');
-              setTimeout(() => {
-                const retryExperiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
-                if (retryExperiences && retryExperiences.length > 0 && (!storedExperiences || storedExperiences.length === 0)) {
-                  storedExperiences = JSON.parse(JSON.stringify(retryExperiences));
-                  console.log('[LyticsTracker] Captured experiences on retry:', retryExperiences.length);
-                }
-              }, 1000);
-              return;
+              console.log('[LyticsTracker] Updated stored experiences from fresh API response');
             }
 
             // Use whatever experiences we have (fresh from API preferred, stored as fallback)
