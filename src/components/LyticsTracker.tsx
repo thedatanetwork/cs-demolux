@@ -141,13 +141,42 @@ export default function LyticsTracker() {
             if (pf && experiencesToUse && experiencesToUse.length > 0) {
               console.log('[LyticsTracker] Using', experiencesToUse.length, 'experiences for initialization');
 
+              // Log the experience structure to understand targeting
+              console.log('[LyticsTracker] Experience details:', experiencesToUse.map((exp: any) => ({
+                id: exp.id,
+                name: exp.name,
+                type: exp.type,
+                displayConditions: exp.displayConditions,
+              })));
+
+              // Restore experiences to the config before reinitializing
+              const config = (window as any).jstag?.config?.pathfora?.publish?.candidates;
+              if (config) {
+                config.experiences = JSON.parse(JSON.stringify(experiencesToUse));
+                console.log('[LyticsTracker] Restored experiences to jstag config');
+              }
+
+              // Try different Pathfora methods
+              console.log('[LyticsTracker] Available Pathfora methods:', Object.keys(pf).filter(k => typeof pf[k] === 'function'));
+
               // Clear any existing widgets from DOM
               if (typeof pf.clearAll === 'function') {
                 console.log('[LyticsTracker] Clearing existing widgets from DOM');
                 pf.clearAll();
               }
 
-              // Re-initialize widgets with the experiences
+              // Try reinitialize first (might re-evaluate from config)
+              if (typeof pf.reinitialize === 'function') {
+                console.log('[LyticsTracker] Trying pathfora.reinitialize()');
+                try {
+                  pf.reinitialize();
+                  console.log('[LyticsTracker] reinitialize completed');
+                } catch (e) {
+                  console.log('[LyticsTracker] reinitialize error:', e);
+                }
+              }
+
+              // Also try initializeWidgets as fallback
               console.log('[LyticsTracker] Calling pathfora.initializeWidgets');
               try {
                 pf.initializeWidgets(experiencesToUse);
