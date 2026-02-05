@@ -33,21 +33,33 @@ export default function LyticsTracker() {
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
-      // Capture experiences after Lytics initializes
       const captureExperiences = () => {
         const experiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
         if (experiences && experiences.length > 0 && !storedExperiences) {
           storedExperiences = JSON.parse(JSON.stringify(experiences));
           console.log('[LyticsTracker] Captured', storedExperiences?.length, 'Pathfora experiences');
+          return true;
         }
+        return false;
       };
 
-      // Try at multiple intervals since Lytics load time varies
-      [1000, 2000, 3000, 5000].forEach(delay => {
-        setTimeout(captureExperiences, delay);
-      });
+      // If Lytics is already loaded, capture immediately
+      if ((window as any).jstag?.isLoaded && captureExperiences()) {
+        return;
+      }
 
-      return;
+      // Otherwise poll every 100ms until we find experiences (max 8s)
+      let attempts = 0;
+      const maxAttempts = 80;
+      const pollInterval = setInterval(() => {
+        attempts++;
+        if (captureExperiences() || attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+        }
+      }, 100);
+
+      // Cleanup on unmount (important for React Strict Mode)
+      return () => clearInterval(pollInterval);
     }
 
     console.log('[LyticsTracker] SPA navigation detected:', pathname);
