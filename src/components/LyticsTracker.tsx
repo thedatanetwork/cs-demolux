@@ -73,10 +73,27 @@ export default function LyticsTracker() {
 
             // Try to trigger widgets after profile loads
             if (window.pathfora) {
-              console.log('[LyticsTracker] Pathfora methods available:', Object.keys(window.pathfora));
+              // Log all available methods/properties
+              const pfKeys = Object.keys(window.pathfora);
+              console.log('[LyticsTracker] Pathfora all keys:', pfKeys.join(', '));
 
-              // Try triggerWidgets to re-display experiences
-              if (typeof window.pathfora.triggerWidgets === 'function') {
+              // Log specifically which are functions
+              const pfFunctions = pfKeys.filter(k => typeof (window.pathfora as any)[k] === 'function');
+              console.log('[LyticsTracker] Pathfora functions:', pfFunctions.join(', '));
+
+              // Check for widgets/modules state
+              if ((window.pathfora as any).widgets) {
+                console.log('[LyticsTracker] Pathfora widgets:', (window.pathfora as any).widgets);
+              }
+              if ((window.pathfora as any).modules) {
+                console.log('[LyticsTracker] Pathfora modules:', (window.pathfora as any).modules);
+              }
+
+              // Try various methods to re-trigger
+              if (typeof (window.pathfora as any).reinitializeWidgets === 'function') {
+                console.log('[LyticsTracker] Calling pathfora.reinitializeWidgets()');
+                (window.pathfora as any).reinitializeWidgets();
+              } else if (typeof window.pathfora.triggerWidgets === 'function') {
                 console.log('[LyticsTracker] Calling pathfora.triggerWidgets()');
                 window.pathfora.triggerWidgets();
               }
