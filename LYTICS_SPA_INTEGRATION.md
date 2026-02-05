@@ -36,12 +36,17 @@ jstag.loadEntity(function(profile) {
 
 ## Next.js App Router Implementation
 
+The implementation requires storing experiences on initial load, then restoring them on SPA navigation:
+
 ```tsx
 // src/components/LyticsTracker.tsx
 'use client';
 
 import { useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
+
+// Store experiences globally so they survive SPA navigation
+let storedExperiences: any[] | null = null;
 
 export default function LyticsTracker() {
   const pathname = usePathname();
@@ -51,17 +56,36 @@ export default function LyticsTracker() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Skip first render - Lytics handles initial page load
+    // First render: capture experiences after Lytics initializes
     if (isFirstRender.current) {
       isFirstRender.current = false;
+
+      setTimeout(() => {
+        const experiences = window.jstag?.config?.pathfora?.publish?.candidates?.experiences;
+        if (experiences?.length > 0) {
+          storedExperiences = JSON.parse(JSON.stringify(experiences));
+        }
+      }, 1000);
       return;
     }
 
-    // SPA navigation detected
+    // SPA navigation: restore and reinitialize
     if (window.jstag) {
       window.jstag.pageView();
       window.jstag.loadEntity(function(profile) {
-        // Experiences are automatically re-evaluated
+        if (window.pathfora && storedExperiences?.length > 0) {
+          // Clear existing widgets
+          window.pathfora.clearAll();
+
+          // Restore experiences to config
+          const config = window.jstag?.config?.pathfora?.publish?.candidates;
+          if (config) {
+            config.experiences = JSON.parse(JSON.stringify(storedExperiences));
+          }
+
+          // Re-initialize
+          window.pathfora.initializeWidgets(storedExperiences);
+        }
       });
     }
   }, [pathname, searchParams]);
@@ -90,6 +114,15 @@ export default function RootLayout({ children }) {
   );
 }
 ```
+
+## Why Store Experiences?
+
+While `loadEntity()` should theoretically re-fetch and re-evaluate experiences, in practice we found that storing experiences on initial load and restoring them on SPA navigation was more reliable. The stored experiences approach:
+
+1. Captures experiences after Lytics fully initializes (1 second delay)
+2. Preserves them in a module-level variable
+3. Restores them to the config on each SPA navigation
+4. Calls `initializeWidgets()` to display them
 
 ## Why Skip the First Render?
 
