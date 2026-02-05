@@ -35,6 +35,12 @@ export default function LyticsTracker() {
 
       console.log('[LyticsTracker] First render - will capture experiences after delay');
 
+      // Auto opt-in to Lytics tracking (consent is opt-out by default in Launch)
+      if ((window as any).jstag?.optIn) {
+        console.log('[LyticsTracker] Calling jstag.optIn()');
+        (window as any).jstag.optIn();
+      }
+
       // Try capturing at multiple intervals since Lytics load time varies
       const captureExperiences = () => {
         const config = (window as any).jstag?.config;
