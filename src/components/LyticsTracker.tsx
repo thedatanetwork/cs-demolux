@@ -56,6 +56,15 @@ export default function LyticsTracker() {
         });
 
         if (window.jstag) {
+          const pf = window.pathfora as any;
+
+          // Clear existing Pathfora widgets BEFORE loadEntity
+          // so loadEntity can re-evaluate fresh
+          if (pf && typeof pf.clearAll === 'function') {
+            console.log('[LyticsTracker] Calling pathfora.clearAll() BEFORE loadEntity');
+            pf.clearAll();
+          }
+
           // Track the page view
           console.log('[LyticsTracker] Calling jstag.pageView()');
           window.jstag.pageView();
@@ -70,29 +79,6 @@ export default function LyticsTracker() {
               hasProfile: !!profile,
               segments: profile?.data?.segments,
             });
-
-            // Re-initialize Pathfora for SPA navigation
-            if (window.pathfora) {
-              const pf = window.pathfora as any;
-
-              // Clear existing widgets first
-              if (typeof pf.clearAll === 'function') {
-                console.log('[LyticsTracker] Calling pathfora.clearAll()');
-                pf.clearAll();
-              }
-
-              // initializePageViews - sounds like what we need for SPA page navigation
-              if (typeof pf.initializePageViews === 'function') {
-                console.log('[LyticsTracker] Calling pathfora.initializePageViews()');
-                pf.initializePageViews();
-              }
-
-              // Also try initializeTargetedWidgets for audience-targeted experiences
-              if (typeof pf.initializeTargetedWidgets === 'function') {
-                console.log('[LyticsTracker] Calling pathfora.initializeTargetedWidgets()');
-                pf.initializeTargetedWidgets();
-              }
-            }
           });
 
           return true;
