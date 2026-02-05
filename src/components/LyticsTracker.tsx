@@ -71,31 +71,26 @@ export default function LyticsTracker() {
               segments: profile?.data?.segments,
             });
 
-            // Try to trigger widgets after profile loads
+            // Re-initialize Pathfora for SPA navigation
             if (window.pathfora) {
-              // Log all available methods/properties
-              const pfKeys = Object.keys(window.pathfora);
-              console.log('[LyticsTracker] Pathfora all keys:', pfKeys.join(', '));
+              const pf = window.pathfora as any;
 
-              // Log specifically which are functions
-              const pfFunctions = pfKeys.filter(k => typeof (window.pathfora as any)[k] === 'function');
-              console.log('[LyticsTracker] Pathfora functions:', pfFunctions.join(', '));
-
-              // Check for widgets/modules state
-              if ((window.pathfora as any).widgets) {
-                console.log('[LyticsTracker] Pathfora widgets:', (window.pathfora as any).widgets);
-              }
-              if ((window.pathfora as any).modules) {
-                console.log('[LyticsTracker] Pathfora modules:', (window.pathfora as any).modules);
+              // Clear existing widgets first
+              if (typeof pf.clearAll === 'function') {
+                console.log('[LyticsTracker] Calling pathfora.clearAll()');
+                pf.clearAll();
               }
 
-              // Try various methods to re-trigger
-              if (typeof (window.pathfora as any).reinitializeWidgets === 'function') {
-                console.log('[LyticsTracker] Calling pathfora.reinitializeWidgets()');
-                (window.pathfora as any).reinitializeWidgets();
-              } else if (typeof window.pathfora.triggerWidgets === 'function') {
-                console.log('[LyticsTracker] Calling pathfora.triggerWidgets()');
-                window.pathfora.triggerWidgets();
+              // initializePageViews - sounds like what we need for SPA page navigation
+              if (typeof pf.initializePageViews === 'function') {
+                console.log('[LyticsTracker] Calling pathfora.initializePageViews()');
+                pf.initializePageViews();
+              }
+
+              // Also try initializeTargetedWidgets for audience-targeted experiences
+              if (typeof pf.initializeTargetedWidgets === 'function') {
+                console.log('[LyticsTracker] Calling pathfora.initializeTargetedWidgets()');
+                pf.initializeTargetedWidgets();
               }
             }
           });
