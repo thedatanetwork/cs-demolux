@@ -167,13 +167,55 @@ export default function LyticsTracker() {
                   exp.config.valid = true;
                 }
               });
-              console.log('[LyticsTracker] Created fresh copy with valid flags reset');
+
+              // Filter to only show one experience - pick the most specific URL match
+              // More specific = has include rules that match current URL (not just "/" catch-all)
+              const currentUrl = window.location.href;
+              const matchingExperiences = freshExperiences.filter((exp: any) => {
+                const urlRules = exp.displayConditions?.urlContains || [];
+                // Check if any include rule matches
+                const hasIncludeMatch = urlRules.some((rule: any) => {
+                  if (rule.exclude) return false;
+                  return currentUrl.toLowerCase().includes(rule.value.toLowerCase());
+                });
+                // Check if any exclude rule blocks
+                const isExcluded = urlRules.some((rule: any) => {
+                  if (!rule.exclude) return false;
+                  return currentUrl.toLowerCase().includes(rule.value.toLowerCase());
+                });
+                return hasIncludeMatch && !isExcluded;
+              });
+
+              // Sort by specificity: experiences with non-"/" include rules come first
+              matchingExperiences.sort((a: any, b: any) => {
+                const aRules = a.displayConditions?.urlContains || [];
+                const bRules = b.displayConditions?.urlContains || [];
+                const aHasSpecificRule = aRules.some((r: any) => !r.exclude && r.value !== '/');
+                const bHasSpecificRule = bRules.some((r: any) => !r.exclude && r.value !== '/');
+                if (aHasSpecificRule && !bHasSpecificRule) return -1;
+                if (bHasSpecificRule && !aHasSpecificRule) return 1;
+                return 0;
+              });
+
+              // Only use the first (most specific) matching experience
+              const experienceToShow = matchingExperiences.length > 0 ? [matchingExperiences[0]] : [];
+              console.log('[LyticsTracker] Filtered experiences:', {
+                total: freshExperiences.length,
+                matching: matchingExperiences.length,
+                showing: experienceToShow.length,
+                selectedId: experienceToShow[0]?.id,
+              });
               console.log('[LyticsTracker] Current URL for targeting:', window.location.href);
 
-              // Use initializeWidgets with fresh experiences
-              console.log('[LyticsTracker] Calling pathfora.initializeWidgets with fresh experiences');
+              // Use initializeWidgets with the filtered experience (only one)
+              if (experienceToShow.length === 0) {
+                console.log('[LyticsTracker] No matching experiences for current URL');
+                return;
+              }
+
+              console.log('[LyticsTracker] Calling pathfora.initializeWidgets with single experience');
               try {
-                pf.initializeWidgets(freshExperiences);
+                pf.initializeWidgets(experienceToShow);
                 console.log('[LyticsTracker] initializeWidgets completed');
 
                 // Check if any widgets were added to DOM
