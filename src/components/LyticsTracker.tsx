@@ -159,7 +159,15 @@ export default function LyticsTracker() {
 
               // Create a completely fresh deep copy to avoid any mutated state
               const freshExperiences = JSON.parse(JSON.stringify(experiencesToUse));
-              console.log('[LyticsTracker] Created fresh copy of experiences');
+
+              // Reset the 'valid' flag so Pathfora re-evaluates targeting for current URL
+              freshExperiences.forEach((exp: any) => {
+                exp.valid = true;
+                if (exp.config) {
+                  exp.config.valid = true;
+                }
+              });
+              console.log('[LyticsTracker] Created fresh copy with valid flags reset');
               console.log('[LyticsTracker] Current URL for targeting:', window.location.href);
 
               // Use initializeWidgets with fresh experiences
