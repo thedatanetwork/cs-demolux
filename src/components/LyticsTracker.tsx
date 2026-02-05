@@ -74,6 +74,10 @@ export default function LyticsTracker() {
           // Clear Pathfora impression tracking from localStorage BEFORE any Lytics calls
           // This allows experiences to re-evaluate fresh on SPA navigation
           // Note: We keep PathforaClosed_ so dismissed modals stay dismissed
+          console.log('[LyticsTracker] Checking localStorage for Pathfora keys...', {
+            totalKeys: localStorage.length,
+            allKeys: Object.keys(localStorage),
+          });
           const keysToRemove: string[] = [];
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
@@ -81,6 +85,7 @@ export default function LyticsTracker() {
               keysToRemove.push(key);
             }
           }
+          console.log('[LyticsTracker] Found keys to remove:', keysToRemove);
           keysToRemove.forEach(key => {
             console.log('[LyticsTracker] Clearing localStorage:', key);
             localStorage.removeItem(key);
