@@ -50,18 +50,25 @@ export default function LyticsTracker() {
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
-      // Try capturing at multiple intervals since Lytics load time varies
-      const captureExperiences = () => {
+      // Poll for experiences to be available (stops as soon as found)
+      const checkForExperiences = () => {
         const experiences = window.jstag?.config?.pathfora?.publish?.candidates?.experiences;
         if (experiences?.length > 0 && !storedExperiences) {
           storedExperiences = JSON.parse(JSON.stringify(experiences));
+          return true;
         }
+        return false;
       };
 
-      // Try at 1s, 2s, 3s, and 5s
-      [1000, 2000, 3000, 5000].forEach(delay => {
-        setTimeout(captureExperiences, delay);
-      });
+      if (!checkForExperiences()) {
+        // Poll every 200ms until experiences are found (max 30s)
+        let attempts = 0;
+        const pollInterval = setInterval(() => {
+          if (checkForExperiences() || ++attempts >= 150) {
+            clearInterval(pollInterval);
+          }
+        }, 200);
+      }
       return;
     }
 
@@ -156,9 +163,9 @@ export default function RootLayout({ children }) {
 
 ## Key Discoveries
 
-### 1. Why Capture at Multiple Intervals?
+### 1. Why Poll for Experiences?
 
-Lytics load time varies depending on network conditions and when the script is injected. A single 1-second timeout often misses the experiences. Trying at 1s, 2s, 3s, and 5s ensures we capture them reliably.
+Lytics load time varies depending on network conditions and when the script is injected. Rather than using fixed timeouts, we poll every 200ms until experiences are available. This is more reliable and captures experiences as soon as they're ready.
 
 ### 2. Why Clear localStorage BEFORE Lytics Calls?
 
