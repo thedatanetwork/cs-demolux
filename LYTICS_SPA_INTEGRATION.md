@@ -18,25 +18,15 @@ On SPA navigation, **none of this happens automatically**. The experiences array
 
 ## The Solution
 
-Call `jstag.pageView()` and `jstag.loadEntity()` on every route change:
+The solution involves several key steps:
 
-```javascript
-// On SPA route change
-jstag.pageView();
-jstag.loadEntity(function(profile) {
-  // Experiences are re-fetched and re-evaluated automatically
-  console.log('Profile loaded:', profile);
-});
-```
-
-**Critical insight**: `loadEntity()` does more than just load the user profile. It also:
-- Re-fetches experiences from the Lytics API
-- Re-populates `jstag.config.pathfora.publish.candidates.experiences`
-- Re-evaluates and displays applicable Pathfora widgets
+1. **Capture experiences on initial load** - Store them before they get cleared
+2. **Clear localStorage impression tracking** - So Pathfora re-evaluates fresh
+3. **Reset the `valid` flag** - Pathfora marks experiences as `valid: false` if they don't match the current URL
+4. **Filter to one experience** - Show only the most specific URL match to prevent duplicates
+5. **Call initializeWidgets** - With a fresh copy of the filtered experience
 
 ## Next.js App Router Implementation
-
-The implementation requires storing experiences on initial load, then restoring them on SPA navigation:
 
 ```tsx
 // src/components/LyticsTracker.tsx
@@ -45,7 +35,7 @@ The implementation requires storing experiences on initial load, then restoring 
 import { useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
-// Store experiences globally so they survive SPA navigation
+// Store Pathfora experiences globally so they survive SPA navigation
 let storedExperiences: any[] | null = null;
 
 export default function LyticsTracker() {
@@ -60,43 +50,80 @@ export default function LyticsTracker() {
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
-      setTimeout(() => {
+      // Try capturing at multiple intervals since Lytics load time varies
+      const captureExperiences = () => {
         const experiences = window.jstag?.config?.pathfora?.publish?.candidates?.experiences;
-        if (experiences?.length > 0) {
+        if (experiences?.length > 0 && !storedExperiences) {
           storedExperiences = JSON.parse(JSON.stringify(experiences));
         }
-      }, 1000);
+      };
+
+      // Try at 1s, 2s, 3s, and 5s
+      [1000, 2000, 3000, 5000].forEach(delay => {
+        setTimeout(captureExperiences, delay);
+      });
       return;
     }
 
-    // SPA navigation: restore and reinitialize
+    // SPA navigation: reinitialize experiences
     if (window.jstag) {
+      // 1. Clear localStorage impression tracking BEFORE Lytics calls
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('PathforaImpressions_') || key === 'PathforaPageView')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+
+      // 2. Track the page view
       window.jstag.pageView();
-      window.jstag.loadEntity(function(profile) {
-        if (window.pathfora && storedExperiences?.length > 0) {
-          // Clear Pathfora impression tracking from localStorage
-          // This allows experiences to re-evaluate on SPA navigation
-          // Note: We keep PathforaClosed_ so dismissed modals stay dismissed
-          const keysToRemove: string[] = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && (key.startsWith('PathforaImpressions_') || key === 'PathforaPageView')) {
-              keysToRemove.push(key);
-            }
-          }
-          keysToRemove.forEach(key => localStorage.removeItem(key));
 
-          // Clear existing widgets
-          window.pathfora.clearAll();
+      // 3. Re-fetch visitor profile and reinitialize widgets
+      window.jstag.loadEntity((profile) => {
+        const pf = window.pathfora;
+        if (!pf || !storedExperiences?.length) return;
 
-          // Restore experiences to config
-          const config = window.jstag?.config?.pathfora?.publish?.candidates;
-          if (config) {
-            config.experiences = JSON.parse(JSON.stringify(storedExperiences));
-          }
+        // 4. Clear existing widgets from DOM
+        pf.clearAll();
 
-          // Re-initialize
-          window.pathfora.initializeWidgets(storedExperiences);
+        // 5. Create fresh copy and reset valid flags
+        const freshExperiences = JSON.parse(JSON.stringify(storedExperiences));
+        freshExperiences.forEach((exp: any) => {
+          exp.valid = true;
+          if (exp.config) exp.config.valid = true;
+        });
+
+        // 6. Filter to matching experiences based on URL targeting
+        const currentUrl = window.location.href;
+        const matchingExperiences = freshExperiences.filter((exp: any) => {
+          const urlRules = exp.displayConditions?.urlContains || [];
+          const hasIncludeMatch = urlRules.some((rule: any) => {
+            if (rule.exclude) return false;
+            return currentUrl.toLowerCase().includes(rule.value.toLowerCase());
+          });
+          const isExcluded = urlRules.some((rule: any) => {
+            if (!rule.exclude) return false;
+            return currentUrl.toLowerCase().includes(rule.value.toLowerCase());
+          });
+          return hasIncludeMatch && !isExcluded;
+        });
+
+        // 7. Sort by specificity (specific rules before catch-all "/")
+        matchingExperiences.sort((a: any, b: any) => {
+          const aRules = a.displayConditions?.urlContains || [];
+          const bRules = b.displayConditions?.urlContains || [];
+          const aHasSpecific = aRules.some((r: any) => !r.exclude && r.value !== '/');
+          const bHasSpecific = bRules.some((r: any) => !r.exclude && r.value !== '/');
+          if (aHasSpecific && !bHasSpecific) return -1;
+          if (bHasSpecific && !aHasSpecific) return 1;
+          return 0;
+        });
+
+        // 8. Show only the first (most specific) matching experience
+        if (matchingExperiences.length > 0) {
+          pf.initializeWidgets([matchingExperiences[0]]);
         }
       });
     }
@@ -127,144 +154,99 @@ export default function RootLayout({ children }) {
 }
 ```
 
-## Why Store Experiences?
+## Key Discoveries
 
-While `loadEntity()` should theoretically re-fetch and re-evaluate experiences, in practice we found that storing experiences on initial load and restoring them on SPA navigation was more reliable. The stored experiences approach:
+### 1. Why Capture at Multiple Intervals?
 
-1. Captures experiences after Lytics fully initializes (1 second delay)
-2. Preserves them in a module-level variable
-3. Restores them to the config on each SPA navigation
-4. Calls `initializeWidgets()` to display them
+Lytics load time varies depending on network conditions and when the script is injected. A single 1-second timeout often misses the experiences. Trying at 1s, 2s, 3s, and 5s ensures we capture them reliably.
 
-## Why Skip the First Render?
+### 2. Why Clear localStorage BEFORE Lytics Calls?
 
-On the initial page load, the Lytics script (injected by Launch or loaded directly) handles everything automatically. If you call `loadEntity()` again immediately, you may cause duplicate experience triggers or race conditions.
+Pathfora checks `PathforaImpressions_*` and `PathforaPageView` in localStorage to determine if an experience has been shown. If we clear these AFTER calling `loadEntity()`, Pathfora may have already evaluated and skipped the experiences.
 
-## Debugging
+### 3. Why Reset the `valid` Flag?
 
-### Check if experiences are loaded
+When Pathfora evaluates experiences, it sets `valid: false` on any experience that doesn't match the current URL's targeting rules. If you capture experiences on page A where experience X doesn't match, it gets `valid: false`. Later, when navigating to page B where X should match, the flag is still `false` and Pathfora skips it.
 
-```javascript
-// Should have items after initial load
-jstag.config.pathfora.publish.candidates.experiences
+**Solution**: Reset `valid: true` on all experiences before calling `initializeWidgets()`.
 
-// Will be empty after SPA navigation until loadEntity() is called
-```
+### 4. Why Filter to One Experience?
 
-### Verify loadEntity re-fetches experiences
+Without filtering, multiple experiences can match the same page. For example:
+- Experience A: targets pages containing "blog"
+- Experience B: targets all pages except "technofurniture" (using "/" catch-all)
 
-```javascript
-jstag.loadEntity(function(p) {
-  console.log('Experiences:', jstag.config.pathfora.publish.candidates.experiences);
-});
-```
+On `/blog`, BOTH experiences match. Pathfora's normal behavior shows only one, but our manual reinitialization bypasses that logic.
 
-### Available Pathfora methods
-
-```javascript
-Object.keys(pathfora).filter(k => typeof pathfora[k] === 'function')
-// Returns: clearAll, initializeWidgets, initializePageViews,
-// initializeTargetedWidgets, triggerWidgets, showWidget, closeWidget, etc.
-```
+**Solution**: Filter experiences ourselves, prioritizing specific URL matches over catch-all rules.
 
 ## Pathfora Impression Tracking
 
-Pathfora tracks widget impressions in localStorage to prevent showing the same experience multiple times. On SPA navigation, these must be cleared (except for user dismissals) to allow experiences to re-evaluate.
-
-### localStorage Keys
+Pathfora uses localStorage to track impressions and prevent showing the same experience repeatedly.
 
 | Key Pattern | Purpose | Clear on SPA Nav? |
 |-------------|---------|-------------------|
-| `PathforaImpressions_*` | Tracks which widgets have been shown | ✅ Yes |
-| `PathforaPageView` | Tracks page view count | ✅ Yes |
-| `PathforaClosed_*` | Tracks user-dismissed widgets | ❌ No (respect dismissals) |
+| `PathforaImpressions_*` | Tracks which widgets have been shown | Yes |
+| `PathforaPageView` | Tracks page view count | Yes |
+| `PathforaClosed_*` | Tracks user-dismissed widgets | **No** (respect dismissals) |
 
-### Why This Matters
-
-Without clearing impression tracking:
-1. User sees a banner on page A
-2. User navigates to page B (SPA navigation)
-3. Banner should show on page B, but doesn't
-4. **Reason**: Pathfora thinks it already showed the banner (impression tracked)
-
-The fix clears `PathforaImpressions_*` and `PathforaPageView` but preserves `PathforaClosed_*` so that widgets the user explicitly closed stay closed.
-
-## Common Pitfalls
-
-### 1. Calling Pathfora methods directly
-
-Methods like `pathfora.initializeWidgets()` require widget configurations to be passed:
+## Experience Object Structure
 
 ```javascript
-pathfora.initializeWidgets();
-// Error: "Initialize called with no widgets"
-```
-
-**Solution**: Don't call these directly. Let `loadEntity()` handle experience initialization.
-
-### 2. Using clearAll() incorrectly
-
-`pathfora.clearAll()` removes all widgets but doesn't help with re-initialization:
-
-```javascript
-pathfora.clearAll();
-pathfora.initializePageViews();
-// Error: "can't access property 'target', o is undefined"
-```
-
-**Solution**: Just use `loadEntity()` which handles clearing and re-initialization internally.
-
-### 3. Experiences array is empty
-
-If `jstag.config.pathfora.publish.candidates.experiences` is empty, experiences won't show.
-
-**Solution**: Call `loadEntity()` which re-fetches from the API.
-
-## Key Objects Reference
-
-### jstag
-
-```javascript
-window.jstag = {
-  pageView: () => void,           // Track page view
-  loadEntity: (callback) => void, // Load profile AND re-evaluate experiences
-  send: (data) => void,           // Send custom event data
-  identify: (data) => void,       // Identify user
-  getEntity: (callback) => void,  // Get current entity/profile
-  config: {
-    pathfora: {
-      publish: {
-        candidates: {
-          experiences: []  // Array of experience configs
-        }
-      }
-    }
-  }
+{
+  "id": "abc123",
+  "valid": true,  // IMPORTANT: Pathfora sets this based on targeting
+  "type": "message",  // or "form"
+  "layout": "bar",  // or "modal"
+  "displayConditions": {
+    "showOnInit": true,
+    "urlContains": [
+      { "exclude": true, "match": "substring", "value": "technofurniture" },
+      { "exclude": false, "match": "substring", "value": "/" }
+    ]
+  },
+  // ... other config
 }
 ```
 
-### pathfora
+## URL Targeting Logic
 
+Pathfora's `urlContains` rules work as follows:
+- `exclude: false` = Include if URL contains value
+- `exclude: true` = Exclude if URL contains value
+
+For an experience to show:
+1. At least one include rule must match
+2. No exclude rules can match
+
+## Debugging
+
+### Check captured experiences
 ```javascript
-window.pathfora = {
-  clearAll: () => void,              // Remove all widgets from DOM
-  initializeWidgets: (modules) => void,  // Initialize with widget configs
-  triggerWidgets: (ids?) => void,    // Trigger manual widgets
-  showWidget: (id) => void,          // Show specific widget
-  closeWidget: (id) => void,         // Close specific widget
-}
+// In browser console
+storedExperiences  // If using our component (exposed globally for debugging)
+jstag.config.pathfora.publish.candidates.experiences  // Current Lytics state
+```
+
+### Check localStorage
+```javascript
+Object.keys(localStorage).filter(k => k.includes('Pathfora'))
+```
+
+### Check if widgets are in DOM
+```javascript
+document.querySelectorAll('.pf-widget')
 ```
 
 ## Testing Checklist
 
 - [ ] Experience shows on initial page load (hard refresh)
 - [ ] Experience shows after SPA navigation to a targeted page
-- [ ] Experience re-shows after navigating away and back (impression tracking cleared)
+- [ ] Experience re-shows after navigating away and back
 - [ ] User-dismissed widgets stay dismissed across navigation
-- [ ] Console shows `loadEntity` callback firing on navigation
-- [ ] `jstag.config.pathfora.publish.candidates.experiences` has items after navigation
-- [ ] No duplicate experiences showing
+- [ ] Only one experience shows at a time (no duplicates)
+- [ ] More specific URL targeting takes priority over catch-all rules
 
-## Related Files in This Project
+## Related Files
 
-- `src/components/LyticsTracker.tsx` - SPA navigation tracking
+- `src/components/LyticsTracker.tsx` - SPA navigation tracking implementation
