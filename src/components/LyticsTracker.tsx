@@ -28,19 +28,21 @@ export default function LyticsTracker() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // On first render, capture and store the Pathfora experiences
-    // They get cleared after SPA navigation, so we need to preserve them
+    // Helper to capture experiences if not already captured
+    const captureExperiences = () => {
+      const experiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
+      if (experiences && experiences.length > 0 && !storedExperiences) {
+        storedExperiences = JSON.parse(JSON.stringify(experiences));
+        console.log('[LyticsTracker] Captured', storedExperiences?.length, 'Pathfora experiences');
+        return true;
+      }
+      return false;
+    };
+
+    // On first render, let Lytics handle initial load and just capture experiences
     if (isFirstRender.current) {
       isFirstRender.current = false;
       console.log('[LyticsTracker] First render - scheduling experience capture');
-
-      const captureExperiences = () => {
-        const experiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
-        if (experiences && experiences.length > 0 && !storedExperiences) {
-          storedExperiences = JSON.parse(JSON.stringify(experiences));
-          console.log('[LyticsTracker] Captured', storedExperiences?.length, 'Pathfora experiences');
-        }
-      };
 
       // Try at multiple intervals since Lytics load time varies
       [1000, 2000, 3000, 5000].forEach(delay => {
@@ -48,6 +50,14 @@ export default function LyticsTracker() {
       });
 
       return;
+    }
+
+    // If we somehow missed first render but don't have experiences, schedule capture now
+    if (!storedExperiences) {
+      console.log('[LyticsTracker] No stored experiences - scheduling capture');
+      [500, 1500, 3000].forEach(delay => {
+        setTimeout(captureExperiences, delay);
+      });
     }
 
     console.log('[LyticsTracker] SPA navigation detected:', pathname);
