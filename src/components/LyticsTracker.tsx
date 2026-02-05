@@ -131,7 +131,7 @@ export default function LyticsTracker() {
                 const retryExperiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
                 if (retryExperiences && retryExperiences.length > 0 && (!storedExperiences || storedExperiences.length === 0)) {
                   storedExperiences = JSON.parse(JSON.stringify(retryExperiences));
-                  console.log('[LyticsTracker] Captured experiences on retry:', storedExperiences.length);
+                  console.log('[LyticsTracker] Captured experiences on retry:', retryExperiences.length);
                 }
               }, 1000);
               return;
