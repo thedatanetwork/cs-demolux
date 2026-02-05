@@ -56,20 +56,13 @@ export default function LyticsTracker() {
         });
 
         if (window.jstag) {
-          // Clear existing Pathfora widgets before re-evaluating
-          // This is critical for SPA - without clearing, Pathfora thinks
-          // experiences have already been triggered and won't show them again
-          if (window.pathfora) {
-            console.log('[LyticsTracker] Calling pathfora.clearAll()');
-            window.pathfora.clearAll();
-          }
-
           // Track the page view
           console.log('[LyticsTracker] Calling jstag.pageView()');
           window.jstag.pageView();
 
           // Re-fetch the visitor profile and trigger Pathfora experiences
-          // This is critical for SPA - loadEntity re-evaluates all experiences
+          // Per Lytics docs: "whenever jstag.loadEntity loads an updated profile,
+          // all Lytics-managed widgets are removed and re-evaluated"
           console.log('[LyticsTracker] Calling jstag.loadEntity()');
           window.jstag.loadEntity((profile: any) => {
             console.log('[LyticsTracker] loadEntity callback fired', {
@@ -77,6 +70,17 @@ export default function LyticsTracker() {
               hasProfile: !!profile,
               segments: profile?.data?.segments,
             });
+
+            // Try to trigger widgets after profile loads
+            if (window.pathfora) {
+              console.log('[LyticsTracker] Pathfora methods available:', Object.keys(window.pathfora));
+
+              // Try triggerWidgets to re-display experiences
+              if (typeof window.pathfora.triggerWidgets === 'function') {
+                console.log('[LyticsTracker] Calling pathfora.triggerWidgets()');
+                window.pathfora.triggerWidgets();
+              }
+            }
           });
 
           return true;
@@ -130,6 +134,8 @@ declare global {
       clearById: (ids?: string[]) => void;
       triggerWidgets: (ids?: string[]) => void;
       initializeWidgets: (modules: any[], config?: any) => void;
+      reinitialize: () => void;
+      reloadWidgets: () => void;
     };
     dataLayer?: Record<string, any>[];
   }
