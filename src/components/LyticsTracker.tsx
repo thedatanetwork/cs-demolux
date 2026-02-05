@@ -106,9 +106,26 @@ export default function LyticsTracker() {
             // Restore and re-initialize Pathfora experiences
             const pf = window.pathfora as any;
             if (pf && storedExperiences && storedExperiences.length > 0) {
+              // Log current Pathfora internal state
+              console.log('[LyticsTracker] Pathfora state before reinit:', {
+                hasWidgetData: !!pf.widgetData,
+                widgetDataKeys: pf.widgetData ? Object.keys(pf.widgetData) : [],
+                hasInitializedWidgets: !!pf.initializedWidgets,
+              });
+
+              // Reset Pathfora's internal widget tracking
+              if (pf.widgetData) {
+                console.log('[LyticsTracker] Clearing Pathfora widgetData');
+                pf.widgetData = {};
+              }
+              if (pf.initializedWidgets) {
+                console.log('[LyticsTracker] Clearing Pathfora initializedWidgets');
+                pf.initializedWidgets = [];
+              }
+
               // Clear any existing widgets from DOM
               if (typeof pf.clearAll === 'function') {
-                console.log('[LyticsTracker] Clearing existing widgets');
+                console.log('[LyticsTracker] Clearing existing widgets from DOM');
                 pf.clearAll();
               }
 
