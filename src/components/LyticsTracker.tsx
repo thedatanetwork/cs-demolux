@@ -56,22 +56,11 @@ export default function LyticsTracker() {
         });
 
         if (window.jstag) {
-          const pf = window.pathfora as any;
-
-          // Clear existing Pathfora widgets BEFORE loadEntity
-          // so loadEntity can re-evaluate fresh
-          if (pf && typeof pf.clearAll === 'function') {
-            console.log('[LyticsTracker] Calling pathfora.clearAll() BEFORE loadEntity');
-            pf.clearAll();
-          }
-
           // Track the page view
           console.log('[LyticsTracker] Calling jstag.pageView()');
           window.jstag.pageView();
 
-          // Re-fetch the visitor profile and trigger Pathfora experiences
-          // Per Lytics docs: "whenever jstag.loadEntity loads an updated profile,
-          // all Lytics-managed widgets are removed and re-evaluated"
+          // Re-fetch the visitor profile
           console.log('[LyticsTracker] Calling jstag.loadEntity()');
           window.jstag.loadEntity((profile: any) => {
             console.log('[LyticsTracker] loadEntity callback fired', {
@@ -79,6 +68,22 @@ export default function LyticsTracker() {
               hasProfile: !!profile,
               segments: profile?.data?.segments,
             });
+
+            // After profile loads, re-initialize Pathfora widgets for the new page
+            const pf = window.pathfora as any;
+            if (pf) {
+              // Initialize page view based experiences
+              if (typeof pf.initializePageViews === 'function') {
+                console.log('[LyticsTracker] Calling pathfora.initializePageViews()');
+                pf.initializePageViews();
+              }
+
+              // Initialize audience targeted experiences
+              if (typeof pf.initializeTargetedWidgets === 'function') {
+                console.log('[LyticsTracker] Calling pathfora.initializeTargetedWidgets()');
+                pf.initializeTargetedWidgets();
+              }
+            }
           });
 
           return true;
