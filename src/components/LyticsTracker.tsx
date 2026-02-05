@@ -157,33 +157,29 @@ export default function LyticsTracker() {
                 pf.clearAll();
               }
 
-              // Try initializeTargetedWidgets - this should re-evaluate targeting
-              if (typeof pf.initializeTargetedWidgets === 'function') {
-                console.log('[LyticsTracker] Trying pathfora.initializeTargetedWidgets()');
-                try {
-                  pf.initializeTargetedWidgets(experiencesToUse);
-                  console.log('[LyticsTracker] initializeTargetedWidgets completed');
-                } catch (e) {
-                  console.log('[LyticsTracker] initializeTargetedWidgets error:', e);
+              // Create a completely fresh deep copy to avoid any mutated state
+              const freshExperiences = JSON.parse(JSON.stringify(experiencesToUse));
+              console.log('[LyticsTracker] Created fresh copy of experiences');
+              console.log('[LyticsTracker] Current URL for targeting:', window.location.href);
 
-                  // Fall back to regular initializeWidgets
-                  console.log('[LyticsTracker] Falling back to initializeWidgets');
-                  try {
-                    pf.initializeWidgets(experiencesToUse);
-                    console.log('[LyticsTracker] initializeWidgets completed');
-                  } catch (e2) {
-                    console.log('[LyticsTracker] initializeWidgets error:', e2);
+              // Use initializeWidgets with fresh experiences
+              console.log('[LyticsTracker] Calling pathfora.initializeWidgets with fresh experiences');
+              try {
+                pf.initializeWidgets(freshExperiences);
+                console.log('[LyticsTracker] initializeWidgets completed');
+
+                // Check if any widgets were added to DOM
+                setTimeout(() => {
+                  const widgets = document.querySelectorAll('.pf-widget');
+                  console.log('[LyticsTracker] Widgets in DOM after init:', widgets.length);
+                  if (widgets.length > 0) {
+                    widgets.forEach((w, i) => {
+                      console.log(`[LyticsTracker] Widget ${i}:`, w.className, (w as HTMLElement).style.display);
+                    });
                   }
-                }
-              } else {
-                // Use initializeWidgets if initializeTargetedWidgets doesn't exist
-                console.log('[LyticsTracker] Calling pathfora.initializeWidgets');
-                try {
-                  pf.initializeWidgets(experiencesToUse);
-                  console.log('[LyticsTracker] initializeWidgets completed successfully');
-                } catch (e) {
-                  console.log('[LyticsTracker] initializeWidgets error:', e);
-                }
+                }, 500);
+              } catch (e) {
+                console.log('[LyticsTracker] initializeWidgets error:', e);
               }
             } else {
               console.log('[LyticsTracker] No experiences available to initialize');
