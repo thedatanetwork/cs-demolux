@@ -33,37 +33,20 @@ export default function LyticsTracker() {
     if (isFirstRender.current) {
       isFirstRender.current = false;
 
-      console.log('[LyticsTracker] First render - waiting for Lytics to load');
-
-      // Poll for Lytics to be ready and have experiences
-      // This is more reliable than fixed timeouts
-      const checkForExperiences = () => {
+      // Capture experiences after Lytics initializes
+      const captureExperiences = () => {
         const experiences = (window as any).jstag?.config?.pathfora?.publish?.candidates?.experiences;
         if (experiences && experiences.length > 0 && !storedExperiences) {
           storedExperiences = JSON.parse(JSON.stringify(experiences));
           console.log('[LyticsTracker] Captured', storedExperiences?.length, 'Pathfora experiences');
-          return true;
         }
-        return false;
       };
 
-      // Check immediately in case Lytics is already loaded
-      if (!checkForExperiences()) {
-        // Poll every 200ms until we find experiences (max 6 seconds)
-        let attempts = 0;
-        const maxAttempts = 30; // 6 seconds
-        const pollInterval = setInterval(() => {
-          attempts++;
-          if (checkForExperiences() || attempts >= maxAttempts) {
-            clearInterval(pollInterval);
-            if (attempts >= maxAttempts) {
-              console.warn('[LyticsTracker] Timed out waiting for Pathfora experiences');
-            }
-          }
-        }, 200);
-      }
+      // Try at multiple intervals since Lytics load time varies
+      [1000, 2000, 3000, 5000].forEach(delay => {
+        setTimeout(captureExperiences, delay);
+      });
 
-      console.log('[LyticsTracker] Skipping first render, letting Lytics handle initial load');
       return;
     }
 
