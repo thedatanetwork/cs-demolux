@@ -86,7 +86,22 @@ export default function LyticsTracker() {
             // Restore and re-initialize Pathfora experiences
             const pf = window.pathfora as any;
             if (pf && storedExperiences && storedExperiences.length > 0) {
-              // Clear any existing widgets first
+              // Clear Pathfora impression tracking from localStorage
+              // This allows experiences to re-evaluate on SPA navigation
+              // Note: We keep PathforaClosed_ so dismissed modals stay dismissed
+              const keysToRemove: string[] = [];
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('PathforaImpressions_') || key === 'PathforaPageView')) {
+                  keysToRemove.push(key);
+                }
+              }
+              keysToRemove.forEach(key => {
+                console.log('[LyticsTracker] Clearing localStorage:', key);
+                localStorage.removeItem(key);
+              });
+
+              // Clear any existing widgets from DOM
               if (typeof pf.clearAll === 'function') {
                 console.log('[LyticsTracker] Clearing existing widgets');
                 pf.clearAll();
