@@ -126,7 +126,10 @@ export default function LyticsTracker() {
       // IMPORTANT: After initial page load, Lytics may have updated the user's profile
       // with new audience membership. We need to re-fetch the profile and re-evaluate
       // experiences to show the correct content for newly added audiences.
+      let hasReEvaluated = false;
       const reEvaluateAfterProfileUpdate = () => {
+        if (hasReEvaluated) return; // Only re-evaluate once
+
         const jstag = (window as any).jstag;
         const pf = (window as any).pathfora;
 
@@ -160,6 +163,7 @@ export default function LyticsTracker() {
             console.log('[LyticsTracker] First render: Re-initializing', freshExperiences.length, 'experiences');
             try {
               pf.initializeWidgets(freshExperiences);
+              hasReEvaluated = true; // Mark as done so we don't repeat
               console.log('[LyticsTracker] First render: Experiences re-initialized');
             } catch (e) {
               console.log('[LyticsTracker] First render: initializeWidgets error:', e);
@@ -168,11 +172,12 @@ export default function LyticsTracker() {
         });
       };
 
-      // Wait for Lytics to process the initial page view (typically 2-3 seconds)
-      // then re-evaluate experiences with updated profile
-      setTimeout(reEvaluateAfterProfileUpdate, 3000);
+      // Poll at 1s, 2s, and 3s to catch profile update as soon as it's ready
+      [1000, 2000, 3000].forEach(delay => {
+        setTimeout(reEvaluateAfterProfileUpdate, delay);
+      });
 
-      console.log('[LyticsTracker] First render - will re-evaluate experiences after profile update');
+      console.log('[LyticsTracker] First render - will re-evaluate experiences at 1s, 2s, 3s');
       return;
     }
 
