@@ -32,26 +32,29 @@ export const createFallbackSiteSettings = (): SiteSettings => ({
 });
 
 export class DataService {
-  private useContentstack: boolean;
+  private _useContentstack: boolean | null = null;
+
+  // Lazy check for Contentstack configuration
+  // This is necessary because the singleton may be instantiated during build
+  // when env vars aren't available, but they ARE available at runtime
+  private get useContentstack(): boolean {
+    if (this._useContentstack === null) {
+      this._useContentstack = !!(
+        process.env.CONTENTSTACK_API_KEY &&
+        process.env.CONTENTSTACK_DELIVERY_TOKEN
+      );
+
+      // Only log on server side
+      const isServer = typeof window === 'undefined';
+      if (isServer && process.env.NODE_ENV === 'development') {
+        console.log('DataService: Contentstack', this._useContentstack ? 'enabled' : 'disabled');
+      }
+    }
+    return this._useContentstack;
+  }
 
   constructor() {
-    // Check if Contentstack is configured
-    this.useContentstack = !!(
-      process.env.CONTENTSTACK_API_KEY && 
-      process.env.CONTENTSTACK_DELIVERY_TOKEN
-    );
-    
-    // Only log on server side (client won't have env vars)
-    const isServer = typeof window === 'undefined';
-
-    if (isServer && process.env.NODE_ENV === 'development') {
-      console.log('DataService initialized with Contentstack:', this.useContentstack ? 'enabled' : 'disabled');
-    }
-
-    if (isServer && !this.useContentstack && process.env.NEXT_PHASE !== 'phase-production-build') {
-      // Only warn at runtime, not during build (env vars injected at runtime on Contentstack Launch)
-      console.warn('⚠️ CONTENTSTACK NOT CONFIGURED - Add credentials to .env.local');
-    }
+    // No initialization here - env vars checked lazily via getter
   }
 
   // Products

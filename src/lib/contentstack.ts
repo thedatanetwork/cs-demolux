@@ -2,80 +2,101 @@ import Contentstack from 'contentstack';
 import ContentstackLivePreview from '@contentstack/live-preview-utils';
 import { addEditableTags as addTags } from '@contentstack/utils';
 
-// Contentstack configuration
-const stackConfig = {
-  api_key: process.env.CONTENTSTACK_API_KEY || '',
-  delivery_token: process.env.CONTENTSTACK_DELIVERY_TOKEN || '',
-  preview_token: process.env.CONTENTSTACK_PREVIEW_TOKEN || '',
-  environment: process.env.CONTENTSTACK_ENVIRONMENT || 'dev',
-  region: (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US',
-  live_preview: process.env.CONTENTSTACK_LIVE_PREVIEW === 'true',
-  app_host: process.env.CONTENTSTACK_APP_HOST || 'app.contentstack.com',
-  preview_host: process.env.CONTENTSTACK_PREVIEW_HOST || 'rest-preview.contentstack.com',
-};
+// Lazy initialization for Contentstack
+// This is necessary because the module may be loaded during build when env vars aren't available
+// but they ARE available at runtime (e.g., on Contentstack Launch)
+let _Stack: any = null;
+let _stackConfig: any = null;
+let _initialized = false;
 
-// Initialize Contentstack
-let Stack: any = null;
-
-// Only initialize on server side (env vars not available on client)
-const isServer = typeof window === 'undefined';
-
-if (stackConfig.api_key && stackConfig.delivery_token) {
-  try {
-    if (isServer) {
-      console.log('Contentstack config:', {
-        api_key: stackConfig.api_key ? `${stackConfig.api_key.substring(0, 10)}...` : 'missing',
-        delivery_token: stackConfig.delivery_token ? `${stackConfig.delivery_token.substring(0, 10)}...` : 'missing',
-        preview_token: stackConfig.preview_token ? `${stackConfig.preview_token.substring(0, 10)}...` : 'not set',
-        environment: stackConfig.environment,
-        region: stackConfig.region,
-        live_preview: stackConfig.live_preview
-      });
-    }
-
-    // Initialize Stack with Live Preview support
-    Stack = Contentstack.Stack({
-      api_key: stackConfig.api_key,
-      delivery_token: stackConfig.delivery_token,
-      environment: stackConfig.environment,
-      region: Contentstack.Region[stackConfig.region] || Contentstack.Region.US,
-      live_preview: stackConfig.live_preview && stackConfig.preview_token ? {
-        preview_token: stackConfig.preview_token,
-        enable: true,
-        host: stackConfig.preview_host,  // Use rest-preview.contentstack.com
-      } : undefined
-    });
-
-    if (isServer) {
-      console.log('Contentstack initialized successfully');
-      if (stackConfig.live_preview && stackConfig.preview_token) {
-        console.log('Live Preview enabled');
-      }
-    }
-  } catch (error) {
-    console.error('Failed to initialize Contentstack:', error);
+function getStackConfig() {
+  if (!_stackConfig) {
+    _stackConfig = {
+      api_key: process.env.CONTENTSTACK_API_KEY || '',
+      delivery_token: process.env.CONTENTSTACK_DELIVERY_TOKEN || '',
+      preview_token: process.env.CONTENTSTACK_PREVIEW_TOKEN || '',
+      environment: process.env.CONTENTSTACK_ENVIRONMENT || 'dev',
+      region: (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US',
+      live_preview: process.env.CONTENTSTACK_LIVE_PREVIEW === 'true',
+      app_host: process.env.CONTENTSTACK_APP_HOST || 'app.contentstack.com',
+      preview_host: process.env.CONTENTSTACK_PREVIEW_HOST || 'rest-preview.contentstack.com',
+    };
   }
-} else if (isServer && process.env.NEXT_PHASE !== 'phase-production-build') {
-  // Only warn at runtime, not during build (env vars injected at runtime on Contentstack Launch)
-  console.error('⚠️ CONTENTSTACK NOT CONFIGURED - Add credentials to .env.local file');
-  console.error('Required: CONTENTSTACK_API_KEY, CONTENTSTACK_DELIVERY_TOKEN, CONTENTSTACK_ENVIRONMENT');
+  return _stackConfig;
+}
+
+function initializeStack() {
+  if (_initialized) return _Stack;
+  _initialized = true;
+
+  const stackConfig = getStackConfig();
+  const isServer = typeof window === 'undefined';
+
+  if (stackConfig.api_key && stackConfig.delivery_token) {
+    try {
+      if (isServer) {
+        console.log('Contentstack config:', {
+          api_key: stackConfig.api_key ? `${stackConfig.api_key.substring(0, 10)}...` : 'missing',
+          delivery_token: stackConfig.delivery_token ? `${stackConfig.delivery_token.substring(0, 10)}...` : 'missing',
+          preview_token: stackConfig.preview_token ? `${stackConfig.preview_token.substring(0, 10)}...` : 'not set',
+          environment: stackConfig.environment,
+          region: stackConfig.region,
+          live_preview: stackConfig.live_preview
+        });
+      }
+
+      // Initialize Stack with Live Preview support
+      _Stack = Contentstack.Stack({
+        api_key: stackConfig.api_key,
+        delivery_token: stackConfig.delivery_token,
+        environment: stackConfig.environment,
+        region: Contentstack.Region[stackConfig.region as keyof typeof Contentstack.Region] || Contentstack.Region.US,
+        live_preview: stackConfig.live_preview && stackConfig.preview_token ? {
+          preview_token: stackConfig.preview_token,
+          enable: true,
+          host: stackConfig.preview_host,
+        } : undefined
+      });
+
+      if (isServer) {
+        console.log('Contentstack initialized successfully');
+        if (stackConfig.live_preview && stackConfig.preview_token) {
+          console.log('Live Preview enabled');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize Contentstack:', error);
+    }
+  } else if (isServer) {
+    console.warn('Contentstack not configured - credentials will be checked at runtime');
+  }
+
+  return _Stack;
+}
+
+// Lazy getter for Stack
+function getStack() {
+  return initializeStack();
 }
 
 // Export Live Preview utilities
 export { ContentstackLivePreview };
 
-// Export Stack for Live Preview SDK initialization
-export { Stack };
+// Export Stack getter for lazy initialization
+export { getStack, getStack as Stack };
 
-// Export stack config for live preview initialization
-export const getStackConfig = () => ({
-  api_key: stackConfig.api_key,
-  environment: stackConfig.environment,
-  preview_token: stackConfig.preview_token,
-  live_preview: stackConfig.live_preview,
-  app_host: stackConfig.app_host,
-  preview_host: stackConfig.preview_host,
-});
+// Export stack config getter for live preview initialization
+export function getStackConfigForPreview() {
+  const config = getStackConfig();
+  return {
+    api_key: config.api_key,
+    environment: config.environment,
+    preview_token: config.preview_token,
+    live_preview: config.live_preview,
+    app_host: config.app_host,
+    preview_host: config.preview_host,
+  };
+}
 
 /**
  * Add editable tags to entry for Visual Builder field-level editing
@@ -93,7 +114,7 @@ export function addEditableTags<T>(
   contentTypeUid: string,
   locale: string = 'en-us'
 ): T {
-  if (!entry || !stackConfig.live_preview) {
+  if (!entry || !getStackConfig().live_preview) {
     return entry;
   }
 
@@ -729,7 +750,7 @@ export class ContentstackService {
   private stack: any;
 
   constructor() {
-    this.stack = Stack;
+    this.stack = getStack();
   }
 
   private isConfigured(): boolean {
