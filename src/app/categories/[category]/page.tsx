@@ -6,6 +6,9 @@ import { SectionRenderer } from '@/components/blocks';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 
+// Force dynamic rendering - Contentstack credentials not available at build time
+export const dynamic = 'force-dynamic';
+
 interface CategoryPageProps {
   params: {
     category: string;
@@ -25,13 +28,6 @@ const categoryMetadata = {
     breadcrumb: 'Technofurniture'
   }
 };
-
-export async function generateStaticParams() {
-  return [
-    { category: 'wearable-tech' },
-    { category: 'technofurniture' }
-  ];
-}
 
 export async function generateMetadata({ params }: CategoryPageProps) {
   const variantAliases = await getVariantAliasesFromCookies();

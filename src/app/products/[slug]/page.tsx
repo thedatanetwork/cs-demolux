@@ -11,6 +11,9 @@ import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import { formatPrice } from '@/lib/utils';
 import { Star, Truck, Shield, RotateCcw } from 'lucide-react';
 
+// Force dynamic rendering - Contentstack credentials not available at build time
+export const dynamic = 'force-dynamic';
+
 interface ProductPageProps {
   params: {
     slug: string;

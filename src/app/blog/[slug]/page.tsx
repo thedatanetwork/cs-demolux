@@ -10,6 +10,9 @@ import { Calendar, User, ArrowLeft, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { jsonToHTML } from '@contentstack/utils';
 
+// Force dynamic rendering - Contentstack credentials not available at build time
+export const dynamic = 'force-dynamic';
+
 interface BlogPostPageProps {
   params: {
     slug: string;

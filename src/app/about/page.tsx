@@ -4,6 +4,9 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { dataService } from '@/lib/data-service';
 
+// Force dynamic rendering - Contentstack credentials not available at build time
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const page = await dataService.getPage('about');
   

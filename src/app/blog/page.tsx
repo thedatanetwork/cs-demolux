@@ -4,6 +4,9 @@ import { SectionRenderer } from '@/components/blocks';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 
+// Force dynamic rendering - Contentstack credentials not available at build time
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Blog | Demolux',
   description: 'Stay informed about the latest trends, innovations, and insights in wearable technologies and technofurniture.',

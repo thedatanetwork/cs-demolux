@@ -5,6 +5,9 @@ import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import { Metadata } from 'next';
 
+// Force dynamic rendering - Contentstack credentials not available at build time
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'All Products | Demolux',
   description: 'Explore our complete collection of luxury wearable technology and technofurniture. Discover innovation, design, and craftsmanship in every piece.',

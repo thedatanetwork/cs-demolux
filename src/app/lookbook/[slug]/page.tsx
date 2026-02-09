@@ -7,6 +7,9 @@ import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import Image from 'next/image';
 
+// Force dynamic rendering - Contentstack credentials not available at build time
+export const dynamic = 'force-dynamic';
+
 interface LookbookPageProps {
   params: {
     slug: string;
