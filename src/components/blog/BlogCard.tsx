@@ -50,7 +50,7 @@ export function BlogCard({ post, className = '' }: BlogCardProps) {
         </div>
 
         {/* Title */}
-        <Link href={post.url.href} className="group">
+        <Link href={post.url} className="group">
           <h3 className="font-heading text-xl font-semibold text-gray-900 group-hover:text-gray-700 transition-colors duration-200 line-clamp-2 mb-3">
             {post.title}
           </h3>
@@ -79,7 +79,7 @@ export function BlogCard({ post, className = '' }: BlogCardProps) {
 
         {/* Read More Link */}
         <Link
-          href={post.url.href}
+          href={post.url}
           className="inline-flex items-center text-gray-900 hover:text-gray-700 font-medium text-sm group transition-colors duration-200"
         >
           Read More
