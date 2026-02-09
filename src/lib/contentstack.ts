@@ -6,32 +6,29 @@ import { addEditableTags as addTags } from '@contentstack/utils';
 // This is necessary because the module may be loaded during build when env vars aren't available
 // but they ARE available at runtime (e.g., on Contentstack Launch)
 let _Stack: any = null;
-let _stackConfig: any = null;
-let _initialized = false;
 
+// Get fresh config on each call - don't cache, as env vars may become available at runtime
 function getStackConfig() {
-  if (!_stackConfig) {
-    _stackConfig = {
-      api_key: process.env.CONTENTSTACK_API_KEY || '',
-      delivery_token: process.env.CONTENTSTACK_DELIVERY_TOKEN || '',
-      preview_token: process.env.CONTENTSTACK_PREVIEW_TOKEN || '',
-      environment: process.env.CONTENTSTACK_ENVIRONMENT || 'dev',
-      region: (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US',
-      live_preview: process.env.CONTENTSTACK_LIVE_PREVIEW === 'true',
-      app_host: process.env.CONTENTSTACK_APP_HOST || 'app.contentstack.com',
-      preview_host: process.env.CONTENTSTACK_PREVIEW_HOST || 'rest-preview.contentstack.com',
-    };
-  }
-  return _stackConfig;
+  return {
+    api_key: process.env.CONTENTSTACK_API_KEY || '',
+    delivery_token: process.env.CONTENTSTACK_DELIVERY_TOKEN || '',
+    preview_token: process.env.CONTENTSTACK_PREVIEW_TOKEN || '',
+    environment: process.env.CONTENTSTACK_ENVIRONMENT || 'dev',
+    region: (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US',
+    live_preview: process.env.CONTENTSTACK_LIVE_PREVIEW === 'true',
+    app_host: process.env.CONTENTSTACK_APP_HOST || 'app.contentstack.com',
+    preview_host: process.env.CONTENTSTACK_PREVIEW_HOST || 'rest-preview.contentstack.com',
+  };
 }
 
 function initializeStack() {
-  if (_initialized) return _Stack;
-  _initialized = true;
+  // If already initialized successfully, return cached Stack
+  if (_Stack) return _Stack;
 
   const stackConfig = getStackConfig();
   const isServer = typeof window === 'undefined';
 
+  // Only initialize if credentials are available
   if (stackConfig.api_key && stackConfig.delivery_token) {
     try {
       if (isServer) {

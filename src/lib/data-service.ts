@@ -34,23 +34,28 @@ export const createFallbackSiteSettings = (): SiteSettings => ({
 export class DataService {
   private _useContentstack: boolean | null = null;
 
-  // Lazy check for Contentstack configuration
-  // This is necessary because the singleton may be instantiated during build
-  // when env vars aren't available, but they ARE available at runtime
+  // Check Contentstack configuration on each access
+  // Don't cache failure state - env vars may become available at runtime (Contentstack Launch)
   private get useContentstack(): boolean {
-    if (this._useContentstack === null) {
-      this._useContentstack = !!(
-        process.env.CONTENTSTACK_API_KEY &&
-        process.env.CONTENTSTACK_DELIVERY_TOKEN
-      );
+    // Only cache if we found credentials - don't cache 'false' as env vars may appear later
+    if (this._useContentstack === true) {
+      return true;
+    }
 
-      // Only log on server side
+    const hasCredentials = !!(
+      process.env.CONTENTSTACK_API_KEY &&
+      process.env.CONTENTSTACK_DELIVERY_TOKEN
+    );
+
+    if (hasCredentials) {
+      this._useContentstack = true;
       const isServer = typeof window === 'undefined';
       if (isServer && process.env.NODE_ENV === 'development') {
-        console.log('DataService: Contentstack', this._useContentstack ? 'enabled' : 'disabled');
+        console.log('DataService: Contentstack enabled');
       }
     }
-    return this._useContentstack;
+
+    return hasCredentials;
   }
 
   constructor() {
