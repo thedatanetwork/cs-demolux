@@ -9,6 +9,9 @@ import { ContentstackLivePreviewProvider } from '@/components/ContentstackLivePr
 import LyticsTracker from '@/components/LyticsTracker'
 import PathforaStyleFix from '@/components/PathforaStyleFix'
 
+// Force dynamic rendering for all pages - Contentstack credentials not available at build time
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ 
   subsets: ['latin'], 
