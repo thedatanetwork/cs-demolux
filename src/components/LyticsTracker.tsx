@@ -123,7 +123,56 @@ export default function LyticsTracker() {
         setTimeout(captureExperiences, delay);
       });
 
-      console.log('[LyticsTracker] Skipping first render, letting Lytics handle initial load');
+      // IMPORTANT: After initial page load, Lytics may have updated the user's profile
+      // with new audience membership. We need to re-fetch the profile and re-evaluate
+      // experiences to show the correct content for newly added audiences.
+      const reEvaluateAfterProfileUpdate = () => {
+        const jstag = (window as any).jstag;
+        const pf = (window as any).pathfora;
+
+        if (!jstag || !pf) {
+          console.log('[LyticsTracker] First render re-evaluation: jstag or pathfora not ready');
+          return;
+        }
+
+        console.log('[LyticsTracker] First render: Re-fetching profile after initial page view processing');
+
+        // Call loadEntity to get the updated profile (with new audience memberships)
+        jstag.loadEntity((profile: any) => {
+          console.log('[LyticsTracker] First render: Profile re-fetched', {
+            hasProfile: !!profile,
+            segments: profile?.segments || [],
+          });
+
+          // Get fresh experiences from the updated config
+          const freshExperiences = jstag?.config?.pathfora?.publish?.candidates?.experiences;
+
+          if (freshExperiences && freshExperiences.length > 0) {
+            // Update stored experiences
+            storedExperiences = JSON.parse(JSON.stringify(freshExperiences));
+
+            // Clear existing widgets
+            if (typeof pf.clearAll === 'function') {
+              pf.clearAll();
+            }
+
+            // Re-initialize with fresh experiences
+            console.log('[LyticsTracker] First render: Re-initializing', freshExperiences.length, 'experiences');
+            try {
+              pf.initializeWidgets(freshExperiences);
+              console.log('[LyticsTracker] First render: Experiences re-initialized');
+            } catch (e) {
+              console.log('[LyticsTracker] First render: initializeWidgets error:', e);
+            }
+          }
+        });
+      };
+
+      // Wait for Lytics to process the initial page view (typically 2-3 seconds)
+      // then re-evaluate experiences with updated profile
+      setTimeout(reEvaluateAfterProfileUpdate, 3000);
+
+      console.log('[LyticsTracker] First render - will re-evaluate experiences after profile update');
       return;
     }
 
