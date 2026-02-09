@@ -34,7 +34,7 @@ function initializeLivePreviewSDK() {
   }
 
   try {
-    // Create client-side Stack for Live Preview SDK
+    // Create client-side Stack with live_preview config (matching panda-financial pattern)
     clientStack = Contentstack.Stack({
       api_key: livePreviewConfig.api_key,
       delivery_token: livePreviewConfig.delivery_token,
@@ -44,11 +44,10 @@ function initializeLivePreviewSDK() {
         preview_token: livePreviewConfig.preview_token,
         host: livePreviewConfig.preview_host,
       },
-    });
+    } as any);
 
-    // Initialize Live Preview SDK
+    // Initialize Live Preview SDK with Stack SDK (matching panda-financial pattern)
     ContentstackLivePreview.init({
-      enable: true,
       stackSdk: clientStack,
       stackDetails: {
         apiKey: livePreviewConfig.api_key,
@@ -59,7 +58,8 @@ function initializeLivePreviewSDK() {
         host: livePreviewConfig.app_host,
         port: 443,
       },
-      ssr: true,  // Enable SSR mode for Next.js
+      ssr: false,
+      mode: 'builder',  // Enable Visual Builder mode
       editButton: {
         enable: true,
       },
@@ -67,12 +67,11 @@ function initializeLivePreviewSDK() {
 
     // Expose SDK globally for Visual Builder communication
     (window as any).ContentstackLivePreview = ContentstackLivePreview;
-    (window as any).contentstackSdk = clientStack;
 
     sdkInitialized = true;
-    console.log('Contentstack Live Preview initialized with Visual Builder mode');
-    console.log(`  Preview host: ${livePreviewConfig.preview_host}`);
+    console.log('Contentstack Live Preview initialized (Visual Builder mode)');
     console.log(`  App host: ${livePreviewConfig.app_host}`);
+    console.log(`  Preview host: ${livePreviewConfig.preview_host}`);
   } catch (error) {
     console.error('Failed to initialize Contentstack Live Preview:', error);
   }
