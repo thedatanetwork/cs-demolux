@@ -59,8 +59,7 @@ function initializeLivePreviewSDK() {
         host: livePreviewConfig.app_host,
         port: 443,
       },
-      ssr: false,  // Use client-mode for Visual Builder communication
-      mode: 'builder',
+      ssr: true,  // Enable SSR mode for Next.js
       editButton: {
         enable: true,
       },
