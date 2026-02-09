@@ -6,6 +6,7 @@ import * as LucideIcons from 'lucide-react';
 
 interface ProductBlock {
   [key: string]: any;
+  $?: Record<string, any>;  // Editable tags from addEditableTags() for Visual Builder
 }
 
 interface ProductBlockRendererProps {
@@ -57,22 +58,24 @@ export function ProductBlockRenderer({ blocks }: ProductBlockRendererProps) {
 // Product Highlights Block
 function ProductHighlights({ data }: { data: any }) {
   if (!data?.highlights || data.highlights.length === 0) return null;
+  const $ = data.$ || {};
 
   return (
     <div className="py-12">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {data.highlights.map((highlight: any, i: number) => {
           const IconComponent = (LucideIcons as any)[highlight.icon] || LucideIcons.Star;
+          const highlight$ = highlight.$ || {};
           return (
             <div key={i} className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gold-100 rounded-full mb-4">
                 <IconComponent className="h-8 w-8 text-gold-600" />
               </div>
-              <h3 className="font-heading text-lg font-bold text-gray-900 mb-2">
+              <h3 {...highlight$?.title} className="font-heading text-lg font-bold text-gray-900 mb-2">
                 {highlight.title}
               </h3>
               {highlight.description && (
-                <p className="text-sm text-gray-600">{highlight.description}</p>
+                <p {...highlight$?.description} className="text-sm text-gray-600">{highlight.description}</p>
               )}
             </div>
           );
@@ -85,11 +88,12 @@ function ProductHighlights({ data }: { data: any }) {
 // Technical Specifications Block
 function TechSpecs({ data }: { data: any }) {
   if (!data?.specs || data.specs.length === 0) return null;
+  const $ = data.$ || {};
 
   return (
     <div className="py-12">
       {data.section_title && (
-        <h2 className="font-heading text-2xl font-bold text-gray-900 mb-6">
+        <h2 {...$?.section_title} className="font-heading text-2xl font-bold text-gray-900 mb-6">
           {data.section_title}
         </h2>
       )}
@@ -111,6 +115,7 @@ function TechSpecs({ data }: { data: any }) {
 // Materials & Craftsmanship Block
 function MaterialsCraftsmanship({ data }: { data: any }) {
   if (!data?.description) return null;
+  const $ = data.$ || {};
 
   const image = Array.isArray(data.image) ? data.image[0] : data.image;
 
@@ -119,11 +124,12 @@ function MaterialsCraftsmanship({ data }: { data: any }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
         <div>
           {data.title && (
-            <h2 className="font-heading text-2xl font-bold text-gray-900 mb-4">
+            <h2 {...$?.title} className="font-heading text-2xl font-bold text-gray-900 mb-4">
               {data.title}
             </h2>
           )}
           <div
+            {...$?.description}
             className="prose max-w-none text-gray-700 mb-6"
             dangerouslySetInnerHTML={{ __html: data.description }}
           />
@@ -161,18 +167,20 @@ function MaterialsCraftsmanship({ data }: { data: any }) {
 // What's Included Block
 function WhatsIncluded({ data }: { data: any }) {
   if (!data?.items) return null;
+  const $ = data.$ || {};
 
   const image = Array.isArray(data.image) ? data.image[0] : data.image;
 
   return (
     <div className="py-12">
       {data.title && (
-        <h2 className="font-heading text-2xl font-bold text-gray-900 mb-6">
+        <h2 {...$?.title} className="font-heading text-2xl font-bold text-gray-900 mb-6">
           {data.title}
         </h2>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div
+          {...$?.items}
           className="prose max-w-none"
           dangerouslySetInnerHTML={{ __html: data.items }}
         />
@@ -194,13 +202,14 @@ function WhatsIncluded({ data }: { data: any }) {
 // Video Showcase Block
 function VideoShowcase({ data }: { data: any }) {
   if (!data?.video_url) return null;
+  const $ = data.$ || {};
 
   const thumbnail = Array.isArray(data.thumbnail) ? data.thumbnail[0] : data.thumbnail;
 
   return (
     <div className="py-12">
       {data.title && (
-        <h2 className="font-heading text-2xl font-bold text-gray-900 mb-6">
+        <h2 {...$?.title} className="font-heading text-2xl font-bold text-gray-900 mb-6">
           {data.title}
         </h2>
       )}
@@ -217,7 +226,7 @@ function VideoShowcase({ data }: { data: any }) {
         </div>
       </div>
       {data.caption && (
-        <p className="text-gray-600 mt-3 text-sm">{data.caption}</p>
+        <p {...$?.caption} className="text-gray-600 mt-3 text-sm">{data.caption}</p>
       )}
     </div>
   );
@@ -226,13 +235,14 @@ function VideoShowcase({ data }: { data: any }) {
 // Image Gallery Block
 function ImageGallery({ data }: { data: any }) {
   if (!data?.images || data.images.length === 0) return null;
+  const $ = data.$ || {};
 
   const layout = data.layout || 'grid';
 
   return (
     <div className="py-12">
       {data.title && (
-        <h2 className="font-heading text-2xl font-bold text-gray-900 mb-6">
+        <h2 {...$?.title} className="font-heading text-2xl font-bold text-gray-900 mb-6">
           {data.title}
         </h2>
       )}
@@ -261,13 +271,14 @@ function ImageGallery({ data }: { data: any }) {
 // Size & Fit Guide Block
 function SizeFitGuide({ data }: { data: any }) {
   if (!data?.dimensions || data.dimensions.length === 0) return null;
+  const $ = data.$ || {};
 
   const sizeChart = Array.isArray(data.size_chart) ? data.size_chart[0] : data.size_chart;
 
   return (
     <div className="py-12">
       {data.title && (
-        <h2 className="font-heading text-2xl font-bold text-gray-900 mb-6">
+        <h2 {...$?.title} className="font-heading text-2xl font-bold text-gray-900 mb-6">
           {data.title}
         </h2>
       )}
@@ -296,15 +307,17 @@ function SizeFitGuide({ data }: { data: any }) {
 // Care & Maintenance Block
 function CareMaintenance({ data }: { data: any }) {
   if (!data?.instructions) return null;
+  const $ = data.$ || {};
 
   return (
     <div className="py-12">
       {data.title && (
-        <h2 className="font-heading text-2xl font-bold text-gray-900 mb-6">
+        <h2 {...$?.title} className="font-heading text-2xl font-bold text-gray-900 mb-6">
           {data.title}
         </h2>
       )}
       <div
+        {...$?.instructions}
         className="prose max-w-none mb-6"
         dangerouslySetInnerHTML={{ __html: data.instructions }}
       />
@@ -325,15 +338,17 @@ function CareMaintenance({ data }: { data: any }) {
 // Sustainability Block
 function Sustainability({ data }: { data: any }) {
   if (!data?.story) return null;
+  const $ = data.$ || {};
 
   return (
     <div className="py-12">
       {data.title && (
-        <h2 className="font-heading text-2xl font-bold text-gray-900 mb-6">
+        <h2 {...$?.title} className="font-heading text-2xl font-bold text-gray-900 mb-6">
           {data.title}
         </h2>
       )}
       <div
+        {...$?.story}
         className="prose max-w-none text-gray-700 mb-6"
         dangerouslySetInnerHTML={{ __html: data.story }}
       />
@@ -366,11 +381,12 @@ function Sustainability({ data }: { data: any }) {
 // Awards & Recognition Block
 function AwardsRecognition({ data }: { data: any }) {
   if (!data?.awards || data.awards.length === 0) return null;
+  const $ = data.$ || {};
 
   return (
     <div className="py-12">
       {data.title && (
-        <h2 className="font-heading text-2xl font-bold text-gray-900 mb-6">
+        <h2 {...$?.title} className="font-heading text-2xl font-bold text-gray-900 mb-6">
           {data.title}
         </h2>
       )}

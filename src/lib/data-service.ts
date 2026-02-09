@@ -58,21 +58,32 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getProducts(category, variantAliases);
+    const products = await contentstack.getProducts(category, variantAliases);
+    // Add editable tags for Visual Builder
+    products.forEach(product => addEditableTags(product, 'product'));
+    return products;
   }
 
   async getProduct(uid: string, variantAliases?: string[]): Promise<Product | null> {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getProduct(uid, variantAliases);
+    const entry = await contentstack.getProduct(uid, variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'product');
+    }
+    return entry;
   }
 
   async getProductBySlug(slug: string, variantAliases?: string[]): Promise<Product | null> {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getProductBySlug(slug, variantAliases);
+    const entry = await contentstack.getProductBySlug(slug, variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'product');
+    }
+    return entry;
   }
 
   // Blog posts
