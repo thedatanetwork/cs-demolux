@@ -50,8 +50,10 @@ function initializeLivePreviewSDK() {
       },
     } as any);
 
-    // Initialize Live Preview SDK with Stack SDK (matching panda-financial pattern)
+    // Initialize Live Preview SDK (following official Next.js SSR App Router docs)
     ContentstackLivePreview.init({
+      enable: true,
+      ssr: true,  // SSR mode for Next.js App Router
       stackSdk: clientStack,
       stackDetails: {
         apiKey: livePreviewConfig.api_key,
@@ -63,7 +65,6 @@ function initializeLivePreviewSDK() {
         host: livePreviewConfig.app_host,
         port: 443,
       },
-      ssr: false,
       mode: 'builder',  // Enable Visual Builder mode
       editButton: {
         enable: true,
