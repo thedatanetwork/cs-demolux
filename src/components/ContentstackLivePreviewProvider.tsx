@@ -56,6 +56,7 @@ function initializeLivePreviewSDK() {
       stackDetails: {
         apiKey: livePreviewConfig.api_key,
         environment: livePreviewConfig.environment,
+        branch: 'main',
       },
       clientUrlParams: {
         protocol: 'https',
