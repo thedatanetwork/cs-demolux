@@ -10,6 +10,39 @@ const isGTMEnabled = !!process.env.NEXT_PUBLIC_GTM_CONTAINER_ID;
 // Store Pathfora experiences globally so they survive SPA navigation
 let storedExperiences: any[] | null = null;
 
+// Session storage key for opt-in state
+const LYTICS_OPTIN_KEY = 'lytics_opted_in';
+
+/**
+ * Check if we've already opted in this session
+ */
+function hasOptedInThisSession(): boolean {
+  if (typeof window === 'undefined') return false;
+  return sessionStorage.getItem(LYTICS_OPTIN_KEY) === 'true';
+}
+
+/**
+ * Ensure user is opted in to Lytics tracking (once per session)
+ * Returns true if already opted in or successfully opted in now
+ */
+function ensureLyticsOptIn(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  // Skip if already opted in this session
+  if (hasOptedInThisSession()) {
+    return true;
+  }
+
+  const jstag = (window as any).jstag;
+  if (jstag?.optIn) {
+    jstag.optIn();
+    sessionStorage.setItem(LYTICS_OPTIN_KEY, 'true');
+    console.log('[LyticsTracker] Called jstag.optIn() - user is now opted in for this session');
+    return true;
+  }
+  return false;
+}
+
 /**
  * Lytics tracking component for Single Page App (SPA) route changes
  *
@@ -25,6 +58,34 @@ export default function LyticsTracker() {
   const searchParams = useSearchParams();
   const isFirstRender = useRef(true);
 
+  // Opt-in once per session when component mounts
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // If already opted in this session, skip
+    if (hasOptedInThisSession()) {
+      console.log('[LyticsTracker] Already opted in this session');
+      return;
+    }
+
+    // Try to opt-in immediately, then retry until successful
+    if (!ensureLyticsOptIn()) {
+      // Lytics not loaded yet, retry at intervals
+      const optInIntervals = [100, 250, 500, 1000, 2000, 3000];
+      const timers: ReturnType<typeof setTimeout>[] = [];
+
+      optInIntervals.forEach(delay => {
+        timers.push(setTimeout(() => {
+          if (!hasOptedInThisSession()) {
+            ensureLyticsOptIn();
+          }
+        }, delay));
+      });
+
+      return () => timers.forEach(clearTimeout);
+    }
+  }, []); // Run once on mount
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -37,12 +98,9 @@ export default function LyticsTracker() {
 
       // Try capturing at multiple intervals since Lytics load time varies
       const captureExperiences = () => {
-        // Auto opt-in to Lytics tracking (consent is opt-out by default in Launch)
-        // We check this every interval because jstag.optIn may not exist until Lytics fully loads
-        if ((window as any).jstag?.optIn) {
-          console.log('[LyticsTracker] Calling jstag.optIn()');
-          (window as any).jstag.optIn();
-        }
+        // Ensure opt-in before checking experiences
+        ensureLyticsOptIn();
+
         const config = (window as any).jstag?.config;
         const experiences = config?.pathfora?.publish?.candidates?.experiences;
 
@@ -51,6 +109,7 @@ export default function LyticsTracker() {
           hasConfig: !!config,
           hasPathfora: !!config?.pathfora,
           experiencesLength: experiences?.length || 0,
+          isOptedIn: hasOptedInThisSession(),
         });
 
         if (experiences && experiences.length > 0 && !storedExperiences) {
