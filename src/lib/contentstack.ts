@@ -55,8 +55,8 @@ if (stackConfig.api_key && stackConfig.delivery_token) {
   } catch (error) {
     console.error('Failed to initialize Contentstack:', error);
   }
-} else if (isServer) {
-  // Only warn on server - client-side won't have env vars and that's expected
+} else if (isServer && process.env.NEXT_PHASE !== 'phase-production-build') {
+  // Only warn at runtime, not during build (env vars injected at runtime on Contentstack Launch)
   console.error('⚠️ CONTENTSTACK NOT CONFIGURED - Add credentials to .env.local file');
   console.error('Required: CONTENTSTACK_API_KEY, CONTENTSTACK_DELIVERY_TOKEN, CONTENTSTACK_ENVIRONMENT');
 }

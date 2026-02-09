@@ -48,7 +48,8 @@ export class DataService {
       console.log('DataService initialized with Contentstack:', this.useContentstack ? 'enabled' : 'disabled');
     }
 
-    if (isServer && !this.useContentstack) {
+    if (isServer && !this.useContentstack && process.env.NEXT_PHASE !== 'phase-production-build') {
+      // Only warn at runtime, not during build (env vars injected at runtime on Contentstack Launch)
       console.warn('⚠️ CONTENTSTACK NOT CONFIGURED - Add credentials to .env.local');
     }
   }
