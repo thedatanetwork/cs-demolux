@@ -17,6 +17,8 @@ const livePreviewConfig = {
   preview_token: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN || '',
   app_host: process.env.NEXT_PUBLIC_CONTENTSTACK_APP_HOST || 'app.contentstack.com',
   preview_host: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_HOST || 'rest-preview.contentstack.com',
+  api_host: process.env.NEXT_PUBLIC_CONTENTSTACK_API_HOST || 'cdn.contentstack.io',
+  region: process.env.NEXT_PUBLIC_CONTENTSTACK_REGION || 'US',
   live_preview: process.env.NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW === 'true',
 };
 
@@ -39,6 +41,8 @@ function initializeLivePreviewSDK() {
       api_key: livePreviewConfig.api_key,
       delivery_token: livePreviewConfig.delivery_token,
       environment: livePreviewConfig.environment,
+      region: (Contentstack.Region as any)[livePreviewConfig.region] || Contentstack.Region.US,
+      host: livePreviewConfig.api_host,
       live_preview: {
         enable: true,
         preview_token: livePreviewConfig.preview_token,
@@ -70,8 +74,13 @@ function initializeLivePreviewSDK() {
 
     sdkInitialized = true;
     console.log('Contentstack Live Preview initialized (Visual Builder mode)');
+    console.log(`  API Key: ${livePreviewConfig.api_key ? livePreviewConfig.api_key.substring(0, 8) + '...' : 'MISSING'}`);
+    console.log(`  Preview Token: ${livePreviewConfig.preview_token ? livePreviewConfig.preview_token.substring(0, 8) + '...' : 'MISSING'}`);
+    console.log(`  Environment: ${livePreviewConfig.environment}`);
+    console.log(`  Region: ${livePreviewConfig.region}`);
     console.log(`  App host: ${livePreviewConfig.app_host}`);
     console.log(`  Preview host: ${livePreviewConfig.preview_host}`);
+    console.log(`  API host: ${livePreviewConfig.api_host}`);
   } catch (error) {
     console.error('Failed to initialize Contentstack Live Preview:', error);
   }

@@ -18,7 +18,7 @@
     "@contentstack/personalize-edge-sdk": "^1.0.18",
     "axios": "^1.6.2",
     "clsx": "^2.0.0",
-    "contentstack": "^3.20.1",
+    "contentstack": "^3.26.4",
     "lucide-react": "^0.294.0",
     "next": "^14.0.3",
     "react": "^18.2.0",
