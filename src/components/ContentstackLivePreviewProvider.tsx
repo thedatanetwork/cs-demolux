@@ -50,42 +50,31 @@ function initializeLivePreviewSDK() {
       },
     } as any);
 
-    // Initialize Live Preview SDK (following official Next.js SSR App Router docs)
-    // For NA region, host must be rest-preview.contentstack.com per:
-    // https://www.contentstack.com/docs/developers/set-up-live-preview/set-up-live-edit-tags-for-entries-with-rest
+    // Initialize Live Preview SDK for Visual Builder
+    // CRITICAL: Pass clientStack.config (not clientStack) per official Contentstack docs
+    // https://www.contentstack.com/docs/developers/set-up-visual-builder/set-up-visual-builder-for-your-website
     ContentstackLivePreview.init({
       enable: true,
-      debug: true,  // Enable debug logging
-      ssr: false,  // Visual Builder requires ssr: false for proper post-message communication
-      stackSdk: clientStack,
+      ssr: false,  // MUST be false for Visual Builder post-message communication
+      mode: 'builder',
+      stackSdk: (clientStack as any).config,  // Pass .config, not the full stack object
       stackDetails: {
         apiKey: livePreviewConfig.api_key,
         environment: livePreviewConfig.environment,
-        branch: 'main',
       },
       clientUrlParams: {
         protocol: 'https',
         host: livePreviewConfig.app_host,
         port: 443,
       },
-      mode: 'builder',  // Enable Visual Builder mode
       editButton: {
         enable: true,
+        exclude: ['outsideLivePreviewPortal'],  // Only show inside Visual Builder
       },
     });
 
-    // Expose SDK globally for Visual Builder communication
-    (window as any).ContentstackLivePreview = ContentstackLivePreview;
-
     sdkInitialized = true;
     console.log('Contentstack Live Preview initialized (Visual Builder mode)');
-    console.log(`  API Key: ${livePreviewConfig.api_key ? livePreviewConfig.api_key.substring(0, 8) + '...' : 'MISSING'}`);
-    console.log(`  Preview Token: ${livePreviewConfig.preview_token ? livePreviewConfig.preview_token.substring(0, 8) + '...' : 'MISSING'}`);
-    console.log(`  Environment: ${livePreviewConfig.environment}`);
-    console.log(`  Region: ${livePreviewConfig.region}`);
-    console.log(`  App host: ${livePreviewConfig.app_host}`);
-    console.log(`  Preview host: ${livePreviewConfig.preview_host}`);
-    console.log(`  API host: ${livePreviewConfig.api_host}`);
   } catch (error) {
     console.error('Failed to initialize Contentstack Live Preview:', error);
   }
