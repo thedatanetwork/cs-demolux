@@ -51,8 +51,11 @@ function initializeLivePreviewSDK() {
     } as any);
 
     // Initialize Live Preview SDK (following official Next.js SSR App Router docs)
+    // For NA region, host must be rest-preview.contentstack.com per:
+    // https://www.contentstack.com/docs/developers/set-up-live-preview/set-up-live-edit-tags-for-entries-with-rest
     ContentstackLivePreview.init({
       enable: true,
+      debug: true,  // Enable debug logging
       ssr: true,  // SSR mode for Next.js App Router
       stackSdk: clientStack,
       stackDetails: {
