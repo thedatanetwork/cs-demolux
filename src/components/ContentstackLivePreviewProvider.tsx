@@ -56,7 +56,7 @@ function initializeLivePreviewSDK() {
     ContentstackLivePreview.init({
       enable: true,
       debug: true,  // Enable debug logging
-      ssr: true,  // SSR mode for Next.js App Router
+      ssr: false,  // Visual Builder requires ssr: false for proper post-message communication
       stackSdk: clientStack,
       stackDetails: {
         apiKey: livePreviewConfig.api_key,
