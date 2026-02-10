@@ -39,7 +39,9 @@
     "convert-to-modular-blocks": "node convert-to-modular-blocks.js",
     "seed-modular-homepage": "node seed-modular-homepage.js",
     "migrate-blog-to-json-rte": "node migrate-blog-to-json-rte.js",
-    "create-modular-category-page": "node create-modular-category-page.js"
+    "create-modular-category-page": "node create-modular-category-page.js",
+    "fix-blog-page": "node fix-blog-page.js",
+    "migrate-to-url-fields": "node migrate-to-url-fields.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/contexts/CartContext';
 import type { Product } from '@/lib/contentstack';
+import { getUrlHref } from '@/lib/contentstack';
 import { ShoppingCart, Heart, Share2, Check } from 'lucide-react';
 import { useProductTracking } from '@/components/PersonalizeEventTracker';
 import { ShareModal } from './ShareModal';
@@ -188,7 +189,7 @@ export function ProductActions({ product }: ProductActionsProps) {
         isOpen={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
         productTitle={product.title}
-        productUrl={product.url}
+        productUrl={getUrlHref(product.url)}
         onShare={handleShare}
       />
     </div>

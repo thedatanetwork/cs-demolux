@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Product } from '@/lib/contentstack';
+import { getUrlHref } from '@/lib/contentstack';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/contexts/CartContext';
@@ -21,6 +22,9 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Get the product URL (handles both string and object formats)
+  const productUrl = getUrlHref(product.url);
 
   // Combine featured_image and additional_images into a single array
   const featuredImages = Array.isArray(product.featured_image)
@@ -185,7 +189,7 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
       {/* Product Info */}
       <div className="p-6">
         <div className="mb-4">
-          <Link href={product.url} className="group">
+          <Link href={productUrl} className="group">
             <h3 className="font-heading text-xl font-semibold text-gray-900 group-hover:text-gray-700 transition-colors duration-200 line-clamp-2">
               {product.title}
             </h3>
@@ -236,7 +240,7 @@ export function ProductCard({ product, className = '' }: ProductCardProps) {
             )}
           </Button>
 
-          <Link href={product.url} className="w-full">
+          <Link href={productUrl} className="w-full">
             <Button variant="outline" className="w-full">
               View Details
             </Button>

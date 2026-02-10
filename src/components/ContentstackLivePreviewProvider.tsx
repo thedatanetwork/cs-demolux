@@ -115,7 +115,7 @@ function initializeLivePreviewSDK() {
 
 /**
  * Replay early postMessages that were caught by the pre-hydration ACK script.
- * The inline <script> in layout.tsx's <head> catches contentstack-adv-post-message
+ * The beforeInteractive script in layout.tsx catches contentstack-adv-post-message
  * REQUESTs before the SDK is ready, sends ACKs immediately (preventing timeout),
  * and stores the messages in window.__csEarlyMessages. Once the SDK is initialized
  * and listening, we re-dispatch those messages so the SDK can process them and
@@ -137,15 +137,17 @@ function replayEarlyMessages() {
 
   // Small delay to ensure the SDK's event handlers are fully registered
   setTimeout(() => {
-    messages.forEach((msg: { data: any; origin: string }) => {
+    messages.forEach((msg: { data: any; origin: string; source: any }) => {
+      // Re-dispatch with the original source so the SDK can respond to the parent
       window.dispatchEvent(
         new MessageEvent('message', {
           data: msg.data,
           origin: msg.origin,
-        })
+          source: msg.source || window.parent,
+        } as MessageEventInit)
       );
     });
-  }, 50);
+  }, 100);
 }
 
 // Try to initialize immediately when module loads (client-side only)

@@ -37,39 +37,48 @@ export default function RootLayout({
       <head>
         {/* 
           Early ACK responder for Contentstack Visual Builder.
-          The Visual Builder sends a postMessage handshake to the iframe and expects
-          an ACK within 1 second (hardcoded in @contentstack/advanced-post-message).
-          In Next.js App Router, React hydration + SDK init often takes longer than 1s,
-          so this inline script catches early messages, sends ACKs immediately, and
-          parks the messages for replay once the SDK is ready.
+          Uses next/script beforeInteractive to run before React hydration
+          (avoids the hydration mismatch errors from raw <script> tags).
+          
+          The Visual Builder sends a postMessage handshake and expects an ACK 
+          within 1s. Next.js hydration + SDK init takes longer, so this catches
+          early messages, sends ACKs via window.parent.postMessage, and parks 
+          messages for replay once the SDK is ready.
         */}
-        <script dangerouslySetInnerHTML={{ __html: `
-          (function() {
-            var CHANNEL_NAME = 'contentstack-adv-post-message';
-            var stored = [];
-            var sdkReady = false;
-            window.__csEarlyMessages = stored;
-            window.__csMarkSdkReady = function() { sdkReady = true; };
-            window.addEventListener('message', function(event) {
-              if (sdkReady) return;
-              var data = event.data;
-              if (!data || data.eventManager !== CHANNEL_NAME) return;
-              if (!data.metadata || data.metadata.nature !== 'REQUEST') return;
-              stored.push({ data: data, origin: event.origin });
-              var ack = {
-                eventManager: CHANNEL_NAME,
-                metadata: { hash: data.metadata.hash, nature: 'ACK' },
-                channel: data.channel,
-                error: undefined,
-                payload: undefined,
-                type: data.type
-              };
-              if (event.source && typeof event.source.postMessage === 'function') {
-                event.source.postMessage(ack, event.origin);
-              }
-            });
-          })();
-        `}} />
+        <Script
+          id="cs-early-ack"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: `
+            (function() {
+              if (typeof window === 'undefined') return;
+              var CN = 'contentstack-adv-post-message';
+              var stored = [];
+              var sdkReady = false;
+              window.__csEarlyMessages = stored;
+              window.__csMarkSdkReady = function() { sdkReady = true; };
+              window.addEventListener('message', function handler(event) {
+                if (sdkReady) return;
+                var d = event.data;
+                if (!d || d.eventManager !== CN) return;
+                if (!d.metadata || d.metadata.nature !== 'REQUEST') return;
+                stored.push({ data: d, origin: event.origin, source: event.source });
+                var ack = {
+                  eventManager: CN,
+                  metadata: { hash: d.metadata.hash, nature: 'ACK' },
+                  channel: d.channel,
+                  type: d.type
+                };
+                try {
+                  var target = event.source || window.parent;
+                  var origin = event.origin || '*';
+                  target.postMessage(ack, origin);
+                } catch(e) {
+                  try { window.parent.postMessage(ack, '*'); } catch(e2) {}
+                }
+              });
+            })();
+          `}}
+        />
         {/* Google Tag Manager - only loads if GTM_CONTAINER_ID is set */}
         {gtmContainerId && (
           <Script id="gtm-script" strategy="afterInteractive">

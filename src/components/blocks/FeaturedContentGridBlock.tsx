@@ -29,8 +29,21 @@ export function FeaturedContentGridBlock({ block }: FeaturedContentGridBlockProp
   } = block;
   const $ = block.$ || {};
 
-  // Use manual_items directly
-  const allItems = manual_items;
+  // Handle different field names from Contentstack
+  // The CMS uses manual_blog_posts for blog grids and manual_products for product grids
+  const manualBlogPosts = (block as any).manual_blog_posts || [];
+  const manualProducts = (block as any).manual_products || [];
+
+  // Use the appropriate items based on variant or what's available
+  let allItems = manual_items;
+  if (variant === 'blog_grid' && manualBlogPosts.length > 0) {
+    allItems = manualBlogPosts;
+  } else if (variant === 'product_grid' && manualProducts.length > 0) {
+    allItems = manualProducts;
+  } else if (allItems.length === 0) {
+    // Fallback: use whichever field has content
+    allItems = manualBlogPosts.length > 0 ? manualBlogPosts : manualProducts;
+  }
 
   // Background styles
   const backgroundClasses = {
