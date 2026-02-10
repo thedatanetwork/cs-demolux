@@ -35,6 +35,41 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
+        {/* 
+          Early ACK responder for Contentstack Visual Builder.
+          The Visual Builder sends a postMessage handshake to the iframe and expects
+          an ACK within 1 second (hardcoded in @contentstack/advanced-post-message).
+          In Next.js App Router, React hydration + SDK init often takes longer than 1s,
+          so this inline script catches early messages, sends ACKs immediately, and
+          parks the messages for replay once the SDK is ready.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            var CHANNEL_NAME = 'contentstack-adv-post-message';
+            var stored = [];
+            var sdkReady = false;
+            window.__csEarlyMessages = stored;
+            window.__csMarkSdkReady = function() { sdkReady = true; };
+            window.addEventListener('message', function(event) {
+              if (sdkReady) return;
+              var data = event.data;
+              if (!data || data.eventManager !== CHANNEL_NAME) return;
+              if (!data.metadata || data.metadata.nature !== 'REQUEST') return;
+              stored.push({ data: data, origin: event.origin });
+              var ack = {
+                eventManager: CHANNEL_NAME,
+                metadata: { hash: data.metadata.hash, nature: 'ACK' },
+                channel: data.channel,
+                error: undefined,
+                payload: undefined,
+                type: data.type
+              };
+              if (event.source && typeof event.source.postMessage === 'function') {
+                event.source.postMessage(ack, event.origin);
+              }
+            });
+          })();
+        `}} />
         {/* Google Tag Manager - only loads if GTM_CONTAINER_ID is set */}
         {gtmContainerId && (
           <Script id="gtm-script" strategy="afterInteractive">

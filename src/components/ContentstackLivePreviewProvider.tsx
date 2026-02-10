@@ -102,9 +102,50 @@ function initializeLivePreviewSDK() {
 
     sdkInitialized = true;
     console.log('Contentstack Live Preview initialized (Visual Builder mode)');
+
+    // Replay any early messages that were parked by the pre-hydration ACK script.
+    // The inline script in <head> catches messages before the SDK is ready,
+    // sends ACKs to prevent the Visual Builder's 1-second timeout, and stores
+    // the requests here for replay once the SDK is listening.
+    replayEarlyMessages();
   } catch (error) {
     console.error('Failed to initialize Contentstack Live Preview:', error);
   }
+}
+
+/**
+ * Replay early postMessages that were caught by the pre-hydration ACK script.
+ * The inline <script> in layout.tsx's <head> catches contentstack-adv-post-message
+ * REQUESTs before the SDK is ready, sends ACKs immediately (preventing timeout),
+ * and stores the messages in window.__csEarlyMessages. Once the SDK is initialized
+ * and listening, we re-dispatch those messages so the SDK can process them and
+ * send the actual RESPONSE back to the Visual Builder.
+ */
+function replayEarlyMessages() {
+  const win = window as any;
+  if (!win.__csEarlyMessages || win.__csEarlyMessages.length === 0) return;
+
+  // Mark SDK as ready so the early listener stops intercepting
+  if (typeof win.__csMarkSdkReady === 'function') {
+    win.__csMarkSdkReady();
+  }
+
+  const messages = [...win.__csEarlyMessages];
+  win.__csEarlyMessages = [];
+
+  console.log(`Replaying ${messages.length} early Visual Builder message(s)`);
+
+  // Small delay to ensure the SDK's event handlers are fully registered
+  setTimeout(() => {
+    messages.forEach((msg: { data: any; origin: string }) => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: msg.data,
+          origin: msg.origin,
+        })
+      );
+    });
+  }, 50);
 }
 
 // Try to initialize immediately when module loads (client-side only)
