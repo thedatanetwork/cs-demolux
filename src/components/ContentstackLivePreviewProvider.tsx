@@ -17,7 +17,7 @@ const livePreviewConfig = {
   preview_token: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN || '',
   app_host: process.env.NEXT_PUBLIC_CONTENTSTACK_APP_HOST || 'app.contentstack.com',
   preview_host: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_HOST || 'rest-preview.contentstack.com',
-  api_host: process.env.NEXT_PUBLIC_CONTENTSTACK_API_HOST || 'cdn.contentstack.io',
+  api_host: process.env.NEXT_PUBLIC_CONTENTSTACK_API_HOST || 'api.contentstack.io',
   region: process.env.NEXT_PUBLIC_CONTENTSTACK_REGION || 'US',
   live_preview: process.env.NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW === 'true',
 };

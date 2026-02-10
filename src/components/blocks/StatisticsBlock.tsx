@@ -18,7 +18,9 @@ import {
 } from 'lucide-react';
 
 interface StatisticsBlockProps {
-  block: StatisticsBlockType;
+  block: StatisticsBlockType & {
+    $?: Record<string, any>;  // Editable tags from addEditableTags()
+  };
 }
 
 // Icon mapping for dynamic icon rendering
@@ -48,6 +50,7 @@ export function StatisticsBlock({ block }: StatisticsBlockProps) {
     background_style,
     animated
   } = block;
+  const $ = block.$ || {};
 
   // Background styles
   const backgroundClasses = {
@@ -93,7 +96,7 @@ export function StatisticsBlock({ block }: StatisticsBlockProps) {
             )}
 
             {section_title && (
-              <h2 className={`font-heading text-4xl md:text-5xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <h2 {...$['section_title']} className={`font-heading text-4xl md:text-5xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {section_title.split(' ').map((word, index, arr) => (
                   <span
                     key={index}
@@ -106,7 +109,7 @@ export function StatisticsBlock({ block }: StatisticsBlockProps) {
             )}
 
             {section_description && (
-              <p className={`text-lg md:text-xl max-w-3xl mx-auto ${isDark ? 'text-white/80' : 'text-gray-600'}`}>
+              <p {...$['section_description']} className={`text-lg md:text-xl max-w-3xl mx-auto ${isDark ? 'text-white/80' : 'text-gray-600'}`}>
                 {section_description}
               </p>
             )}

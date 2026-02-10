@@ -9,7 +9,9 @@ import { ArrowRight } from 'lucide-react';
 import { useCTATracking } from '@/components/PersonalizeEventTracker';
 
 interface CampaignCTABlockProps {
-  block: CampaignCTABlockType;
+  block: CampaignCTABlockType & {
+    $?: Record<string, any>;  // Editable tags from addEditableTags()
+  };
 }
 
 export function CampaignCTABlock({ block }: CampaignCTABlockProps) {
@@ -50,10 +52,11 @@ function FullWidthCTA({
   backgroundImage,
   onCTAClick
 }: {
-  block: CampaignCTABlockType;
+  block: CampaignCTABlockType & { $?: Record<string, any> };
   backgroundImage?: ImageType;
   onCTAClick: (id: string, url: string) => void;
 }) {
+  const $ = block.$ || {};
   const heightClasses = {
     full: 'min-h-screen',
     large: 'py-32',
@@ -106,7 +109,7 @@ function FullWidthCTA({
 
           {/* Title */}
           {block.title && (
-            <h2 className="font-heading text-4xl md:text-6xl font-bold mb-6">
+            <h2 {...$['title']} className="font-heading text-4xl md:text-6xl font-bold mb-6">
               {block.title.split(' ').map((word, index, arr) => (
                 <span
                   key={index}
@@ -120,7 +123,7 @@ function FullWidthCTA({
 
           {/* Description */}
           {block.description && (
-            <p className={`text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-light ${isLightText ? 'text-white/90' : 'text-gray-700'}`}>
+            <p {...$['description']} className={`text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-light ${isLightText ? 'text-white/90' : 'text-gray-700'}`}>
               {block.description}
             </p>
           )}

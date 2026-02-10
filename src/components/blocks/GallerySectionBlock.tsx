@@ -6,7 +6,9 @@ import type { GallerySectionBlock as GallerySectionBlockType } from '@/lib/conte
 import { X } from 'lucide-react';
 
 interface GallerySectionBlockProps {
-  block: GallerySectionBlockType;
+  block: GallerySectionBlockType & {
+    $?: Record<string, any>;  // Editable tags from addEditableTags()
+  };
 }
 
 export function GallerySectionBlock({ block }: GallerySectionBlockProps) {
@@ -24,6 +26,7 @@ export function GallerySectionBlock({ block }: GallerySectionBlockProps) {
     enable_captions,
     background_style
   } = block;
+  const $ = block.$ || {};
 
   const handleImageClick = (index: number) => {
     if (enable_lightbox) {
@@ -77,12 +80,12 @@ export function GallerySectionBlock({ block }: GallerySectionBlockProps) {
         {(section_title || section_description) && (
           <div className={`text-center mb-16 ${background_style === 'black' ? 'text-white' : 'text-gray-900'}`}>
             {section_title && (
-              <h2 className="font-heading text-4xl md:text-5xl font-bold mb-6">
+              <h2 {...$['section_title']} className="font-heading text-4xl md:text-5xl font-bold mb-6">
                 {section_title}
               </h2>
             )}
             {section_description && (
-              <p className={`text-lg md:text-xl max-w-3xl mx-auto leading-relaxed ${background_style === 'black' ? 'text-gray-300' : 'text-gray-600'}`}>
+              <p {...$['section_description']} className={`text-lg md:text-xl max-w-3xl mx-auto leading-relaxed ${background_style === 'black' ? 'text-gray-300' : 'text-gray-600'}`}>
                 {section_description}
               </p>
             )}

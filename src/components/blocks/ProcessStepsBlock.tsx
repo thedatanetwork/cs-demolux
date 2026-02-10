@@ -24,7 +24,9 @@ import {
 } from 'lucide-react';
 
 interface ProcessStepsBlockProps {
-  block: ProcessStepsBlockType;
+  block: ProcessStepsBlockType & {
+    $?: Record<string, any>;  // Editable tags from addEditableTags()
+  };
 }
 
 // Icon mapping for dynamic icon rendering
@@ -84,10 +86,11 @@ function HorizontalLayout({
   block,
   bgClass
 }: {
-  block: ProcessStepsBlockType;
+  block: ProcessStepsBlockType & { $?: Record<string, any> };
   bgClass: string;
 }) {
   const { section_title, section_description, badge_text, steps, show_step_numbers, show_connector_lines } = block;
+  const $ = block.$ || {};
 
   return (
     <section className={`section-spacing ${bgClass} relative overflow-hidden`}>
@@ -104,7 +107,7 @@ function HorizontalLayout({
           )}
 
           {section_title && (
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 {...$['section_title']} className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               {section_title.split(' ').map((word, index, arr) => (
                 <span
                   key={index}
@@ -117,7 +120,7 @@ function HorizontalLayout({
           )}
 
           {section_description && (
-            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+            <p {...$['section_description']} className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
               {section_description}
             </p>
           )}

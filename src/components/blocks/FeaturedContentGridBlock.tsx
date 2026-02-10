@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/Button';
 import { ArrowRight } from 'lucide-react';
 
 interface FeaturedContentGridBlockProps {
-  block: FeaturedContentGridBlockType;
+  block: FeaturedContentGridBlockType & {
+    $?: Record<string, any>;  // Editable tags from addEditableTags()
+  };
 }
 
 export function FeaturedContentGridBlock({ block }: FeaturedContentGridBlockProps) {
@@ -25,6 +27,7 @@ export function FeaturedContentGridBlock({ block }: FeaturedContentGridBlockProp
     cta_url,
     background_style
   } = block;
+  const $ = block.$ || {};
 
   // Use manual_items directly
   const allItems = manual_items;
@@ -75,7 +78,7 @@ export function FeaturedContentGridBlock({ block }: FeaturedContentGridBlockProp
 
           {/* Title */}
           {section_title && (
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 {...$['section_title']} className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               {section_title.split(' ').map((word, index, arr) => (
                 <span
                   key={index}
@@ -89,7 +92,7 @@ export function FeaturedContentGridBlock({ block }: FeaturedContentGridBlockProp
 
           {/* Description */}
           {section_description && (
-            <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+            <p {...$['section_description']} className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
               {section_description}
             </p>
           )}

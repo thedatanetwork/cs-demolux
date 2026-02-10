@@ -5,7 +5,9 @@ import type { FAQBlock as FAQBlockType } from '@/lib/contentstack';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 
 interface FAQBlockProps {
-  block: FAQBlockType;
+  block: FAQBlockType & {
+    $?: Record<string, any>;  // Editable tags from addEditableTags()
+  };
 }
 
 export function FAQBlock({ block }: FAQBlockProps) {
@@ -46,10 +48,11 @@ function AccordionLayout({
   block,
   bgClass
 }: {
-  block: FAQBlockType;
+  block: FAQBlockType & { $?: Record<string, any> };
   bgClass: string;
 }) {
   const { section_title, section_description, badge_text, faqs, show_categories, expand_first } = block;
+  const $ = block.$ || {};
   const [openIndex, setOpenIndex] = useState<number | null>(expand_first ? 0 : null);
 
   // Group FAQs by category if show_categories is true
@@ -84,7 +87,7 @@ function AccordionLayout({
           )}
 
           {section_title && (
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 {...$['section_title']} className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               {section_title.split(' ').map((word, index, arr) => (
                 <span
                   key={index}
@@ -97,7 +100,7 @@ function AccordionLayout({
           )}
 
           {section_description && (
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p {...$['section_description']} className="text-lg text-gray-600 max-w-3xl mx-auto">
               {section_description}
             </p>
           )}

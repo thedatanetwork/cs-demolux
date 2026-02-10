@@ -6,7 +6,9 @@ import type { ValuesGridBlock as ValuesGridBlockType } from '@/lib/contentstack'
 import { Sparkles, Users, Globe, Award, Zap, Star, Heart, Shield, TrendingUp, Leaf } from 'lucide-react';
 
 interface ValuesGridBlockProps {
-  block: ValuesGridBlockType;
+  block: ValuesGridBlockType & {
+    $?: Record<string, any>;  // Editable tags from addEditableTags()
+  };
 }
 
 // Icon mapping for dynamic icon rendering
@@ -41,6 +43,7 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
     icon_style = 'filled',
     background_style
   } = block;
+  const $ = block.$ || {};
 
   // Background styles
   const backgroundClasses = {
@@ -86,7 +89,7 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
 
           {/* Title */}
           {section_title && (
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 {...$['section_title']} className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               {section_title.split(' ').map((word, index, arr) => (
                 <span
                   key={index}
@@ -100,7 +103,7 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
 
           {/* Description */}
           {section_description && (
-            <p className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+            <p {...$['section_description']} className="text-lg md:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
               {section_description}
             </p>
           )}

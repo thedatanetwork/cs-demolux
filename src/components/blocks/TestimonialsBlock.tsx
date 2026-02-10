@@ -6,7 +6,9 @@ import type { TestimonialsBlock as TestimonialsBlockType } from '@/lib/contentst
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 
 interface TestimonialsBlockProps {
-  block: TestimonialsBlockType;
+  block: TestimonialsBlockType & {
+    $?: Record<string, any>;  // Editable tags from addEditableTags()
+  };
 }
 
 export function TestimonialsBlock({ block }: TestimonialsBlockProps) {
@@ -47,10 +49,11 @@ function CarouselLayout({
   block,
   bgClass
 }: {
-  block: TestimonialsBlockType;
+  block: TestimonialsBlockType & { $?: Record<string, any> };
   bgClass: string;
 }) {
   const { section_title, section_description, badge_text, testimonials, show_ratings, show_images } = block;
+  const $ = block.$ || {};
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToNext = () => {
@@ -81,7 +84,7 @@ function CarouselLayout({
           )}
 
           {section_title && (
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 {...$?.section_title} className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               {section_title.split(' ').map((word, index, arr) => (
                 <span
                   key={index}
@@ -94,7 +97,7 @@ function CarouselLayout({
           )}
 
           {section_description && (
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p {...$?.section_description} className="text-lg text-gray-600 max-w-3xl mx-auto">
               {section_description}
             </p>
           )}
