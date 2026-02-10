@@ -16,8 +16,7 @@ const livePreviewConfig = {
   environment: process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT || 'dev',
   preview_token: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN || '',
   app_host: process.env.NEXT_PUBLIC_CONTENTSTACK_APP_HOST || 'app.contentstack.com',
-  preview_host: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_HOST || 'rest-preview.contentstack.com',
-  api_host: process.env.NEXT_PUBLIC_CONTENTSTACK_API_HOST || 'api.contentstack.io',
+  preview_host: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_HOST || '',
   region: process.env.NEXT_PUBLIC_CONTENTSTACK_REGION || 'US',
   live_preview: process.env.NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW === 'true',
 };
@@ -35,28 +34,57 @@ function initializeLivePreviewSDK() {
     return;
   }
 
+  // Validate preview token is actually present
+  if (!livePreviewConfig.preview_token) {
+    console.error(
+      'Contentstack Live Preview: NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN is not set!',
+      'Live Preview requires a valid preview token. Generate one in Contentstack:',
+      'Settings → Tokens → Delivery Tokens → [your token] → Create Preview Token'
+    );
+    return;
+  }
+
   try {
-    // Create client-side Stack with live_preview config (matching panda-financial pattern)
+    // Build live_preview config - let SDK auto-detect host from region unless explicitly overridden
+    // IMPORTANT: Setting host explicitly in live_preview overrides the SDK's region-based auto-detection.
+    // Only pass host if NEXT_PUBLIC_CONTENTSTACK_PREVIEW_HOST is explicitly set.
+    const livePreviewSdkConfig: Record<string, any> = {
+      enable: true,
+      preview_token: livePreviewConfig.preview_token,
+    };
+    if (livePreviewConfig.preview_host) {
+      livePreviewSdkConfig.host = livePreviewConfig.preview_host;
+    }
+
+    // Create client-side Stack with live_preview config
+    // NOTE: The `host` top-level property is NOT processed by the SDK's object constructor -
+    // the CDN host is determined automatically by `region`. Don't pass it to avoid confusion.
     clientStack = Contentstack.Stack({
       api_key: livePreviewConfig.api_key,
       delivery_token: livePreviewConfig.delivery_token,
       environment: livePreviewConfig.environment,
       region: (Contentstack.Region as any)[livePreviewConfig.region] || Contentstack.Region.US,
-      host: livePreviewConfig.api_host,
-      live_preview: {
-        enable: true,
-        preview_token: livePreviewConfig.preview_token,
-        host: livePreviewConfig.preview_host,
-      },
+      live_preview: livePreviewSdkConfig,
     } as any);
 
-    // Initialize Live Preview SDK - per official Next.js SSR App Router docs:
-    // https://www.contentstack.com/docs/developers/set-up-live-preview/live-preview-implementation-for-nextjs-ssr-app-router
+    // Log the resolved live_preview config for debugging
+    const resolvedConfig = (clientStack as any)?.live_preview;
+    console.log('Contentstack Live Preview config:', {
+      api_key: livePreviewConfig.api_key ? `${livePreviewConfig.api_key.substring(0, 8)}...` : 'MISSING',
+      delivery_token: livePreviewConfig.delivery_token ? `${livePreviewConfig.delivery_token.substring(0, 8)}...` : 'MISSING',
+      preview_token: livePreviewConfig.preview_token ? `${livePreviewConfig.preview_token.substring(0, 8)}...` : 'MISSING',
+      environment: livePreviewConfig.environment,
+      region: livePreviewConfig.region,
+      resolved_preview_host: resolvedConfig?.host || 'not set',
+      preview_host_override: livePreviewConfig.preview_host || 'none (using SDK auto-detect)',
+    });
+
+    // Initialize Live Preview SDK
     ContentstackLivePreview.init({
       enable: true,
-      ssr: true,  // true for Next.js SSR App Router per docs
-      mode: 'builder',  // Required for Visual Builder mode verification
-      stackSdk: clientStack as any,  // Full Stack object per docs
+      ssr: true,  // true for Next.js SSR App Router
+      mode: 'builder',  // Required for Visual Builder mode
+      stackSdk: clientStack as any,
       editButton: {
         enable: true,
       },

@@ -17,7 +17,9 @@ function getStackConfig() {
     region: (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US',
     live_preview: process.env.CONTENTSTACK_LIVE_PREVIEW === 'true',
     app_host: process.env.CONTENTSTACK_APP_HOST || 'app.contentstack.com',
-    preview_host: process.env.CONTENTSTACK_PREVIEW_HOST || 'rest-preview.contentstack.com',
+    // Empty string means "let SDK auto-detect from region" which is the safest default.
+    // Only set explicitly if you need to override (e.g., custom proxy).
+    preview_host: process.env.CONTENTSTACK_PREVIEW_HOST || '',
   };
 }
 
@@ -42,23 +44,39 @@ function initializeStack() {
         });
       }
 
+      // Build live_preview config - let SDK auto-detect host from region unless explicitly overridden
+      // IMPORTANT: Setting host explicitly in live_preview overrides SDK's region-based auto-detection.
+      // Only pass host if CONTENTSTACK_PREVIEW_HOST is explicitly set in env vars.
+      let livePreviewConfig: Record<string, any> | undefined;
+      if (stackConfig.live_preview && stackConfig.preview_token) {
+        livePreviewConfig = {
+          preview_token: stackConfig.preview_token,
+          enable: true,
+        };
+        if (stackConfig.preview_host) {
+          livePreviewConfig.host = stackConfig.preview_host;
+        }
+      }
+
       // Initialize Stack with Live Preview support
       _Stack = Contentstack.Stack({
         api_key: stackConfig.api_key,
         delivery_token: stackConfig.delivery_token,
         environment: stackConfig.environment,
         region: Contentstack.Region[stackConfig.region as keyof typeof Contentstack.Region] || Contentstack.Region.US,
-        live_preview: stackConfig.live_preview && stackConfig.preview_token ? {
-          preview_token: stackConfig.preview_token,
-          enable: true,
-          host: stackConfig.preview_host,
-        } : undefined
+        live_preview: livePreviewConfig as any,
       });
 
       if (isServer) {
         console.log('Contentstack initialized successfully');
         if (stackConfig.live_preview && stackConfig.preview_token) {
-          console.log('Live Preview enabled');
+          const resolvedHost = (_Stack as any)?.live_preview?.host;
+          console.log('Live Preview enabled:', {
+            preview_host_resolved: resolvedHost || 'default',
+            preview_host_override: stackConfig.preview_host || 'none (auto-detect from region)',
+            region: stackConfig.region,
+            preview_token: stackConfig.preview_token ? `${stackConfig.preview_token.substring(0, 8)}...` : 'MISSING',
+          });
         }
       }
     } catch (error) {
