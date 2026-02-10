@@ -50,26 +50,24 @@ function initializeLivePreviewSDK() {
       },
     } as any);
 
-    // Initialize Live Preview SDK for Visual Builder
-    // CRITICAL: Pass clientStack.config (not clientStack) per official Contentstack docs
-    // https://www.contentstack.com/docs/developers/set-up-visual-builder/set-up-visual-builder-for-your-website
+    // Initialize Live Preview SDK - per official Next.js SSR App Router docs:
+    // https://www.contentstack.com/docs/developers/set-up-live-preview/live-preview-implementation-for-nextjs-ssr-app-router
     ContentstackLivePreview.init({
       enable: true,
-      ssr: false,  // MUST be false for Visual Builder post-message communication
-      mode: 'builder',
-      stackSdk: (clientStack as any).config,  // Pass .config, not the full stack object
+      ssr: true,  // true for Next.js SSR App Router per docs
+      stackSdk: clientStack as any,  // Full Stack object per docs
+      editButton: {
+        enable: true,
+      },
       stackDetails: {
         apiKey: livePreviewConfig.api_key,
         environment: livePreviewConfig.environment,
+        branch: 'main',
       },
       clientUrlParams: {
         protocol: 'https',
         host: livePreviewConfig.app_host,
         port: 443,
-      },
-      editButton: {
-        enable: true,
-        exclude: ['outsideLivePreviewPortal'],  // Only show inside Visual Builder
       },
     });
 
