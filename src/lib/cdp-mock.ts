@@ -51,31 +51,73 @@ export interface CDPResponse {
   dates: Record<string, number>;
 }
 
+const SESSION_STORAGE_KEY = 'cdp_mock_visitor_data';
+
 /**
  * Mock CDP Service
  * Simulates a CDP visitor API for development/demo purposes
+ * Uses sessionStorage to persist segments across page navigations (prevents flicker)
  */
 class CDPMockService {
   private lastResponse: CDPResponse | null = null;
 
   /**
+   * Try to load cached data from sessionStorage
+   */
+  private loadFromSessionStorage(): CDPResponse | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('CDP Mock: Failed to load from sessionStorage', e);
+    }
+    return null;
+  }
+
+  /**
+   * Save data to sessionStorage for persistence across navigations
+   */
+  private saveToSessionStorage(data: CDPResponse): void {
+    if (typeof window === 'undefined') return;
+    try {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.warn('CDP Mock: Failed to save to sessionStorage', e);
+    }
+  }
+
+  /**
    * Simulates a call to a CDP visitor/profile API
    * Randomly generates segment data for testing personalization
+   * Persists to sessionStorage to prevent flicker on page navigations
    *
    * @param forceRefresh - If true, generates new random data even if cached
    * @returns Simulated CDP response
    */
-  getVisitorData(forceRefresh: boolean = true): CDPResponse {
+  getVisitorData(forceRefresh: boolean = false): CDPResponse {
+    // Check memory cache first
     if (this.lastResponse && !forceRefresh) {
       return this.lastResponse;
     }
 
-    // Randomly select 1-3 segments from the pool
+    // Check sessionStorage for persistence across navigations
+    if (!forceRefresh) {
+      const stored = this.loadFromSessionStorage();
+      if (stored) {
+        this.lastResponse = stored;
+        console.log('🎯 CDP Mock: Loaded segments from sessionStorage:', stored.segments);
+        return stored;
+      }
+    }
+
+    // Generate new random data
     const numSegments = Math.floor(Math.random() * 3) + 1;
     const shuffledSegments = [...SEGMENT_POOL].sort(() => Math.random() - 0.5);
     const selectedSegments = shuffledSegments.slice(0, numSegments);
 
-    // Randomly select 0-2 badges
     const numBadges = Math.floor(Math.random() * 3);
     const shuffledBadges = [...BADGE_POOL].sort(() => Math.random() - 0.5);
     const selectedBadges = shuffledBadges.slice(0, numBadges);
@@ -101,6 +143,7 @@ class CDPMockService {
     };
 
     this.lastResponse = response;
+    this.saveToSessionStorage(response);
 
     // Also populate window for visibility (useful for debugging)
     if (typeof window !== 'undefined') {
@@ -111,7 +154,7 @@ class CDPMockService {
         cdp_segments: response.segments.join(','),
       };
 
-      console.log('🎯 CDP Mock: Generated segments:', response.segments);
+      console.log('🎯 CDP Mock: Generated NEW segments:', response.segments);
       console.log('🎯 CDP Mock: cdp_segments:', response.segments.join(','));
     }
 
@@ -158,9 +201,17 @@ class CDPMockService {
 
   /**
    * Clear cached response (forces new random data on next call)
+   * Also clears sessionStorage
    */
   clearCache(): void {
     this.lastResponse = null;
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      } catch (e) {
+        // Ignore
+      }
+    }
   }
 }
 

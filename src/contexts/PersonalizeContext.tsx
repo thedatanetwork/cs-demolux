@@ -49,7 +49,8 @@ export function PersonalizeProvider({
 
         // Get CDP data (mock for demo, would be real API call in production)
         // This simulates calling a CDP visitor API (e.g., Tealium, Blueshift, BlueConic)
-        const cdpResponse = cdpMockService.getVisitorData(true);
+        // Using false to use cached/sessionStorage data and prevent flicker on navigation
+        const cdpResponse = cdpMockService.getVisitorData(false);
         setCdpData(cdpResponse);
 
         // Convert CDP segments to Personalize-compatible attributes
