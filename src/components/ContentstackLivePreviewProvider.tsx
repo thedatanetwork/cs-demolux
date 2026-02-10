@@ -55,6 +55,7 @@ function initializeLivePreviewSDK() {
     ContentstackLivePreview.init({
       enable: true,
       ssr: true,  // true for Next.js SSR App Router per docs
+      mode: 'builder',  // Required for Visual Builder mode verification
       stackSdk: clientStack as any,  // Full Stack object per docs
       editButton: {
         enable: true,
