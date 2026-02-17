@@ -115,6 +115,18 @@ function initializeLivePreviewSDK() {
 
 // Try to initialize immediately when module loads (client-side only)
 if (typeof window !== 'undefined') {
+  // Debug: log all postMessage events to diagnose VB communication
+  window.addEventListener('message', (event) => {
+    const d = event.data;
+    if (d && d.eventManager === 'contentstack-adv-post-message') {
+      console.log('[CS-DEBUG] postMessage:', d.metadata?.nature, d.type, JSON.stringify(d).substring(0, 300));
+    }
+  });
+  // Debug: catch unhandled rejections to see the actual error
+  window.addEventListener('unhandledrejection', (event) => {
+    console.log('[CS-DEBUG] Unhandled rejection:', event.reason);
+  });
+
   initializeLivePreviewSDK();
 }
 
