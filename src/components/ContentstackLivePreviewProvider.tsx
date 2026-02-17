@@ -107,6 +107,26 @@ function initializeLivePreviewSDK() {
 
     sdkInitialized = true;
     console.log('Contentstack Live Preview initialized (Visual Builder mode)');
+
+    // Mark SDK as ready so the early interceptor stops catching messages
+    (window as any).__csVBSdkReady = true;
+
+    // Replay any VB init messages that arrived before SDK loaded.
+    // The early interceptor (in layout.tsx) already sent ACKs for these,
+    // so the VB's listener is still alive waiting for the RESPONSE.
+    // Re-dispatching lets the SDK process them and send proper RESPONSEs.
+    const buffered = (window as any).__csVBBuffer;
+    if (buffered && buffered.length > 0) {
+      console.log(`Replaying ${buffered.length} buffered VB init message(s)`);
+      (window as any).__csVBBuffer = [];
+      buffered.forEach((msg: { data: any; source: MessageEventSource | null; origin: string }) => {
+        window.dispatchEvent(new MessageEvent('message', {
+          data: msg.data,
+          source: msg.source,
+          origin: msg.origin,
+        }));
+      });
+    }
   } catch (error) {
     console.error('Failed to initialize Contentstack Live Preview:', error);
   }

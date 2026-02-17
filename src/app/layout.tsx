@@ -32,6 +32,17 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="min-h-screen bg-white">
+        {/*
+          Early Visual Builder init interceptor: The VB sends an init REQUEST on the
+          "visual-builder" channel via postMessage BEFORE React hydrates and the SDK loads.
+          The 1000ms ACK timeout expires, VB gives up, and never retries.
+          This script runs before any client JS, ACKs that specific init immediately,
+          and buffers it so the SDK can send a proper RESPONSE after it loads.
+        */}
+        <Script id="cs-vb-early-ack" strategy="beforeInteractive">
+          {`(function(){if(typeof window==='undefined')return;var CH='contentstack-adv-post-message';var buf=[];window.__csVBBuffer=buf;window.__csVBSdkReady=false;window.addEventListener('message',function(e){if(window.__csVBSdkReady)return;var d=e.data;if(!d||d.eventManager!==CH)return;if(!d.metadata||d.metadata.nature!=='REQUEST')return;if(d.channel!=='visual-builder'||d.type!=='init')return;buf.push({data:d,source:e.source,origin:e.origin});if(e.source&&typeof e.source.postMessage==='function'){e.source.postMessage({eventManager:CH,metadata:{hash:d.metadata.hash,nature:'ACK'},channel:d.channel,type:d.type},e.origin);}});})();`}
+        </Script>
+
         {/* Google Tag Manager - only loads if GTM_CONTAINER_ID is set */}
         {gtmContainerId && (
           <>
