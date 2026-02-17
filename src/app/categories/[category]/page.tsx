@@ -10,9 +10,9 @@ import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 export const dynamic = 'force-dynamic';
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     category: string;
-  };
+  }>;
 }
 
 // Fallback metadata (used when no CMS entry exists)
@@ -29,12 +29,13 @@ const categoryMetadata = {
   }
 };
 
-export async function generateMetadata({ params }: CategoryPageProps) {
+export async function generateMetadata(props: CategoryPageProps) {
+  const { category } = await props.params;
   const variantAliases = await getVariantAliasesFromCookies();
 
   // Try to get CMS content first
   try {
-    const modularPage = await dataService.getModularCategoryPage(params.category, variantAliases);
+    const modularPage = await dataService.getModularCategoryPage(category, variantAliases);
     if (modularPage) {
       return {
         title: modularPage.meta_title || `${modularPage.hero_title} | Demolux`,
@@ -46,7 +47,7 @@ export async function generateMetadata({ params }: CategoryPageProps) {
   }
 
   // Fallback to hardcoded metadata
-  const categoryInfo = categoryMetadata[params.category as keyof typeof categoryMetadata];
+  const categoryInfo = categoryMetadata[category as keyof typeof categoryMetadata];
   if (!categoryInfo) {
     return {
       title: 'Category Not Found | Demolux',
@@ -59,20 +60,21 @@ export async function generateMetadata({ params }: CategoryPageProps) {
   };
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage(props: CategoryPageProps) {
+  const { category } = await props.params;
   // Get variant aliases from cookies (for personalization without flicker)
   const variantAliases = await getVariantAliasesFromCookies();
 
   // Fetch all data with personalization
   const [products, navigation, siteSettings, modularPage] = await Promise.all([
-    dataService.getProducts(params.category, variantAliases),
+    dataService.getProducts(category, variantAliases),
     dataService.getNavigationMenus(),
     dataService.getSiteSettings(),
-    dataService.getModularCategoryPage(params.category, variantAliases).catch(() => null)
+    dataService.getModularCategoryPage(category, variantAliases).catch(() => null)
   ]);
 
   // Determine hero content (CMS or fallback)
-  const fallbackInfo = categoryMetadata[params.category as keyof typeof categoryMetadata];
+  const fallbackInfo = categoryMetadata[category as keyof typeof categoryMetadata];
 
   if (!modularPage && !fallbackInfo) {
     notFound();

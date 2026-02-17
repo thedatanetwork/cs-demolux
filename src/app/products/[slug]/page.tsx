@@ -15,14 +15,14 @@ import { Star, Truck, Shield, RotateCcw } from 'lucide-react';
 export const dynamic = 'force-dynamic';
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export default async function ProductPage({ params }: ProductPageProps) {
+export default async function ProductPage(props: ProductPageProps) {
   // Get product by slug instead of UID
-  const slug = params.slug;
+  const { slug } = await props.params;
   
   // Get variant aliases from cookies (for personalization without flicker)
   const variantAliases = await getVariantAliasesFromCookies();

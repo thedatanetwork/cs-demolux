@@ -11,14 +11,15 @@ import Image from 'next/image';
 export const dynamic = 'force-dynamic';
 
 interface CollectionPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export async function generateMetadata({ params }: CollectionPageProps) {
+export async function generateMetadata(props: CollectionPageProps) {
+  const { slug } = await props.params;
   const variantAliases = await getVariantAliasesFromCookies();
-  const collection = await dataService.getCollectionBySlug(params.slug, variantAliases);
+  const collection = await dataService.getCollectionBySlug(slug, variantAliases);
 
   if (!collection) {
     return {
@@ -32,12 +33,13 @@ export async function generateMetadata({ params }: CollectionPageProps) {
   };
 }
 
-export default async function CollectionPage({ params }: CollectionPageProps) {
+export default async function CollectionPage(props: CollectionPageProps) {
+  const { slug } = await props.params;
   const variantAliases = await getVariantAliasesFromCookies();
 
   // Fetch collection and site data
   const [collection, navigation, siteSettings] = await Promise.all([
-    dataService.getCollectionBySlug(params.slug, variantAliases),
+    dataService.getCollectionBySlug(slug, variantAliases),
     dataService.getNavigationMenus(),
     dataService.getSiteSettings(),
   ]);

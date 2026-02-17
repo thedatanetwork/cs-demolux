@@ -14,14 +14,14 @@ import { jsonToHTML } from '@contentstack/utils';
 export const dynamic = 'force-dynamic';
 
 interface BlogPostPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export default async function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function BlogPostPage(props: BlogPostPageProps) {
   // Get blog post by slug instead of UID
-  const slug = params.slug;
+  const { slug } = await props.params;
   
   // Get variant aliases from cookies (for personalization without flicker)
   const variantAliases = await getVariantAliasesFromCookies();

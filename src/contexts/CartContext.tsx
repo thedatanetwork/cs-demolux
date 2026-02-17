@@ -140,7 +140,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 // Cart provider component
-export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
 
   // Load cart from localStorage on mount

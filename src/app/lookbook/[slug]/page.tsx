@@ -11,14 +11,15 @@ import Image from 'next/image';
 export const dynamic = 'force-dynamic';
 
 interface LookbookPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export async function generateMetadata({ params }: LookbookPageProps) {
+export async function generateMetadata(props: LookbookPageProps) {
+  const { slug } = await props.params;
   const variantAliases = await getVariantAliasesFromCookies();
-  const lookbook = await dataService.getLookbookBySlug(params.slug, variantAliases);
+  const lookbook = await dataService.getLookbookBySlug(slug, variantAliases);
 
   if (!lookbook) {
     return {
@@ -32,12 +33,13 @@ export async function generateMetadata({ params }: LookbookPageProps) {
   };
 }
 
-export default async function LookbookPage({ params }: LookbookPageProps) {
+export default async function LookbookPage(props: LookbookPageProps) {
+  const { slug } = await props.params;
   const variantAliases = await getVariantAliasesFromCookies();
 
   // Fetch lookbook and site data
   const [lookbook, navigation, siteSettings] = await Promise.all([
-    dataService.getLookbookBySlug(params.slug, variantAliases),
+    dataService.getLookbookBySlug(slug, variantAliases),
     dataService.getNavigationMenus(),
     dataService.getSiteSettings(),
   ]);
