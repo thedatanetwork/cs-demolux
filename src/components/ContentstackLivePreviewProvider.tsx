@@ -70,6 +70,7 @@ function initializeLivePreviewSDK() {
       delivery_token: livePreviewConfig.delivery_token,
       environment: livePreviewConfig.environment,
       region: (Contentstack.Region as any)[livePreviewConfig.region] || Contentstack.Region.US,
+      branch: 'main',
       live_preview: livePreviewSdkConfig,
     } as any);
 
@@ -97,6 +98,7 @@ function initializeLivePreviewSDK() {
       stackDetails: {
         apiKey: livePreviewConfig.api_key,
         environment: livePreviewConfig.environment,
+        branch: 'main',
       },
       editButton: {
         enable: true,
