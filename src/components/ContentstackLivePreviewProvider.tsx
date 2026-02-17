@@ -9,15 +9,25 @@ interface ContentstackLivePreviewProviderProps {
   children: React.ReactNode;
 }
 
+// Region-based preview host mapping (must be explicit for Visual Builder validation)
+const REGION_PREVIEW_HOST: Record<string, string> = {
+  US: 'rest-preview.contentstack.com',
+  EU: 'eu-rest-preview.contentstack.com',
+  AZURE_NA: 'azure-na-rest-preview.contentstack.com',
+  AZURE_EU: 'azure-eu-rest-preview.contentstack.com',
+  GCP_NA: 'gcp-na-rest-preview.contentstack.com',
+};
+
 // Client-side config (only public values)
+const region = process.env.NEXT_PUBLIC_CONTENTSTACK_REGION || 'US';
 const livePreviewConfig = {
   api_key: process.env.NEXT_PUBLIC_CONTENTSTACK_API_KEY || '',
   delivery_token: process.env.NEXT_PUBLIC_CONTENTSTACK_DELIVERY_TOKEN || '',
   environment: process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT || 'dev',
   preview_token: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN || '',
   app_host: process.env.NEXT_PUBLIC_CONTENTSTACK_APP_HOST || 'app.contentstack.com',
-  preview_host: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_HOST || '',
-  region: process.env.NEXT_PUBLIC_CONTENTSTACK_REGION || 'US',
+  preview_host: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_HOST || REGION_PREVIEW_HOST[region] || REGION_PREVIEW_HOST.US,
+  region,
   live_preview: process.env.NEXT_PUBLIC_CONTENTSTACK_LIVE_PREVIEW === 'true',
 };
 
@@ -45,16 +55,12 @@ function initializeLivePreviewSDK() {
   }
 
   try {
-    // Build live_preview config - let SDK auto-detect host from region unless explicitly overridden
-    // IMPORTANT: Setting host explicitly in live_preview overrides the SDK's region-based auto-detection.
-    // Only pass host if NEXT_PUBLIC_CONTENTSTACK_PREVIEW_HOST is explicitly set.
+    // Build live_preview config with explicit host (required for Visual Builder token validation)
     const livePreviewSdkConfig: Record<string, any> = {
       enable: true,
       preview_token: livePreviewConfig.preview_token,
+      host: livePreviewConfig.preview_host,
     };
-    if (livePreviewConfig.preview_host) {
-      livePreviewSdkConfig.host = livePreviewConfig.preview_host;
-    }
 
     // Create client-side Stack with live_preview config
     // NOTE: The `host` top-level property is NOT processed by the SDK's object constructor -
@@ -81,22 +87,20 @@ function initializeLivePreviewSDK() {
 
     // Initialize Live Preview SDK
     ContentstackLivePreview.init({
+      ssr: false,
       enable: true,
-      ssr: true,  // true for Next.js SSR App Router
-      mode: 'builder',  // Required for Visual Builder mode
+      mode: 'builder',
       stackSdk: clientStack as any,
-      editButton: {
-        enable: true,
+      clientUrlParams: {
+        host: livePreviewConfig.app_host,
       },
       stackDetails: {
         apiKey: livePreviewConfig.api_key,
         environment: livePreviewConfig.environment,
-        branch: 'main',
       },
-      clientUrlParams: {
-        protocol: 'https',
-        host: livePreviewConfig.app_host,
-        port: 443,
+      editButton: {
+        enable: true,
+        exclude: ['outsideLivePreviewPortal'],
       },
     });
 

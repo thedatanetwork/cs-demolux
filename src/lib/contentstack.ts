@@ -7,19 +7,27 @@ import { addEditableTags as addTags } from '@contentstack/utils';
 // but they ARE available at runtime (e.g., on Contentstack Launch)
 let _Stack: any = null;
 
+// Region-based preview host mapping (must be explicit for Visual Builder token validation)
+const REGION_PREVIEW_HOST: Record<string, string> = {
+  US: 'rest-preview.contentstack.com',
+  EU: 'eu-rest-preview.contentstack.com',
+  AZURE_NA: 'azure-na-rest-preview.contentstack.com',
+  AZURE_EU: 'azure-eu-rest-preview.contentstack.com',
+  GCP_NA: 'gcp-na-rest-preview.contentstack.com',
+};
+
 // Get fresh config on each call - don't cache, as env vars may become available at runtime
 function getStackConfig() {
+  const region = (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US';
   return {
     api_key: process.env.CONTENTSTACK_API_KEY || '',
     delivery_token: process.env.CONTENTSTACK_DELIVERY_TOKEN || '',
     preview_token: process.env.CONTENTSTACK_PREVIEW_TOKEN || '',
     environment: process.env.CONTENTSTACK_ENVIRONMENT || 'dev',
-    region: (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US',
+    region,
     live_preview: process.env.CONTENTSTACK_LIVE_PREVIEW === 'true',
     app_host: process.env.CONTENTSTACK_APP_HOST || 'app.contentstack.com',
-    // Empty string means "let SDK auto-detect from region" which is the safest default.
-    // Only set explicitly if you need to override (e.g., custom proxy).
-    preview_host: process.env.CONTENTSTACK_PREVIEW_HOST || '',
+    preview_host: process.env.CONTENTSTACK_PREVIEW_HOST || REGION_PREVIEW_HOST[region] || REGION_PREVIEW_HOST.US,
   };
 }
 
@@ -44,18 +52,14 @@ function initializeStack() {
         });
       }
 
-      // Build live_preview config - let SDK auto-detect host from region unless explicitly overridden
-      // IMPORTANT: Setting host explicitly in live_preview overrides SDK's region-based auto-detection.
-      // Only pass host if CONTENTSTACK_PREVIEW_HOST is explicitly set in env vars.
+      // Build live_preview config with explicit host (required for Visual Builder token validation)
       let livePreviewConfig: Record<string, any> | undefined;
       if (stackConfig.live_preview && stackConfig.preview_token) {
         livePreviewConfig = {
           preview_token: stackConfig.preview_token,
           enable: true,
+          host: stackConfig.preview_host,
         };
-        if (stackConfig.preview_host) {
-          livePreviewConfig.host = stackConfig.preview_host;
-        }
       }
 
       // Initialize Stack with Live Preview support
