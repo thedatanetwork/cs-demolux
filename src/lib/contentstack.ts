@@ -168,7 +168,7 @@ export function getUrlHref(url: string | ContentstackUrl | undefined): string {
 export interface Product {
   uid: string;
   title: string;
-  url: string | ContentstackUrl;  // Link field: { title, href } (e.g., /products/product-name)
+  url: string;  // Text field: URL path (e.g., /products/product-name)
   description: string;
   detailed_description?: string; // New field for product detail pages
   featured_image: Array<{
@@ -203,7 +203,7 @@ export interface Product {
 export interface BlogPost {
   uid: string;
   title: string;
-  url: string | ContentstackUrl;  // Link field: { title, href } (e.g., /blog/post-title)
+  url: string;  // Text field: URL path (e.g., /blog/post-title)
   content: any; // JSON RTE document object or HTML string (after jsonToHTML conversion)
   featured_image?: Array<{
     uid: string;
@@ -693,7 +693,7 @@ export interface EmbeddedBlock {
 export interface ModularHomePage {
   uid: string;
   title: string;
-  url: string | ContentstackUrl;  // URL field (link type) for page routing — required by Visual Builder
+  url: string;  // Text field: URL path for page routing — required by Visual Builder
   // Supports both reference-based blocks and true embedded modular blocks
   page_sections: (ModularBlock | EmbeddedBlock)[];
   seo?: {
@@ -713,7 +713,7 @@ export interface ModularHomePage {
 export interface BlogPage {
   uid: string;
   title: string;
-  url?: string | ContentstackUrl;  // URL field (link type) for page routing
+  url?: string;  // Text field: URL path for page routing
   page_sections: ModularBlock[];
   seo?: {
     meta_title?: string;
@@ -929,7 +929,7 @@ export class ContentstackService {
     });
 
     const products = await this.getEntries<Product>('product', {
-      where: { 'url.href': `/products/${slug}` }
+      where: { url: `/products/${slug}` }
     }, variantAliases);
     
     console.log('📦 ContentstackService.getProductBySlug result:', {
@@ -973,7 +973,7 @@ export class ContentstackService {
 
   async getBlogPostBySlug(slug: string, variantAliases?: string[]): Promise<BlogPost | null> {
     const posts = await this.getEntries<BlogPost>('blog_post', {
-      where: { 'url.href': `/blog/${slug}` }
+      where: { url: `/blog/${slug}` }
     }, variantAliases);
     return posts[0] || null;
   }

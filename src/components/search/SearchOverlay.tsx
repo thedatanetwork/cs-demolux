@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import Link from 'next/link';
-import { type Product, getUrlHref } from '@/lib/contentstack';
+import { type Product } from '@/lib/contentstack';
 import { sendLyticsEvent } from '@/lib/tracking-utils';
 
 interface SearchOverlayProps {
@@ -145,7 +145,7 @@ export function SearchOverlay({ isOpen, onClose, products }: SearchOverlayProps)
                 return (
                   <Link
                     key={product.uid}
-                    href={getUrlHref(product.url)}
+                    href={product.url}
                     onClick={() => handleResultClick(product)}
                     className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl hover:border-gold-400 transition-all duration-300 group flex"
                   >

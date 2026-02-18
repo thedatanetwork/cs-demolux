@@ -11,7 +11,6 @@ import { formatPrice } from '@/lib/utils';
 import { Plus, Minus, Trash2, ArrowRight, ShoppingBag } from 'lucide-react';
 import { dataService } from '@/lib/data-service';
 import { sendLyticsEvent } from '@/lib/tracking-utils';
-import { getUrlHref } from '@/lib/contentstack';
 
 export default function CartPage() {
   const { state, updateQuantity, removeItem, clearCart } = useCart();
@@ -241,7 +240,7 @@ export default function CartPage() {
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                   <h3 className="font-semibold text-gray-900 mb-1">
-                                    <Link href={getUrlHref(item.product.url)} className="hover:text-gold-600 transition-colors">
+                                    <Link href={item.product.url} className="hover:text-gold-600 transition-colors">
                                       {item.product.title}
                                     </Link>
                                   </h3>
