@@ -75,30 +75,6 @@ if (typeof window !== 'undefined' && isLivePreviewEnabled) {
       exclude: ['outsideLivePreviewPortal'],
     },
   });
-
-  // Mark SDK as ready so the early interceptor (layout.tsx) stops catching messages.
-  // Then replay any VB messages that arrived before this module loaded.
-  // The interceptor already sent ACKs, so VB is still listening for RESPONSEs.
-  (window as any).__csVBSdkReady = true;
-
-  const buffered = (window as any).__csVBBuffer as Array<{
-    data: any;
-    source: MessageEventSource | null;
-    origin: string;
-  }> | undefined;
-
-  if (buffered && buffered.length > 0) {
-    (window as any).__csVBBuffer = [];
-    buffered.forEach((msg) => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          data: msg.data,
-          source: msg.source,
-          origin: msg.origin,
-        })
-      );
-    });
-  }
 }
 
 // onEntryChange returns a callback UID string for unsubscription

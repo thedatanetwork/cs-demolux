@@ -9,9 +9,9 @@ import LyticsTracker from '@/components/LyticsTracker'
 import PathforaStyleFix from '@/components/PathforaStyleFix'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
-const playfair = Playfair_Display({ 
-  subsets: ['latin'], 
-  variable: '--font-playfair' 
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair'
 })
 
 export const metadata: Metadata = {
@@ -27,16 +27,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <head>
-        {/*
-          Early Visual Builder ACK interceptor — MUST be in <head> to run before
-          any JS bundle loads. VB sends an init REQUEST on the "visual-builder"
-          and "live-preview" channels via postMessage. If no ACK arrives within
-          ~1000ms, VB gives up and never retries. This script ACKs those messages
-          and buffers them so the SDK can replay after loading.
-        */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){if(typeof window==='undefined')return;var CH='contentstack-adv-post-message';var buf=[];window.__csVBBuffer=buf;window.__csVBSdkReady=false;window.addEventListener('message',function(e){if(window.__csVBSdkReady)return;var d=e.data;if(!d||d.eventManager!==CH)return;if(!d.metadata||d.metadata.nature!=='REQUEST')return;buf.push({data:d,source:e.source,origin:e.origin});if(e.source&&typeof e.source.postMessage==='function'){e.source.postMessage({eventManager:CH,metadata:{hash:d.metadata.hash,nature:'ACK'},channel:d.channel,type:d.type},e.origin);}});})();` }} />
-      </head>
       <body className="min-h-screen bg-white">
         <CartProvider>
           <PersonalizeProvider>
