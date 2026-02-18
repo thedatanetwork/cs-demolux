@@ -1,5 +1,4 @@
 import Contentstack from 'contentstack';
-import ContentstackLivePreview from '@contentstack/live-preview-utils';
 import { addEditableTags as addTags } from '@contentstack/utils';
 
 // Lazy initialization for Contentstack
@@ -98,9 +97,6 @@ function getStack() {
   return initializeStack();
 }
 
-// Export Live Preview utilities
-export { ContentstackLivePreview };
-
 // Export Stack getter for lazy initialization
 export { getStack, getStack as Stack };
 
@@ -148,22 +144,9 @@ export function addEditableTags<T>(
   return entry;
 }
 
-// Type definitions for our content models
-// Contentstack Link/URL field type
-export interface ContentstackUrl {
-  title: string;
-  href: string;
-}
-
-/**
- * Helper to extract href from Contentstack URL/link field
- * Handles both string format (legacy) and object format { title, href }
- */
-export function getUrlHref(url: string | ContentstackUrl | undefined): string {
-  if (!url) return '';
-  if (typeof url === 'string') return url;
-  return url.href || '';
-}
+// Re-export shared URL utilities (defined in content-utils.ts to avoid client bundling of server SDK)
+export { getUrlHref } from './content-utils';
+export type { ContentstackUrl } from './content-utils';
 
 export interface Product {
   uid: string;

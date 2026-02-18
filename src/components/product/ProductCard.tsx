@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Product } from '@/lib/contentstack';
-import { getUrlHref } from '@/lib/contentstack';
+import { getUrlHref } from '@/lib/content-utils';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/contexts/CartContext';

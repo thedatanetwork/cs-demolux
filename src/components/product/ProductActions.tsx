@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/contexts/CartContext';
 import type { Product } from '@/lib/contentstack';
-import { getUrlHref } from '@/lib/contentstack';
+import { getUrlHref } from '@/lib/content-utils';
 import { ShoppingCart, Heart, Share2, Check } from 'lucide-react';
 import { useProductTracking } from '@/components/PersonalizeEventTracker';
 import { ShareModal } from './ShareModal';
