@@ -27,35 +27,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <head>
-        {/*
-          Early Visual Builder init interceptor — must be a raw <script> (not next/script)
-          so it executes synchronously during HTML parsing, BEFORE any JS bundles load.
-          The VB sends an init REQUEST on the "visual-builder" postMessage channel
-          immediately when the iframe loads. The SDK's 1000ms ACK timeout is too tight
-          to survive React hydration. This script ACKs that init instantly and buffers
-          the message for the SDK to send a proper RESPONSE after it loads.
-        */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){
-var CH='contentstack-adv-post-message';
-var buf=[];
-window.__csVBBuffer=buf;
-window.__csVBSdkReady=false;
-console.log('[VB-Interceptor] Early ACK interceptor installed');
-window.addEventListener('message',function(e){
-  if(window.__csVBSdkReady)return;
-  var d=e.data;
-  if(!d||d.eventManager!==CH)return;
-  if(!d.metadata||d.metadata.nature!=='REQUEST')return;
-  if(d.channel!=='visual-builder'||d.type!=='init')return;
-  console.log('[VB-Interceptor] Caught VB init, sending early ACK for hash:',d.metadata.hash);
-  buf.push({data:d,source:e.source,origin:e.origin});
-  if(e.source&&typeof e.source.postMessage==='function'){
-    e.source.postMessage({eventManager:CH,metadata:{hash:d.metadata.hash,nature:'ACK'},channel:d.channel,type:d.type},e.origin);
-  }
-});
-})();` }} />
-      </head>
       <body className="min-h-screen bg-white">
         <CartProvider>
           <PersonalizeProvider>
