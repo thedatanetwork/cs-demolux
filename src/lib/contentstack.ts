@@ -694,6 +694,7 @@ export interface EmbeddedBlock {
 export interface ModularHomePage {
   uid: string;
   title: string;
+  url: string | ContentstackUrl;  // URL field (link type) for page routing — required by Visual Builder
   // Supports both reference-based blocks and true embedded modular blocks
   page_sections: (ModularBlock | EmbeddedBlock)[];
   seo?: {
@@ -713,7 +714,7 @@ export interface ModularHomePage {
 export interface BlogPage {
   uid: string;
   title: string;
-  url?: string;
+  url?: string | ContentstackUrl;  // URL field (link type) for page routing
   page_sections: ModularBlock[];
   seo?: {
     meta_title?: string;
