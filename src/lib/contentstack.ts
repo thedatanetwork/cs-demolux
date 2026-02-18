@@ -169,7 +169,7 @@ export function getUrlHref(url: string | ContentstackUrl | undefined): string {
 export interface Product {
   uid: string;
   title: string;
-  url: string;  // Text URL path for Visual Builder (e.g., /products/product-name)
+  url: string | ContentstackUrl;  // Link field: { title, href } (e.g., /products/product-name)
   description: string;
   detailed_description?: string; // New field for product detail pages
   featured_image: Array<{
@@ -204,7 +204,7 @@ export interface Product {
 export interface BlogPost {
   uid: string;
   title: string;
-  url: string;  // Text URL path for Visual Builder (e.g., /blog/post-title)
+  url: string | ContentstackUrl;  // Link field: { title, href } (e.g., /blog/post-title)
   content: any; // JSON RTE document object or HTML string (after jsonToHTML conversion)
   featured_image?: Array<{
     uid: string;
@@ -929,7 +929,7 @@ export class ContentstackService {
     });
 
     const products = await this.getEntries<Product>('product', {
-      where: { url: `/products/${slug}` }
+      where: { 'url.href': `/products/${slug}` }
     }, variantAliases);
     
     console.log('📦 ContentstackService.getProductBySlug result:', {
@@ -973,7 +973,7 @@ export class ContentstackService {
 
   async getBlogPostBySlug(slug: string, variantAliases?: string[]): Promise<BlogPost | null> {
     const posts = await this.getEntries<BlogPost>('blog_post', {
-      where: { url: `/blog/${slug}` }
+      where: { 'url.href': `/blog/${slug}` }
     }, variantAliases);
     return posts[0] || null;
   }
