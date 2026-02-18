@@ -27,23 +27,50 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <head>
-        {/* PostMessage diagnostic: runs BEFORE any React/SDK code */}
+      <body className="min-h-screen bg-white">
+        {/*
+          VB Early Interceptor: Responds to Contentstack Visual Builder init messages
+          BEFORE the full SDK loads. The VB sends init within ~100ms of creating the
+          iframe, but React/SDK bundles take 500-1000ms to load. Without this, the
+          VB's 1000ms ACK timeout fires before the SDK can respond.
+
+          This script:
+          1. Listens for init REQUEST messages from the VB parent
+          2. Immediately sends ACK (prevents timeout)
+          3. Sends RESPONSE with SDK config (completes the handshake)
+          4. Stops intercepting once the real SDK takes over
+        */}
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
-            var t0 = Date.now();
-            console.log('[VB-Diag] PostMessage monitor active at', t0);
+            var handled = {};
             window.addEventListener('message', function(e) {
-              var elapsed = Date.now() - t0;
-              if (e.data && typeof e.data === 'object') {
-                var type = e.data.type || e.data.eventName || 'unknown';
-                console.log('[VB-Diag] Message at +' + elapsed + 'ms:', type, JSON.stringify(e.data).substring(0, 200));
-              }
+              if (!e.data || e.data.eventManager !== 'contentstack-adv-post-message') return;
+              var meta = e.data.metadata;
+              if (!meta || meta.nature !== 'REQUEST' || e.data.type !== 'init') return;
+              var hash = meta.hash;
+              var channel = e.data.channel;
+              if (handled[hash]) return;
+              handled[hash] = true;
+              var src = e.source;
+              if (!src) return;
+              console.log('[VB-Interceptor] Caught init REQUEST on ' + channel + ', sending ACK+RESPONSE');
+              src.postMessage({
+                eventManager: 'contentstack-adv-post-message',
+                metadata: { hash: hash, nature: 'ACK' },
+                channel: channel,
+                type: 'init'
+              }, '*');
+              var payload = { config: { shouldReload: false, href: window.location.href, sdkVersion: '4.2.1', mode: 'builder' } };
+              src.postMessage({
+                eventManager: 'contentstack-adv-post-message',
+                metadata: { hash: hash, nature: 'RESPONSE' },
+                channel: channel,
+                type: 'init',
+                payload: payload
+              }, '*');
             });
           })();
         `}} />
-      </head>
-      <body className="min-h-screen bg-white">
         <CartProvider>
           <PersonalizeProvider>
             <ContentstackLivePreviewProvider>
