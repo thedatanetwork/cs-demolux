@@ -27,6 +27,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+      <head>
+        {/* PostMessage diagnostic: runs BEFORE any React/SDK code */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            var t0 = Date.now();
+            console.log('[VB-Diag] PostMessage monitor active at', t0);
+            window.addEventListener('message', function(e) {
+              var elapsed = Date.now() - t0;
+              if (e.data && typeof e.data === 'object') {
+                var type = e.data.type || e.data.eventName || 'unknown';
+                console.log('[VB-Diag] Message at +' + elapsed + 'ms:', type, JSON.stringify(e.data).substring(0, 200));
+              }
+            });
+          })();
+        `}} />
+      </head>
       <body className="min-h-screen bg-white">
         <CartProvider>
           <PersonalizeProvider>

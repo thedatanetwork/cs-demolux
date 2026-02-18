@@ -58,7 +58,18 @@ if (region === 'EU') {
 export const stack = Contentstack.Stack(stackConfig);
 
 // Initialize Live Preview + Visual Builder synchronously at module load time
-if (typeof window !== 'undefined' && isLivePreviewEnabled && apiKey && previewToken) {
+// Match SewnThrone pattern: only check window + isLivePreviewEnabled (no extra guards)
+if (typeof window !== 'undefined' && isLivePreviewEnabled) {
+  console.log('[CS-SDK] Initializing Live Preview...', {
+    hasApiKey: !!apiKey,
+    hasPreviewToken: !!previewToken,
+    hasDeliveryToken: !!deliveryToken,
+    environment,
+    region,
+    appHost,
+    previewHost,
+  });
+
   ContentstackLivePreview.init({
     ssr: false,
     enable: true,
@@ -77,7 +88,7 @@ if (typeof window !== 'undefined' && isLivePreviewEnabled && apiKey && previewTo
     },
   });
 
-  console.log('Contentstack Live Preview initialized (Visual Builder mode)');
+  console.log('[CS-SDK] Live Preview initialized (Visual Builder mode)');
 }
 
 // onEntryChange returns a callback UID string for unsubscription
