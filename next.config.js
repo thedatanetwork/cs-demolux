@@ -28,19 +28,6 @@ const nextConfig = {
       }
     ],
   },
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://app.contentstack.com https://*.contentstack.com",
-          },
-        ],
-      },
-    ];
-  },
 }
 
 module.exports = nextConfig

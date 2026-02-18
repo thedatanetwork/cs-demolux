@@ -68,7 +68,6 @@ function initializeStack() {
         delivery_token: stackConfig.delivery_token,
         environment: stackConfig.environment,
         region: Contentstack.Region[stackConfig.region as keyof typeof Contentstack.Region] || Contentstack.Region.US,
-        branch: 'main',
         live_preview: livePreviewConfig as any,
       });
 

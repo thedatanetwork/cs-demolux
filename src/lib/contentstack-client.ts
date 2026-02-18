@@ -35,7 +35,6 @@ const stackConfig: any = {
   api_key: apiKey,
   delivery_token: deliveryToken,
   environment,
-  branch: 'main',
   live_preview: isLivePreviewEnabled
     ? {
         preview_token: previewToken,
