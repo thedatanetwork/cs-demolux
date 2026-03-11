@@ -228,10 +228,10 @@ export default function DynamicFeedsPage() {
             </div>
 
             <h1 className="font-heading text-4xl md:text-6xl font-bold mb-6">
-              <span className="text-gradient bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent">
                 Merchandising
               </span>{' '}
-              Rule Engine
+              <span className="text-white">Rule Engine</span>
             </h1>
 
             <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl">
