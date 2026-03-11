@@ -213,6 +213,7 @@ const demoFeeds: DynamicProductFeedConfig[] = [
 
 export default function DynamicFeedsPage() {
   const [showRuleDetails, setShowRuleDetails] = useState(false);
+  const [showImages, setShowImages] = useState(false);
 
   return (
     <div className="min-h-screen bg-white">
@@ -250,10 +251,21 @@ export default function DynamicFeedsPage() {
 
             <div className="flex flex-wrap gap-3">
               <button
-                onClick={() => setShowRuleDetails(!showRuleDetails)}
-                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors"
+                onClick={() => setShowImages(!showImages)}
+                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  showImages ? 'bg-gold-400 text-gray-900 hover:bg-gold-500' : 'bg-white/10 hover:bg-white/20'
+                }`}
               >
-                {showRuleDetails ? 'Hide' : 'Show'} Rule Details on Each Feed
+                {showImages ? 'Images On' : 'Images Off'}
+              </button>
+
+              <button
+                onClick={() => setShowRuleDetails(!showRuleDetails)}
+                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  showRuleDetails ? 'bg-white/20' : 'bg-white/10 hover:bg-white/20'
+                }`}
+              >
+                {showRuleDetails ? 'Hide' : 'Show'} Rule Details
               </button>
 
               <div className="px-5 py-2.5 bg-white/5 rounded-lg text-sm text-gray-400">
@@ -288,7 +300,7 @@ export default function DynamicFeedsPage() {
           {showRuleDetails && feed.visibility && (
             <RuleDetailsBar config={feed} index={index} />
           )}
-          <DynamicProductFeedBlock config={feed} />
+          <DynamicProductFeedBlock config={feed} showImages={showImages} />
         </div>
       ))}
 

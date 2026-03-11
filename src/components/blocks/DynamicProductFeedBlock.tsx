@@ -4,7 +4,9 @@ import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
+import type { Product } from '@/lib/contentstack';
+import { formatPrice } from '@/lib/utils';
 import {
   type DynamicProductFeedConfig,
   resolveDynamicFeed,
@@ -12,6 +14,7 @@ import {
 
 interface DynamicProductFeedBlockProps {
   config: DynamicProductFeedConfig;
+  showImages?: boolean;
 }
 
 /**
@@ -27,7 +30,7 @@ interface DynamicProductFeedBlockProps {
  *   - Supports carousel and grid display styles
  *   - Uses existing ProductCard component
  */
-export function DynamicProductFeedBlock({ config }: DynamicProductFeedBlockProps) {
+export function DynamicProductFeedBlock({ config, showImages = true }: DynamicProductFeedBlockProps) {
   const products = resolveDynamicFeed(config);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -61,6 +64,13 @@ export function DynamicProductFeedBlock({ config }: DynamicProductFeedBlockProps
   };
 
   const isCarousel = config.display_style === 'carousel';
+
+  const renderCard = (product: Product) =>
+    showImages ? (
+      <ProductCard product={product} />
+    ) : (
+      <PlaceholderCard product={product} />
+    );
 
   return (
     <section
@@ -141,14 +151,14 @@ export function DynamicProductFeedBlock({ config }: DynamicProductFeedBlockProps
                 key={product.uid}
                 className="product-feed-card flex-shrink-0 w-[280px] md:w-[320px] snap-start"
               >
-                <ProductCard product={product} />
+                {renderCard(product)}
               </div>
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {products.map(product => (
-              <ProductCard key={product.uid} product={product} />
+              <div key={product.uid}>{renderCard(product)}</div>
             ))}
           </div>
         )}
@@ -166,5 +176,29 @@ export function DynamicProductFeedBlock({ config }: DynamicProductFeedBlockProps
         )}
       </div>
     </section>
+  );
+}
+
+function PlaceholderCard({ product }: { product: Product }) {
+  return (
+    <div className="card-hover group">
+      <div className="relative aspect-square bg-gray-100 flex items-center justify-center">
+        <div className="text-center px-4">
+          <ImageOff className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+          <span className="text-xs text-gray-400">Image placeholder</span>
+        </div>
+      </div>
+      <div className="p-6">
+        <h3 className="font-heading text-xl font-semibold text-gray-900 line-clamp-2">
+          {product.title}
+        </h3>
+        {product.description && (
+          <p className="text-gray-600 text-sm mt-2 line-clamp-2">{product.description}</p>
+        )}
+        <div className="mt-3">
+          <span className="text-2xl font-bold text-gray-900">{formatPrice(product.price)}</span>
+        </div>
+      </div>
+    </div>
   );
 }
