@@ -20,6 +20,10 @@ export function ContentstackLivePreviewProvider({ children }: ContentstackLivePr
 
   useEffect(() => {
     if (!isLivePreviewEnabled) return;
+    // Only listen for entry changes inside the Visual Builder iframe.
+    // Outside the iframe, onEntryChange fires on init and can cause
+    // a refresh loop on pages without a CMS entry (e.g., 404).
+    if (typeof window !== 'undefined' && window.self === window.top) return;
     const unsubscribe = onEntryChange(() => {
       router.refresh();
     });
