@@ -65,8 +65,11 @@ function FullWidthCTA({
   };
 
   const height = heightClasses[block.height || 'medium'];
-  const isLightText = block.text_color === 'light';
   const isGoldBg = block.background_style === 'gradient-gold';
+  // Default to light text on dark/gold backgrounds — don't require a separate field
+  const isLightText = block.text_color === 'light'
+    || block.background_style === 'gradient-dark'
+    || isGoldBg;
   const accentClass = isGoldBg ? 'text-white' : 'bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent';
 
   return (
@@ -202,7 +205,9 @@ function CenteredCTA({
     }, 1000);
   };
 
-  const isLightText = block.text_color === 'light';
+  const isLightText = block.text_color === 'light'
+    || block.background_style === 'gradient-dark'
+    || block.background_style === 'gradient-gold';
   const isGoldBg = block.background_style === 'gradient-gold';
   const accentClass = isGoldBg ? 'text-white' : 'bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent';
   const heightClasses = {
@@ -327,7 +332,9 @@ function SplitCTA({
   backgroundImage?: ImageType;
   onCTAClick: (id: string, url: string) => void;
 }) {
-  const isLightText = block.text_color === 'light';
+  const isLightText = block.text_color === 'light'
+    || block.background_style === 'gradient-dark'
+    || block.background_style === 'gradient-gold';
 
   return (
     <section className={`section-spacing ${block.background_style === 'gradient-dark' ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white' : block.background_style === 'gradient-gold' ? 'bg-gradient-to-br from-gold-600 to-gold-700 text-white' : 'bg-gray-50'} relative overflow-hidden`}>
@@ -423,7 +430,9 @@ function AnnouncementBanner({
   block: CampaignCTABlockType;
   onCTAClick: (id: string, url: string) => void;
 }) {
-  const isLightText = block.text_color === 'light';
+  const isLightText = block.text_color === 'light'
+    || block.background_style === 'gradient-dark'
+    || block.background_style === 'gradient-gold';
 
   return (
     <section className={`${block.background_style === 'gradient-dark' ? 'bg-gradient-to-r from-gray-900 to-gray-800 text-white' : block.background_style === 'gradient-gold' ? 'bg-gradient-to-r from-gold-600 to-gold-500 text-white' : 'bg-gray-900 text-white'} py-4`}>
