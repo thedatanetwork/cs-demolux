@@ -66,10 +66,9 @@ function FullWidthCTA({
 
   const height = heightClasses[block.height || 'medium'];
   const isGoldBg = block.background_style === 'gradient-gold';
-  // Default to light text on dark/gold backgrounds — don't require a separate field
-  const isLightText = block.text_color === 'light'
-    || block.background_style === 'gradient-dark'
-    || isGoldBg;
+  // Default to light text — the component's default background is dark (bg-gray-900).
+  // Only use dark text if explicitly set.
+  const isLightText = block.text_color !== 'dark';
   const accentClass = isGoldBg ? 'text-white' : 'bg-gradient-to-r from-gold-400 to-gold-600 bg-clip-text text-transparent';
 
   return (
