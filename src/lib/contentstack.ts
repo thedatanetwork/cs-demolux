@@ -1,144 +1,41 @@
-import Contentstack from 'contentstack';
-import { addEditableTags as addTags } from '@contentstack/utils';
+/**
+ * Shared stack instance for both server and client.
+ *
+ * Uses the same stack from contentstack-client.ts so that the Live Preview SDK
+ * (initialized in contentstack-client.ts) and the data-fetching service class
+ * operate on the same Contentstack stack. This is required for Visual Builder
+ * to correlate server-fetched data with client-side editing.
+ */
+import { stack as _sharedStack, isLivePreviewEnabled } from './contentstack-client';
+import { addEditableTags as _addEditableTags } from '@contentstack/utils';
 
-// Lazy initialization for Contentstack
-// This is necessary because the module may be loaded during build when env vars aren't available
-// but they ARE available at runtime (e.g., on Contentstack Launch)
-let _Stack: any = null;
+// Use the shared stack from contentstack-client.ts
 
-// Region-based preview host mapping (must be explicit for Visual Builder token validation)
-const REGION_PREVIEW_HOST: Record<string, string> = {
-  US: 'rest-preview.contentstack.com',
-  EU: 'eu-rest-preview.contentstack.com',
-  AZURE_NA: 'azure-na-rest-preview.contentstack.com',
-  AZURE_EU: 'azure-eu-rest-preview.contentstack.com',
-  GCP_NA: 'gcp-na-rest-preview.contentstack.com',
-};
-
-// Get fresh config on each call - don't cache, as env vars may become available at runtime
-function getStackConfig() {
-  const region = (process.env.CONTENTSTACK_REGION as keyof typeof Contentstack.Region) || 'US';
-  return {
-    api_key: process.env.CONTENTSTACK_API_KEY || '',
-    delivery_token: process.env.CONTENTSTACK_DELIVERY_TOKEN || '',
-    preview_token: process.env.CONTENTSTACK_PREVIEW_TOKEN || '',
-    environment: process.env.CONTENTSTACK_ENVIRONMENT || 'dev',
-    region,
-    live_preview: process.env.CONTENTSTACK_LIVE_PREVIEW === 'true',
-    app_host: process.env.CONTENTSTACK_APP_HOST || 'app.contentstack.com',
-    preview_host: process.env.CONTENTSTACK_PREVIEW_HOST || REGION_PREVIEW_HOST[region] || REGION_PREVIEW_HOST.US,
-  };
-}
-
-function initializeStack() {
-  // If already initialized successfully, return cached Stack
-  if (_Stack) return _Stack;
-
-  const stackConfig = getStackConfig();
-  const isServer = typeof window === 'undefined';
-
-  // Only initialize if credentials are available
-  if (stackConfig.api_key && stackConfig.delivery_token) {
-    try {
-      if (isServer) {
-        console.log('Contentstack config:', {
-          api_key: stackConfig.api_key ? `${stackConfig.api_key.substring(0, 10)}...` : 'missing',
-          delivery_token: stackConfig.delivery_token ? `${stackConfig.delivery_token.substring(0, 10)}...` : 'missing',
-          preview_token: stackConfig.preview_token ? `${stackConfig.preview_token.substring(0, 10)}...` : 'not set',
-          environment: stackConfig.environment,
-          region: stackConfig.region,
-          live_preview: stackConfig.live_preview
-        });
-      }
-
-      // Build live_preview config with explicit host (required for Visual Builder token validation)
-      let livePreviewConfig: Record<string, any> | undefined;
-      if (stackConfig.live_preview && stackConfig.preview_token) {
-        livePreviewConfig = {
-          preview_token: stackConfig.preview_token,
-          enable: true,
-          host: stackConfig.preview_host,
-        };
-      }
-
-      // Initialize Stack with Live Preview support
-      _Stack = Contentstack.Stack({
-        api_key: stackConfig.api_key,
-        delivery_token: stackConfig.delivery_token,
-        environment: stackConfig.environment,
-        region: Contentstack.Region[stackConfig.region as keyof typeof Contentstack.Region] || Contentstack.Region.US,
-        live_preview: livePreviewConfig as any,
-      });
-
-      if (isServer) {
-        console.log('Contentstack initialized successfully');
-        if (stackConfig.live_preview && stackConfig.preview_token) {
-          const resolvedHost = (_Stack as any)?.live_preview?.host;
-          console.log('Live Preview enabled:', {
-            preview_host_resolved: resolvedHost || 'default',
-            preview_host_override: stackConfig.preview_host || 'none (auto-detect from region)',
-            region: stackConfig.region,
-            preview_token: stackConfig.preview_token ? `${stackConfig.preview_token.substring(0, 8)}...` : 'MISSING',
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Failed to initialize Contentstack:', error);
-    }
-  } else if (isServer) {
-    console.warn('Contentstack not configured - credentials will be checked at runtime');
-  }
-
-  return _Stack;
-}
-
-// Lazy getter for Stack
 function getStack() {
-  return initializeStack();
+  return _sharedStack;
 }
 
-// Export Stack getter for lazy initialization
 export { getStack, getStack as Stack };
 
-// Export stack config getter for live preview initialization
-export function getStackConfigForPreview() {
-  const config = getStackConfig();
-  return {
-    api_key: config.api_key,
-    environment: config.environment,
-    preview_token: config.preview_token,
-    live_preview: config.live_preview,
-    app_host: config.app_host,
-    preview_host: config.preview_host,
-  };
-}
-
 /**
- * Add editable tags to entry for Visual Builder field-level editing
- *
- * This function modifies the entry in-place to add a `$` object at each level
- * containing data-cslp attributes for field editing.
- *
- * @param entry - The entry object from Contentstack
- * @param contentTypeUid - The content type UID
- * @param locale - The locale (default: 'en-us')
- * @returns The entry with editable tags added
+ * Add editable tags to entry for Visual Builder field-level editing.
+ * Uses tagsAsObject: true so React can spread the tags as props.
  */
 export function addEditableTags<T>(
   entry: T,
   contentTypeUid: string,
-  locale: string = 'en-us'
+  tagsAsObject: boolean = true
 ): T {
-  if (!entry || !getStackConfig().live_preview) {
+  if (!entry || !isLivePreviewEnabled) {
     return entry;
   }
 
   try {
-    // Use Contentstack Utils to add editable tags
-    // tagsAsObject: true for React (returns { 'data-cslp': '...' } instead of string)
-    addTags(entry as any, contentTypeUid, true, locale);
+    _addEditableTags(entry as any, contentTypeUid, tagsAsObject);
   } catch (error) {
-    console.warn('Failed to add editable tags:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Contentstack] Failed to add editable tags:', error);
+    }
   }
 
   return entry;
@@ -1267,6 +1164,288 @@ export class ContentstackService {
 
     return this.getEntries<Testimonial>('testimonial', query, variantAliases);
   }
+
+  // ============================================================================
+  // DYNAMIC FEEDS PAGE
+  // ============================================================================
+
+  async getDynamicFeedsPage(variantAliases?: string[]): Promise<DynamicFeedsPageEntry | null> {
+    if (!this.isConfigured()) {
+      return null;
+    }
+
+    try {
+      const Query = this.stack.ContentType('dynamic_feeds_page').Query();
+      // Resolve component_list references (dynamic_product_feed entries)
+      // and their nested rule_group reference fields
+      Query.includeReference([
+        'component_list',
+        'component_list.rule_group.include_categories',
+        'component_list.rule_group.exclude_categories',
+        'component_list.rule_group.brand_include',
+        'component_list.rule_group.brand_exclude',
+        'component_list.rule_group.include_tags',
+        'component_list.rule_group.exclude_tags',
+        'component_list.rule_group.strain_include',
+        'component_list.rule_group.discount_category_include',
+        'component_list.rule_group.discount_category_exclude',
+        'component_list.fallback_rule_group.include_categories',
+        'component_list.fallback_rule_group.exclude_categories',
+        'component_list.fallback_rule_group.brand_include',
+        'component_list.fallback_rule_group.brand_exclude',
+        'component_list.fallback_rule_group.include_tags',
+        'component_list.fallback_rule_group.exclude_tags',
+        'component_list.fallback_rule_group.strain_include',
+        'component_list.fallback_rule_group.discount_category_include',
+        'component_list.fallback_rule_group.discount_category_exclude',
+      ]);
+      Query.includeMetadata();
+      Query.limit(1);
+
+      if (variantAliases && variantAliases.length > 0) {
+        Query.variants(variantAliases.join(','));
+      }
+
+      const result = await Query.toJSON().find();
+      return result[0]?.[0] || null;
+    } catch (error) {
+      console.error('Error fetching dynamic_feeds_page:', error);
+      return null;
+    }
+  }
+
+  // ============================================================================
+  // DROPDOWN-BASED DYNAMIC FEEDS PAGE
+  // ============================================================================
+
+  async getDynamicFeedsDropdownPage(variantAliases?: string[]): Promise<DynamicFeedsDropdownPageEntry | null> {
+    if (!this.isConfigured()) {
+      return null;
+    }
+
+    try {
+      const Query = this.stack.ContentType('dynamic_feeds_dropdown_page').Query();
+      // Resolve component_list references — no nested rule_group refs needed
+      // because dropdown fields return string values directly
+      Query.includeReference(['component_list']);
+      Query.includeMetadata();
+      Query.limit(1);
+
+      if (variantAliases && variantAliases.length > 0) {
+        Query.variants(variantAliases.join(','));
+      }
+
+      const result = await Query.toJSON().find();
+      return result[0]?.[0] || null;
+    } catch (error) {
+      console.error('Error fetching dynamic_feeds_dropdown_page:', error);
+      return null;
+    }
+  }
+
+  // ============================================================================
+  // DYNAMIC PRODUCT FEED METHODS
+  // ============================================================================
+
+  async getDynamicProductFeeds(variantAliases?: string[]): Promise<DynamicProductFeedEntry[]> {
+    if (!this.isConfigured()) {
+      return [];
+    }
+
+    try {
+      const Query = this.stack.ContentType('dynamic_product_feed').Query();
+      // Include references within the embedded global field
+      Query.includeReference([
+        'rule_group.include_categories',
+        'rule_group.exclude_categories',
+        'rule_group.brand_include',
+        'rule_group.brand_exclude',
+        'rule_group.include_tags',
+        'rule_group.exclude_tags',
+        'rule_group.strain_include',
+        'rule_group.discount_category_include',
+        'rule_group.discount_category_exclude',
+        'fallback_rule_group.include_categories',
+        'fallback_rule_group.exclude_categories',
+        'fallback_rule_group.brand_include',
+        'fallback_rule_group.brand_exclude',
+        'fallback_rule_group.include_tags',
+        'fallback_rule_group.exclude_tags',
+        'fallback_rule_group.strain_include',
+        'fallback_rule_group.discount_category_include',
+        'fallback_rule_group.discount_category_exclude',
+      ]);
+      Query.includeMetadata();
+
+      if (variantAliases && variantAliases.length > 0) {
+        Query.variants(variantAliases.join(','));
+      }
+
+      const result = await Query.toJSON().find();
+      return result[0] || [];
+    } catch (error) {
+      console.error('Error fetching dynamic_product_feed entries:', error);
+      return [];
+    }
+  }
+
+  async getComposablePage(variantAliases?: string[]): Promise<ComposablePageEntry | null> {
+    if (!this.isConfigured()) return null;
+
+    try {
+      const Query = this.stack.ContentType('composable_page').Query();
+      Query.includeReference(['page_sections']);
+      Query.includeEmbeddedItems();
+      Query.includeMetadata();
+      Query.limit(1);
+
+      if (variantAliases && variantAliases.length > 0) {
+        Query.variants(variantAliases.join(','));
+      }
+
+      const result = await Query.toJSON().find();
+      return result[0]?.[0] || null;
+    } catch (error) {
+      console.error('Error fetching composable_page:', error);
+      return null;
+    }
+  }
+}
+
+// ============================================================================
+// DYNAMIC PRODUCT FEED TYPES
+// ============================================================================
+
+/** A resolved reference entry from a reference content type (categories, brands, tags, etc.) */
+export interface RuleRefEntry {
+  uid: string;
+  title: string;
+  value: string;
+  [key: string]: any;
+}
+
+/** The merchandising_rule_group as it comes back from CMS (embedded global field) */
+export interface CMSRuleGroup {
+  discount_category_include?: RuleRefEntry[];
+  discount_category_exclude?: RuleRefEntry[];
+  include_categories?: RuleRefEntry[];
+  exclude_categories?: RuleRefEntry[];
+  brand_include?: RuleRefEntry[];
+  brand_exclude?: RuleRefEntry[];
+  include_tags?: RuleRefEntry[];
+  exclude_tags?: RuleRefEntry[];
+  strain_include?: RuleRefEntry[];
+  in_stock_only?: boolean;
+  global_visibility_fallback?: boolean;
+  price_min?: number;
+  price_max?: number;
+}
+
+/** A dynamic_product_feed entry as returned by the CMS */
+export interface DynamicProductFeedEntry {
+  uid: string;
+  title: string;
+  heading: string;
+  subheading?: string;
+  anchor_id?: string;
+  display_style: 'carousel' | 'grid';
+  max_products: number;
+  cta_label?: string;
+  cta_href?: string;
+  visibility: boolean;
+  sort_order?: string;
+  badge_label?: string;
+  publish_at?: string;
+  unpublish_at?: string;
+  rule_group: CMSRuleGroup;
+  fallback_rule_group?: CMSRuleGroup;
+  created_at: string;
+  updated_at: string;
+  $?: Record<string, any>;
+}
+
+// ============================================================================
+// DROPDOWN-BASED DYNAMIC FEED TYPES
+// Alternative approach: select fields instead of reference fields
+// ============================================================================
+
+/** The dropdown-based rule group — values are plain strings, not resolved references */
+export interface CMSRuleGroupDropdown {
+  discount_category_include?: string[];
+  discount_category_exclude?: string[];
+  include_categories?: string[];
+  exclude_categories?: string[];
+  brand_include?: string[];
+  brand_exclude?: string[];
+  include_tags?: string[];
+  exclude_tags?: string[];
+  strain_include?: string[];
+  in_stock_only?: boolean;
+  global_visibility_fallback?: boolean;
+  price_min?: number;
+  price_max?: number;
+}
+
+/** A dynamic_product_feed_dropdown entry */
+export interface DynamicProductFeedDropdownEntry {
+  uid: string;
+  title: string;
+  heading: string;
+  subheading?: string;
+  anchor_id?: string;
+  display_style: 'carousel' | 'grid';
+  max_products: number;
+  cta_label?: string;
+  cta_href?: string;
+  visibility: boolean;
+  sort_order?: string;
+  badge_label?: string;
+  publish_at?: string;
+  unpublish_at?: string;
+  rule_group: CMSRuleGroupDropdown;
+  fallback_rule_group?: CMSRuleGroupDropdown;
+  created_at: string;
+  updated_at: string;
+  $?: Record<string, any>;
+}
+
+/** A dynamic_feeds_dropdown_page entry */
+export interface DynamicFeedsDropdownPageEntry {
+  uid: string;
+  title: string;
+  url: string;
+  heading: string;
+  subheading?: string;
+  component_list: DynamicProductFeedDropdownEntry[];
+  created_at: string;
+  updated_at: string;
+  $?: Record<string, any>;
+}
+
+/** A dynamic_feeds_page entry — page composed via component_list references */
+export interface DynamicFeedsPageEntry {
+  uid: string;
+  title: string;
+  url: string;
+  heading: string;
+  subheading?: string;
+  component_list: DynamicProductFeedEntry[];
+  seo_meta_title?: string;
+  seo_meta_description?: string;
+  created_at: string;
+  updated_at: string;
+  $?: Record<string, any>;
+}
+
+/** A composable_page entry — page with mixed block types via reference field */
+export interface ComposablePageEntry {
+  uid: string;
+  title: string;
+  url: string;
+  page_sections: any[];  // Mixed block types (hero, CTA, dynamic feeds, etc.)
+  created_at: string;
+  updated_at: string;
+  $?: Record<string, any>;
 }
 
 // Export singleton instance

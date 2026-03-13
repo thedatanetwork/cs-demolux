@@ -76,12 +76,44 @@ function img(category: keyof typeof IMG, index: number) {
   return urls[index % urls.length];
 }
 
+// CMS-hosted product images (uploaded to /images/products/dynamic in Contentstack)
+// 24 of 80 products have generated images; the rest fall back to Unsplash placeholders
+const CMS_IMAGES: Record<string, string> = {
+  'AetherWear Pulse Ring': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/bltdec7188020ddfb8a/69b1b5fc918e01a74b409013/AetherWear_Pulse_Ring_.png',
+  'AetherWear Meridian Watch': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/bltbf680c0d2050d763/69b1b5fc85f36f7ef7f6b8ec/AetherWear_Meridian_Watch.png',
+  'AetherWear Solaris Pendant': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt267077636a72552a/69b1b5fc13aa3ddf51e37eed/AetherWear_Solaris_Pendant.png',
+  'AetherWear Vortex Earbuds': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/bltc7c79891805d411c/69b1b5fc892ebc01f51d8b78/AetherWear_Vortex_Earbuds.png',
+  'AetherWear Carbon Cuff': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt669d23ee308b5483/69b1b5fc1bca0452bbeaa562/AetherWear_Carbon_Cuff.png',
+  'AetherWear Titan Ring Pro': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt2d8f72304c240010/69b1b5fc204a704f76030e04/AetherWear_Titan_Ring_Pro.png',
+  'AetherWear HaloWatch Ultra': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/bltd79cc8498625164c/69b1b5fc3984d23513e0d72e/AetherWear_HaloWatch_Ultra.png',
+  'AetherWear Ember Gloves': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt5f497089a8a70e67/69b1b5fcf047e92fc2b145a6/AetherWear_Ember_Gloves_.png',
+  'LuxFrame Prism AR Glasses': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blte5823e5c8220b524/69b1b60778af2317c33360d7/LuxFrame_Prism_AR_Glasses.png',
+  'LuxFrame Eclipse Sunglasses': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt956e1b9c4bb4fc0a/69b1b607ffa8194a27cdc9f6/LuxFrame_Eclipse_Sunglasses.png',
+  'LuxFrame Noir Frames': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt0733d5a99b915d20/69b1b607d5d1989487342580/LuxFrame_Noir_Frames.png',
+  'TerraForm Prism Side Table': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt3bd16ef63f186654/69b1b610a299a8021a140e64/TerraForm_Prism_Side_Table.png',
+  'TerraForm Bloom Planter': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt0a6d5f9d5d6aef36/69b1b608204a70758c030e0c/TerraForm_Bloom_Planter_.png',
+  'CirrusHome Iris Window': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt42a509baef09d3e2/69b1b5fc1c794a62c232733b/CirrusHome_Iris_Window.png',
+  'CirrusHome Terra Garden': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt659c735b36a5e162/69b1b5fcc048554fc6e84eac/CirrusHome_Terra_Garden.png',
+  'NovaSonic Silence Pro': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt5992fa5cdc92430c/69b1b608c04855edf3e84eb0/NovaSonic_Silence_Pro.png',
+  'NovaSonic Aria Soundbar': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/bltf31be555cdf20f71/69b1b60750b070b7103c559c/NovaSonic_Aria_Soundbar.png',
+  'NovaSonic Eclipse Earbuds': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt11e3943abf8a3f1d/69b1b60850b070b9523c55a0/NovaSonic_Eclipse_Earbuds.png',
+  'NovaSonic Aether Headphones': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/bltfcbe677b54956592/69b1b60778af23e0473360db/NovaSonic_Aether_Headphones.png',
+  'NovaSonic Prism Turntable': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/bltca305e4ab482b117/69b1b608d5d198247a342584/NovaSonic_Prism_Turntable.png',
+  'NovaSonic Wave Portable': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/bltf208c6bcda0d7027/69b1b6078d28c48ef9c081de/novasconic_wave_portable.png',
+  'VoltaLife Flow Mat': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt977baa282f452941/69b1b61077a8d257208bb10a/VoltaLife_Flow_Mat_.png',
+  'VoltaLife Radiance Panel': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt6541c586f86b898a/69b1b6106b116af7268e73af/voltalife_radiance_panel.png',
+  'VoltaLife Dreamscape Mask': 'https://images.contentstack.io/v3/assets/bltc8d398936f6a33c7/blt59bc5a3765bdcb7e/69b1b610f047e95730b145aa/VoltaLife_Dreamscape_Mask_.png',
+};
+
 function makeImage(category: keyof typeof IMG, index: number, title: string) {
+  const cmsUrl = CMS_IMAGES[title];
   return {
     uid: `img-${title.toLowerCase().replace(/\s+/g, '-')}`,
-    url: img(category, index),
+    url: cmsUrl || img(category, index),
     title,
-    filename: `${title.toLowerCase().replace(/\s+/g, '-')}.jpg`,
+    filename: cmsUrl
+      ? cmsUrl.split('/').pop()!
+      : `${title.toLowerCase().replace(/\s+/g, '-')}.jpg`,
   };
 }
 

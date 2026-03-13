@@ -17,7 +17,10 @@ import {
   Campaign,
   ValuePropositionContent,
   FeatureItemContent,
-  Testimonial
+  Testimonial,
+  DynamicProductFeedEntry,
+  DynamicFeedsPageEntry,
+  DynamicFeedsDropdownPageEntry,
 } from './contentstack';
 
 // Fallback site settings for when Contentstack is not available
@@ -322,6 +325,52 @@ export class DataService {
 
   async getFeaturedTestimonials(variantAliases?: string[]): Promise<Testimonial[]> {
     return this.getTestimonials(true, variantAliases);
+  }
+
+  // Dynamic Feeds Page
+  async getDynamicFeedsPage(variantAliases?: string[]): Promise<DynamicFeedsPageEntry | null> {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
+    }
+    const entry = await contentstack.getDynamicFeedsPage(variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'dynamic_feeds_page');
+    }
+    return entry;
+  }
+
+  // Dynamic Feeds Page (Dropdown variant)
+  async getDynamicFeedsDropdownPage(variantAliases?: string[]): Promise<DynamicFeedsDropdownPageEntry | null> {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
+    }
+    const entry = await contentstack.getDynamicFeedsDropdownPage(variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'dynamic_feeds_dropdown_page');
+    }
+    return entry;
+  }
+
+  // Composable Page (mixed blocks + dynamic feeds)
+  async getComposablePage(variantAliases?: string[]) {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
+    }
+    const entry = await contentstack.getComposablePage(variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'composable_page');
+    }
+    return entry;
+  }
+
+  // Dynamic Product Feeds
+  async getDynamicProductFeeds(variantAliases?: string[]): Promise<DynamicProductFeedEntry[]> {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
+    }
+    const entries = await contentstack.getDynamicProductFeeds(variantAliases);
+    entries.forEach(entry => addEditableTags(entry, 'dynamic_product_feed'));
+    return entries;
   }
 }
 

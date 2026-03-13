@@ -70,10 +70,6 @@ if (typeof window !== 'undefined' && isLivePreviewEnabled) {
       apiKey,
       environment,
     },
-    editButton: {
-      enable: true,
-      exclude: ['outsideLivePreviewPortal'],
-    },
   });
 }
 

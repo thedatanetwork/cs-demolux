@@ -41,7 +41,15 @@
     "migrate-blog-to-json-rte": "node migrate-blog-to-json-rte.js",
     "create-modular-category-page": "node create-modular-category-page.js",
     "fix-blog-page": "node fix-blog-page.js",
-    "migrate-to-url-fields": "node migrate-to-url-fields.js"
+    "migrate-to-url-fields": "node migrate-to-url-fields.js",
+    "create-dynamic-feed-schemas": "node create-dynamic-feed-schemas.js",
+    "seed-dynamic-feed-data": "node seed-dynamic-feed-data.js",
+    "setup-dynamic-feeds": "node create-dynamic-feed-schemas.js && node seed-dynamic-feed-data.js",
+    "create-dropdown-feed-schemas": "node create-dropdown-feed-schemas.js",
+    "seed-dropdown-feed-data": "node seed-dropdown-feed-data.js",
+    "setup-dropdown-feeds": "node create-dropdown-feed-schemas.js && node seed-dropdown-feed-data.js",
+    "add-dropdown-feed-to-home-page": "node add-dropdown-feed-to-home-page.js",
+    "create-composable-demo-page": "node create-composable-demo-page.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",

@@ -1,12 +1,12 @@
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
-import { convertCMSFeedEntry } from '@/lib/rule-engine';
+import { convertDropdownFeedEntry } from '@/lib/rule-engine';
 import type { DynamicProductFeedConfig } from '@/lib/rule-engine';
-import { DynamicFeedsClient } from './DynamicFeedsClient';
+import { DynamicFeedsClient } from '../dynamic-feeds/DynamicFeedsClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DynamicFeedsPage() {
+export default async function DynamicFeedsDropdownPage() {
   const variantAliases = await getVariantAliasesFromCookies();
 
   let feedConfigs: DynamicProductFeedConfig[] = [];
@@ -15,25 +15,19 @@ export default async function DynamicFeedsPage() {
   let pageSubheading: string | undefined;
 
   try {
-    // Fetch the dynamic_feeds_page entry — includes component_list references
-    const page = await dataService.getDynamicFeedsPage(variantAliases);
+    const page = await dataService.getDynamicFeedsDropdownPage(variantAliases);
 
     if (page) {
       pageHeading = page.heading || pageHeading;
       pageSubheading = page.subheading;
 
-      // component_list contains resolved dynamic_product_feed entries
       // Render in the same order as the CMS editor UI (top-to-bottom)
       const cmsEntries = page.component_list || [];
-      feedConfigs = cmsEntries.map(convertCMSFeedEntry);
-    } else {
-      // Fallback: query dynamic_product_feed entries directly
-      const cmsEntries = await dataService.getDynamicProductFeeds(variantAliases);
-      feedConfigs = cmsEntries.map(convertCMSFeedEntry);
+      feedConfigs = cmsEntries.map(convertDropdownFeedEntry);
     }
   } catch (error: any) {
-    fetchError = error.message || 'Failed to fetch dynamic feeds from Contentstack';
-    console.error('Dynamic feeds fetch error:', error);
+    fetchError = error.message || 'Failed to fetch dropdown feeds from Contentstack';
+    console.error('Dropdown feeds fetch error:', error);
   }
 
   return (

@@ -295,3 +295,122 @@ export const defaultRuleGroup: MerchandisingRuleGroup = {
   in_stock_only: true,
   global_visibility_fallback: false,
 };
+
+// ============================================================================
+// CMS DATA CONVERTER
+// Transforms Contentstack entry data (with resolved references) into
+// the rule engine's MerchandisingRuleGroup and DynamicProductFeedConfig.
+// ============================================================================
+
+import type {
+  DynamicProductFeedEntry,
+  CMSRuleGroup,
+  RuleRefEntry,
+  DynamicProductFeedDropdownEntry,
+  CMSRuleGroupDropdown,
+} from '@/lib/contentstack';
+
+/** Extract the `value` field from resolved reference entries */
+function extractValues(refs?: RuleRefEntry[]): string[] | undefined {
+  if (!refs || refs.length === 0) return undefined;
+  // Handle both resolved (full object) and unresolved (uid-only) refs
+  return refs
+    .map(r => (typeof r === 'object' && r.value) ? r.value : null)
+    .filter((v): v is string => v !== null);
+}
+
+/** Convert a CMS rule group (with resolved references) to a MerchandisingRuleGroup */
+export function convertCMSRuleGroup(cms: CMSRuleGroup): MerchandisingRuleGroup {
+  return {
+    discount_category_include: extractValues(cms.discount_category_include),
+    discount_category_exclude: extractValues(cms.discount_category_exclude),
+    include_categories: extractValues(cms.include_categories),
+    exclude_categories: extractValues(cms.exclude_categories),
+    brand_include: extractValues(cms.brand_include),
+    brand_exclude: extractValues(cms.brand_exclude),
+    include_tags: extractValues(cms.include_tags),
+    exclude_tags: extractValues(cms.exclude_tags),
+    // strain_include maps to technology_type_include in the rule engine
+    technology_type_include: extractValues(cms.strain_include),
+    in_stock_only: cms.in_stock_only ?? true,
+    global_visibility_fallback: cms.global_visibility_fallback ?? false,
+    price_min: cms.price_min,
+    price_max: cms.price_max,
+  };
+}
+
+/** Convert a full CMS DynamicProductFeedEntry to a DynamicProductFeedConfig */
+export function convertCMSFeedEntry(entry: DynamicProductFeedEntry): DynamicProductFeedConfig {
+  return {
+    heading: entry.heading,
+    subheading: entry.subheading,
+    anchor_id: entry.anchor_id,
+    display_style: entry.display_style || 'carousel',
+    max_products: entry.max_products || 15,
+    cta_label: entry.cta_label,
+    cta_href: entry.cta_href,
+    visibility: entry.visibility ?? true,
+    sort_order: (entry.sort_order as SortOrder) || 'most_popular',
+    badge_label: entry.badge_label,
+    publish_at: entry.publish_at,
+    unpublish_at: entry.unpublish_at,
+    rule_group: convertCMSRuleGroup(entry.rule_group || {}),
+    fallback_rule_group: entry.fallback_rule_group
+      ? convertCMSRuleGroup(entry.fallback_rule_group)
+      : undefined,
+  };
+}
+
+// ============================================================================
+// DROPDOWN-BASED CMS CONVERTER
+// Simpler conversion — dropdown fields return string arrays directly,
+// no need to extract `value` from resolved reference objects.
+// ============================================================================
+
+/** Convert a dropdown-based CMS rule group to a MerchandisingRuleGroup */
+export function convertDropdownRuleGroup(cms: CMSRuleGroupDropdown): MerchandisingRuleGroup {
+  const toArr = (v?: string | string[]): string[] | undefined => {
+    if (!v) return undefined;
+    // Contentstack may return a single string for single-select or string[] for multi
+    const arr = Array.isArray(v) ? v : [v];
+    return arr.length > 0 ? arr : undefined;
+  };
+
+  return {
+    discount_category_include: toArr(cms.discount_category_include),
+    discount_category_exclude: toArr(cms.discount_category_exclude),
+    include_categories: toArr(cms.include_categories),
+    exclude_categories: toArr(cms.exclude_categories),
+    brand_include: toArr(cms.brand_include),
+    brand_exclude: toArr(cms.brand_exclude),
+    include_tags: toArr(cms.include_tags),
+    exclude_tags: toArr(cms.exclude_tags),
+    technology_type_include: toArr(cms.strain_include),
+    in_stock_only: cms.in_stock_only ?? true,
+    global_visibility_fallback: cms.global_visibility_fallback ?? false,
+    price_min: cms.price_min,
+    price_max: cms.price_max,
+  };
+}
+
+/** Convert a dropdown-based feed entry to a DynamicProductFeedConfig */
+export function convertDropdownFeedEntry(entry: DynamicProductFeedDropdownEntry): DynamicProductFeedConfig {
+  return {
+    heading: entry.heading,
+    subheading: entry.subheading,
+    anchor_id: entry.anchor_id,
+    display_style: entry.display_style || 'carousel',
+    max_products: entry.max_products || 15,
+    cta_label: entry.cta_label,
+    cta_href: entry.cta_href,
+    visibility: entry.visibility ?? true,
+    sort_order: (entry.sort_order as SortOrder) || 'most_popular',
+    badge_label: entry.badge_label,
+    publish_at: entry.publish_at,
+    unpublish_at: entry.unpublish_at,
+    rule_group: convertDropdownRuleGroup(entry.rule_group || {}),
+    fallback_rule_group: entry.fallback_rule_group
+      ? convertDropdownRuleGroup(entry.fallback_rule_group)
+      : undefined,
+  };
+}

@@ -12,6 +12,7 @@ import { StatisticsBlock } from './StatisticsBlock';
 import { TestimonialsBlock } from './TestimonialsBlock';
 import { FAQBlock } from './FAQBlock';
 import { DynamicProductFeedBlock } from './DynamicProductFeedBlock';
+import { convertDropdownFeedEntry } from '@/lib/rule-engine';
 
 interface SectionRendererProps {
   sections: (ModularBlock | EmbeddedBlock)[] | ModularBlock[] | EmbeddedBlock[];
@@ -50,6 +51,7 @@ const BLOCK_TYPE_MAP: Record<string, string> = {
   product_showcase: 'product_showcase_block',
   collection_showcase: 'collection_showcase_block',
   dynamic_product_feed: 'dynamic_product_feed_block',
+  dynamic_product_feed_dropdown: 'dynamic_product_feed_dropdown_block',
   // Full UIDs (from reference-based blocks) - map to themselves
   hero_section_block: 'hero_section_block',
   featured_content_grid_block: 'featured_content_grid_block',
@@ -64,6 +66,7 @@ const BLOCK_TYPE_MAP: Record<string, string> = {
   product_showcase_block: 'product_showcase_block',
   collection_showcase_block: 'collection_showcase_block',
   dynamic_product_feed_block: 'dynamic_product_feed_block',
+  dynamic_product_feed_dropdown_block: 'dynamic_product_feed_dropdown_block',
 };
 
 /**
@@ -207,6 +210,9 @@ export function SectionRenderer({ sections, entry, fieldPath }: SectionRendererP
 
             case 'dynamic_product_feed_block':
               return <DynamicProductFeedBlock config={data} />;
+
+            case 'dynamic_product_feed_dropdown_block':
+              return <DynamicProductFeedBlock config={convertDropdownFeedEntry(data)} showImages={false} />;
 
             // Additional block types - not yet implemented
             case 'text_media_section_block':

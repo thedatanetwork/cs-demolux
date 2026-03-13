@@ -4,7 +4,7 @@
   "description": "Demolux - Premium wearable tech and technofurniture ecommerce site",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3001",
     "build": "next build",
     "build:clean": "npm run clean && next build",
     "start": "next start",
@@ -16,6 +16,7 @@
   "dependencies": {
     "@contentstack/live-preview-utils": "^4.2.1",
     "@contentstack/personalize-edge-sdk": "^1.0.18",
+    "@contentstack/utils": "^1.8.0",
     "axios": "^1.6.2",
     "clsx": "^2.0.0",
     "contentstack": "^3.26.4",
