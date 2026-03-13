@@ -111,7 +111,7 @@ function FullWidthCTA({
 
           {/* Title */}
           {block.title && (
-            <h2 {...$['title']} className="font-heading text-4xl md:text-6xl font-bold mb-6">
+            <h2 {...$['title']} className={`font-heading text-4xl md:text-6xl font-bold mb-6 ${isLightText ? 'text-white' : 'text-gray-900'}`}>
               {block.title.split(' ').map((word, index, arr) => (
                 <span
                   key={index}
@@ -352,7 +352,7 @@ function SplitCTA({
             )}
 
             {/* Title */}
-            <h2 className="font-heading text-4xl md:text-5xl font-bold mb-6">
+            <h2 className={`font-heading text-4xl md:text-5xl font-bold mb-6 ${isLightText ? 'text-white' : 'text-gray-900'}`}>
               {block.title}
             </h2>
 
