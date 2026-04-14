@@ -81,7 +81,7 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
           {badge_text && (
             <div className="inline-flex items-center space-x-2 bg-gray-50 backdrop-blur-sm rounded-full px-6 py-3 mb-8 shadow-sm">
               <div className="w-2 h-2 bg-gold-400 rounded-full"></div>
-              <span className="text-sm font-medium text-gray-900">
+              <span {...$['badge_text']} className="text-sm font-medium text-gray-900">
                 {badge_text}
               </span>
             </div>
@@ -114,16 +114,24 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
           </div>
         </div>
 
-        {/* Values Grid/Scroll */}
-        <div className={layout_style === 'horizontal-scroll' ? 'flex overflow-x-auto space-x-6 pb-4 snap-x snap-mandatory' : gridClass}>
-          {(values || []).map((value, index) => {
+        {/* Values Grid/Scroll — Level 1: container tag for add/reorder */}
+        <div
+          {...$['values']}
+          className={layout_style === 'horizontal-scroll' ? 'flex overflow-x-auto space-x-6 pb-4 snap-x snap-mandatory' : gridClass}
+        >
+          {(values || []).map((value: any, index: number) => {
             const IconComponent = iconMap[value.icon] || Sparkles;
             const backgroundImage = Array.isArray(value.background_image) ? value.background_image[0] : value.background_image;
             const hasBackgroundImage = !!backgroundImage?.url;
+            // Level 2: item tag from PARENT entry's $ (enables add/remove/reorder per item)
+            const itemTag = $[`values__${index}`] || {};
+            // Level 3: inner field tags from the value's own $
+            const v$ = value.$ || {};
 
             return (
               <div
                 key={index}
+                {...itemTag}
                 className={`relative group overflow-hidden ${layout_style === 'horizontal-scroll' ? `flex-shrink-0 w-80 snap-start ${cardClass}` : cardClass}`}
               >
                 {/* Background Image with Overlay */}
@@ -144,21 +152,21 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
 
                 <div className="relative z-10">
                   {/* Icon - no background, gold color */}
-                  <div className="flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all duration-300">
+                  <div {...v$['icon']} className="flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all duration-300">
                     <IconComponent className={`h-12 w-12 ${hasBackgroundImage ? 'text-gold-400' : 'text-gold-500'} drop-shadow-lg`} />
                   </div>
 
                   {/* Title in frosted glass bubble */}
                   <div className="flex justify-center mb-6">
                     <div className={`inline-flex px-6 py-2.5 ${hasBackgroundImage ? 'bg-white/10 backdrop-blur-md border border-white/20' : 'bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200'} rounded-full shadow-sm`}>
-                      <h3 className={`font-heading text-xl font-bold text-center ${hasBackgroundImage ? 'text-white' : 'text-gray-900'}`}>
+                      <h3 {...v$['title']} className={`font-heading text-xl font-bold text-center ${hasBackgroundImage ? 'text-white' : 'text-gray-900'}`}>
                         {value.title}
                       </h3>
                     </div>
                   </div>
 
                   {/* Description */}
-                  <p className={`leading-relaxed text-base text-center ${hasBackgroundImage ? 'text-white/90' : 'text-gray-600'}`}>
+                  <p {...v$['description']} className={`leading-relaxed text-base text-center ${hasBackgroundImage ? 'text-white/90' : 'text-gray-600'}`}>
                     {value.description}
                   </p>
 
@@ -166,10 +174,11 @@ export function ValuesGridBlock({ block }: ValuesGridBlockProps) {
                   {'link_url' in value && 'link_text' in value && value.link_url && value.link_text && (
                     <div className="mt-6 text-center">
                       <a
+                        {...v$['link_url']}
                         href={value.link_url}
                         className={`inline-flex items-center px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300 ${hasBackgroundImage ? 'bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30' : 'bg-gold-500 text-white hover:bg-gold-600 shadow-md hover:shadow-lg'}`}
                       >
-                        {value.link_text}
+                        <span {...v$['link_text']}>{value.link_text}</span>
                         <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>

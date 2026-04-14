@@ -452,6 +452,14 @@
    End Pathfora Styles
    ========================================================================== */
 
+/* ==========================================================================
+   Visual Builder — ensure cursor is visible during inline editing
+   On dark backgrounds the caret can blend in; force a contrasting color.
+   ========================================================================== */
+[contenteditable="true"] {
+  caret-color: #fadc66 !important; /* gold-400 — visible on both dark and light */
+}
+
 @layer utilities {
   .container-padding {
     @apply px-4 sm:px-6 lg:px-8;

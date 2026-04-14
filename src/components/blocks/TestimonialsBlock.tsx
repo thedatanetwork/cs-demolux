@@ -203,10 +203,11 @@ function GridLayout({
   block,
   bgClass
 }: {
-  block: TestimonialsBlockType;
+  block: TestimonialsBlockType & { $?: Record<string, any> };
   bgClass: string;
 }) {
   const { section_title, section_description, badge_text, testimonials, show_ratings, show_images } = block;
+  const $ = block.$ || {};
 
   return (
     <section className={`section-spacing ${bgClass} relative overflow-hidden`}>
@@ -223,36 +224,39 @@ function GridLayout({
           )}
 
           {section_title && (
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 {...$['section_title']} className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               {section_title}
             </h2>
           )}
 
           {section_description && (
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p {...$['section_description']} className="text-lg text-gray-600 max-w-3xl mx-auto">
               {section_description}
             </p>
           )}
         </div>
 
         {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {(testimonials || []).map((testimonial, index) => {
+        <div {...$['testimonials']} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {(testimonials || []).map((testimonial: any, index: number) => {
             const customerImage = Array.isArray(testimonial.customer_image)
               ? testimonial.customer_image[0]
               : testimonial.customer_image;
 
+            const t$ = testimonial.$ || {};
+
             return (
               <div
                 key={testimonial.uid || index}
+                {...($[`testimonials__${index}`] || {})}
                 className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300"
               >
                 {/* Quote Icon */}
                 <Quote className="h-8 w-8 text-gold-300 mb-4" />
 
                 {/* Testimonial Text */}
-                <p className="text-gray-700 leading-relaxed mb-6 italic">
-                  "{testimonial.testimonial_text}"
+                <p {...t$['testimonial_text']} className="text-gray-700 leading-relaxed mb-6 italic">
+                  &ldquo;{testimonial.testimonial_text}&rdquo;
                 </p>
 
                 {/* Rating */}
@@ -281,11 +285,11 @@ function GridLayout({
                     </div>
                   )}
                   <div>
-                    <p className="font-semibold text-gray-900">
+                    <p {...t$['customer_name']} className="font-semibold text-gray-900">
                       {testimonial.customer_name}
                     </p>
                     {testimonial.customer_title && (
-                      <p className="text-sm text-gray-500">
+                      <p {...t$['customer_title']} className="text-sm text-gray-500">
                         {testimonial.customer_title}
                       </p>
                     )}

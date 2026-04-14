@@ -134,13 +134,14 @@ function HorizontalLayout({
                  style={{ left: '15%', right: '15%' }} />
           )}
 
-          <div className={`grid grid-cols-1 md:grid-cols-${Math.min((steps || []).length, 3)} lg:grid-cols-${Math.min((steps || []).length, 4)} gap-8 lg:gap-12`}>
-            {(steps || []).map((step, index) => {
+          <div {...$['steps']} className={`grid grid-cols-1 md:grid-cols-${Math.min((steps || []).length, 3)} lg:grid-cols-${Math.min((steps || []).length, 4)} gap-8 lg:gap-12`}>
+            {(steps || []).map((step: any, index: number) => {
               const IconComponent = (step.icon && iconMap[step.icon]) || CheckCircle;
               const stepImage = Array.isArray(step.image) ? step.image[0] : step.image;
+              const s$ = step.$ || {};
 
               return (
-                <div key={index} className="relative text-center group">
+                <div key={index} {...($[`steps__${index}`] || {})} className="relative text-center group">
                   {/* Step Number or Icon */}
                   <div className="relative z-10 mb-6">
                     {stepImage?.url ? (
@@ -167,10 +168,10 @@ function HorizontalLayout({
                   </div>
 
                   {/* Step Content */}
-                  <h3 className="font-heading text-xl font-bold text-gray-900 mb-3">
+                  <h3 {...s$['title']} className="font-heading text-xl font-bold text-gray-900 mb-3">
                     {step.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed mb-4">
+                  <p {...s$['description']} className="text-gray-600 leading-relaxed mb-4">
                     {step.description}
                   </p>
 
@@ -198,10 +199,11 @@ function VerticalLayout({
   block,
   bgClass
 }: {
-  block: ProcessStepsBlockType;
+  block: ProcessStepsBlockType & { $?: Record<string, any> };
   bgClass: string;
 }) {
   const { section_title, section_description, badge_text, steps, show_step_numbers, show_connector_lines } = block;
+  const $ = block.$ || {};
 
   return (
     <section className={`section-spacing ${bgClass} relative overflow-hidden`}>
@@ -217,25 +219,26 @@ function VerticalLayout({
             </div>
           )}
 
-          <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 {...$['section_title']} className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             {section_title}
           </h2>
 
           {section_description && (
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p {...$['section_description']} className="text-lg text-gray-600 max-w-3xl mx-auto">
               {section_description}
             </p>
           )}
         </div>
 
         {/* Vertical Steps */}
-        <div className="max-w-3xl mx-auto">
-          {(steps || []).map((step, index) => {
+        <div {...$['steps']} className="max-w-3xl mx-auto">
+          {(steps || []).map((step: any, index: number) => {
             const IconComponent = (step.icon && iconMap[step.icon]) || CheckCircle;
             const isLast = index === (steps || []).length - 1;
+            const s$ = step.$ || {};
 
             return (
-              <div key={index} className="relative flex gap-6 pb-12">
+              <div key={index} {...($[`steps__${index}`] || {})} className="relative flex gap-6 pb-12">
                 {/* Connector Line */}
                 {show_connector_lines && !isLast && (
                   <div className="absolute left-10 top-20 bottom-0 w-0.5 bg-gradient-to-b from-gold-400 to-gold-200" />
@@ -256,10 +259,10 @@ function VerticalLayout({
 
                 {/* Content */}
                 <div className="flex-1 pt-2">
-                  <h3 className="font-heading text-2xl font-bold text-gray-900 mb-3">
+                  <h3 {...s$['title']} className="font-heading text-2xl font-bold text-gray-900 mb-3">
                     {step.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed text-lg">
+                  <p {...s$['description']} className="text-gray-600 leading-relaxed text-lg">
                     {step.description}
                   </p>
                   {step.cta && (
@@ -285,10 +288,11 @@ function AlternatingLayout({
   block,
   bgClass
 }: {
-  block: ProcessStepsBlockType;
+  block: ProcessStepsBlockType & { $?: Record<string, any> };
   bgClass: string;
 }) {
   const { section_title, section_description, badge_text, steps, show_step_numbers } = block;
+  const $ = block.$ || {};
 
   return (
     <section className={`section-spacing ${bgClass} relative overflow-hidden`}>
@@ -304,27 +308,29 @@ function AlternatingLayout({
             </div>
           )}
 
-          <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 {...$['section_title']} className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             {section_title}
           </h2>
 
           {section_description && (
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p {...$['section_description']} className="text-lg text-gray-600 max-w-3xl mx-auto">
               {section_description}
             </p>
           )}
         </div>
 
         {/* Alternating Steps */}
-        <div className="max-w-5xl mx-auto space-y-16">
-          {(steps || []).map((step, index) => {
+        <div {...$['steps']} className="max-w-5xl mx-auto space-y-16">
+          {(steps || []).map((step: any, index: number) => {
             const IconComponent = (step.icon && iconMap[step.icon]) || CheckCircle;
             const stepImage = Array.isArray(step.image) ? step.image[0] : step.image;
             const isEven = index % 2 === 0;
+            const s$ = step.$ || {};
 
             return (
               <div
                 key={index}
+                {...($[`steps__${index}`] || {})}
                 className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} gap-8 md:gap-16 items-center`}
               >
                 {/* Visual */}
@@ -360,10 +366,10 @@ function AlternatingLayout({
                       Step {step.step_number || index + 1}
                     </span>
                   )}
-                  <h3 className="font-heading text-3xl font-bold text-gray-900 mb-4">
+                  <h3 {...s$['title']} className="font-heading text-3xl font-bold text-gray-900 mb-4">
                     {step.title}
                   </h3>
-                  <p className="text-lg text-gray-600 leading-relaxed mb-6">
+                  <p {...s$['description']} className="text-lg text-gray-600 leading-relaxed mb-6">
                     {step.description}
                   </p>
                   {step.cta && (

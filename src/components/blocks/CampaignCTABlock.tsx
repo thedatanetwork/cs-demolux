@@ -182,10 +182,11 @@ function CenteredCTA({
   backgroundImage,
   onCTAClick
 }: {
-  block: CampaignCTABlockType;
+  block: CampaignCTABlockType & { $?: Record<string, any> };
   backgroundImage?: ImageType;
   onCTAClick: (id: string, url: string) => void;
 }) {
+  const $ = block.$ || {};
   const [email, setEmail] = React.useState('');
   const [status, setStatus] = React.useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
@@ -257,7 +258,7 @@ function CenteredCTA({
 
           {/* Title */}
           {block.title && (
-            <h2 className="font-heading text-4xl md:text-5xl font-bold mb-6 text-white">
+            <h2 {...$['title']} className="font-heading text-4xl md:text-5xl font-bold mb-6 text-white">
               {block.title.split(' ').map((word, index, arr) => (
                 <span
                   key={index}
@@ -271,7 +272,7 @@ function CenteredCTA({
 
           {/* Description */}
           {block.description && (
-            <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed text-gray-200">
+            <p {...$['description']} className="text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed text-gray-200">
               {block.description}
             </p>
           )}
@@ -327,10 +328,11 @@ function SplitCTA({
   backgroundImage,
   onCTAClick
 }: {
-  block: CampaignCTABlockType;
+  block: CampaignCTABlockType & { $?: Record<string, any> };
   backgroundImage?: ImageType;
   onCTAClick: (id: string, url: string) => void;
 }) {
+  const s$ = block.$ || {};
   const isLightText = block.text_color === 'light'
     || block.background_style === 'gradient-dark'
     || block.background_style === 'gradient-gold';
@@ -352,13 +354,13 @@ function SplitCTA({
             )}
 
             {/* Title */}
-            <h2 className={`font-heading text-4xl md:text-5xl font-bold mb-6 ${isLightText ? 'text-white' : 'text-gray-900'}`}>
+            <h2 {...s$['title']} className={`font-heading text-4xl md:text-5xl font-bold mb-6 ${isLightText ? 'text-white' : 'text-gray-900'}`}>
               {block.title}
             </h2>
 
             {/* Description */}
             {block.description && (
-              <p className={`text-lg md:text-xl mb-8 leading-relaxed ${isLightText ? 'text-white/90' : 'text-gray-600'}`}>
+              <p {...s$['description']} className={`text-lg md:text-xl mb-8 leading-relaxed ${isLightText ? 'text-white/90' : 'text-gray-600'}`}>
                 {block.description}
               </p>
             )}

@@ -118,21 +118,23 @@ function AccordionLayout({
               )}
 
               {/* FAQ Items */}
-              <div className="space-y-4">
-                {categoryFaqs.map((faq, index) => {
+              <div {...$['faqs']} className="space-y-4">
+                {categoryFaqs.map((faq: any, index: number) => {
                   const currentGlobalIndex = globalIndex++;
                   const isOpen = openIndex === currentGlobalIndex;
+                  const f$ = faq.$ || {};
 
                   return (
                     <div
                       key={currentGlobalIndex}
+                      {...($[`faqs__${currentGlobalIndex}`] || {})}
                       className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
                     >
                       <button
                         onClick={() => toggleFaq(currentGlobalIndex)}
                         className="w-full px-6 py-5 text-left flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors"
                       >
-                        <span className="font-semibold text-gray-900 text-lg">
+                        <span {...f$['question']} className="font-semibold text-gray-900 text-lg">
                           {faq.question}
                         </span>
                         <ChevronDown
@@ -148,7 +150,7 @@ function AccordionLayout({
                           isOpen ? 'max-h-96' : 'max-h-0'
                         }`}
                       >
-                        <div className="px-6 pb-5 text-gray-600 leading-relaxed">
+                        <div {...f$['answer']} className="px-6 pb-5 text-gray-600 leading-relaxed">
                           {faq.answer}
                         </div>
                       </div>
@@ -169,10 +171,11 @@ function TwoColumnLayout({
   block,
   bgClass
 }: {
-  block: FAQBlockType;
+  block: FAQBlockType & { $?: Record<string, any> };
   bgClass: string;
 }) {
   const { section_title, section_description, badge_text, faqs, expand_first } = block;
+  const $ = block.$ || {};
   const [openIndex, setOpenIndex] = useState<number | null>(expand_first ? 0 : null);
 
   // Split FAQs into two columns
@@ -234,20 +237,20 @@ function TwoColumnLayout({
           )}
 
           {section_title && (
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 {...$['section_title']} className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               {section_title}
             </h2>
           )}
 
           {section_description && (
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p {...$['section_description']} className="text-lg text-gray-600 max-w-3xl mx-auto">
               {section_description}
             </p>
           )}
         </div>
 
         {/* Two Column Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div {...$['faqs']} className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
           <div className="space-y-4">
             {leftColumn.map((faq, index) => renderFaqItem(faq, index))}
           </div>
@@ -265,10 +268,11 @@ function CardsLayout({
   block,
   bgClass
 }: {
-  block: FAQBlockType;
+  block: FAQBlockType & { $?: Record<string, any> };
   bgClass: string;
 }) {
   const { section_title, section_description, badge_text, faqs, show_categories } = block;
+  const $ = block.$ || {};
 
   // Group FAQs by category if show_categories is true
   const safeFaqs = faqs || [];
@@ -296,13 +300,13 @@ function CardsLayout({
           )}
 
           {section_title && (
-            <h2 className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 {...$['section_title']} className="font-heading text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               {section_title}
             </h2>
           )}
 
           {section_description && (
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p {...$['section_description']} className="text-lg text-gray-600 max-w-3xl mx-auto">
               {section_description}
             </p>
           )}
@@ -319,23 +323,26 @@ function CardsLayout({
             )}
 
             {/* Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-              {categoryFaqs.map((faq, index) => (
+            <div {...$['faqs']} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {categoryFaqs.map((faq: any, index: number) => {
+                const f$ = faq.$ || {};
+                return (
                 <div
                   key={index}
+                  {...($[`faqs__${index}`] || {})}
                   className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100"
                 >
                   <div className="w-10 h-10 bg-gold-100 rounded-lg flex items-center justify-center mb-4">
                     <HelpCircle className="h-5 w-5 text-gold-600" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-3">
+                  <h4 {...f$['question']} className="font-semibold text-gray-900 mb-3">
                     {faq.question}
                   </h4>
-                  <p className="text-gray-600 text-sm leading-relaxed">
+                  <p {...f$['answer']} className="text-gray-600 text-sm leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>
-              ))}
+              );})}
             </div>
           </div>
         ))}

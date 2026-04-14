@@ -116,15 +116,16 @@ export function StatisticsBlock({ block }: StatisticsBlockProps) {
           </div>
         )}
 
-        {/* Metrics */}
-        <div className={gridClass}>
-          {(metrics || []).map((metric, index) => (
+        {/* Metrics — Level 1: container tag */}
+        <div {...$['metrics']} className={gridClass}>
+          {(metrics || []).map((metric: any, index: number) => (
             <StatisticItem
               key={index}
               metric={metric}
               isDark={isDark}
               animated={animated}
               index={index}
+              itemTag={$[`metrics__${index}`] || {}}
             />
           ))}
         </div>
@@ -138,12 +139,14 @@ function StatisticItem({
   metric,
   isDark,
   animated,
-  index
+  index,
+  itemTag
 }: {
-  metric: StatisticsBlockType['metrics'][0];
+  metric: any;
   isDark: boolean;
   animated: boolean;
   index: number;
+  itemTag: Record<string, any>;
 }) {
   const [displayValue, setDisplayValue] = useState(animated ? '0' : metric.value);
   const [isVisible, setIsVisible] = useState(false);
@@ -207,32 +210,35 @@ function StatisticItem({
     return () => clearInterval(timer);
   }, [animated, isVisible, metric.value]);
 
+  const m$ = metric.$ || {};
+
   return (
     <div
       ref={ref}
+      {...itemTag}
       className="text-center group"
       style={{ animationDelay: `${index * 100}ms` }}
     >
       {/* Icon */}
       {metric.icon && (
-        <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4 ${isDark ? 'bg-white/10' : 'bg-gold-100'} group-hover:scale-110 transition-transform duration-300`}>
+        <div {...m$['icon']} className={`inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4 ${isDark ? 'bg-white/10' : 'bg-gold-100'} group-hover:scale-110 transition-transform duration-300`}>
           <IconComponent className={`h-7 w-7 ${isDark ? 'text-gold-400' : 'text-gold-600'}`} />
         </div>
       )}
 
       {/* Value */}
-      <div className={`font-heading text-4xl md:text-5xl lg:text-6xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+      <div {...m$['value']} className={`font-heading text-4xl md:text-5xl lg:text-6xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
         {displayValue}
       </div>
 
       {/* Label */}
-      <div className={`text-lg font-semibold mb-1 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
+      <div {...m$['label']} className={`text-lg font-semibold mb-1 ${isDark ? 'text-white/90' : 'text-gray-900'}`}>
         {metric.label}
       </div>
 
       {/* Description */}
       {metric.description && (
-        <p className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
+        <p {...m$['description']} className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
           {metric.description}
         </p>
       )}
