@@ -59,9 +59,10 @@ export const stack = Contentstack.Stack(stackConfig);
 // Initialize Live Preview + Visual Builder synchronously at module load time
 if (typeof window !== 'undefined' && isLivePreviewEnabled) {
   ContentstackLivePreview.init({
-    ssr: false,
+    ssr: true,
     enable: true,
     mode: 'builder',
+    cleanCslpOnProduction: true,
     stackSdk: stack,
     clientUrlParams: {
       host: appHost,

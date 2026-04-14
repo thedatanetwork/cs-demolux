@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { dataService } from '@/lib/data-service';
+import { configurePreview } from '@/lib/preview-context';
 
 // Force dynamic rendering - Contentstack credentials not available at build time
 export const dynamic = 'force-dynamic';
@@ -23,7 +24,14 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function AboutPage() {
+export default async function AboutPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
+  // Configure live preview stack when Visual Builder reloads the iframe
+  configurePreview(await searchParams);
+
   // Fetch data
   const [page, navigation, siteSettings] = await Promise.all([
     dataService.getPage('about'),

@@ -5,6 +5,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
+import { configurePreview } from '@/lib/preview-context';
 import { formatDate } from '@/lib/utils';
 import { Calendar, User, ArrowLeft, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -17,12 +18,16 @@ interface BlogPostPageProps {
   params: Promise<{
     slug: string;
   }>;
+  searchParams: Promise<Record<string, string>>;
 }
 
 export default async function BlogPostPage(props: BlogPostPageProps) {
+  // Configure live preview stack when Visual Builder reloads the iframe
+  configurePreview(await props.searchParams);
+
   // Get blog post by slug instead of UID
   const { slug } = await props.params;
-  
+
   // Get variant aliases from cookies (for personalization without flicker)
   const variantAliases = await getVariantAliasesFromCookies();
   

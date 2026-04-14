@@ -103,21 +103,31 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getBlogPosts(limit, variantAliases);
+    const posts = await contentstack.getBlogPosts(limit, variantAliases);
+    posts.forEach(post => addEditableTags(post, 'blog_post'));
+    return posts;
   }
 
   async getBlogPost(uid: string, variantAliases?: string[]): Promise<BlogPost | null> {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getBlogPost(uid, variantAliases);
+    const entry = await contentstack.getBlogPost(uid, variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'blog_post');
+    }
+    return entry;
   }
 
   async getBlogPostBySlug(slug: string, variantAliases?: string[]): Promise<BlogPost | null> {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getBlogPostBySlug(slug, variantAliases);
+    const entry = await contentstack.getBlogPostBySlug(slug, variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'blog_post');
+    }
+    return entry;
   }
 
   async getPage(slug: string): Promise<Page | null> {
@@ -224,21 +234,31 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getCollections(featured, variantAliases);
+    const collections = await contentstack.getCollections(featured, variantAliases);
+    collections.forEach(c => addEditableTags(c, 'collection'));
+    return collections;
   }
 
   async getCollection(uid: string, variantAliases?: string[]): Promise<Collection | null> {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getCollection(uid, variantAliases);
+    const entry = await contentstack.getCollection(uid, variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'collection');
+    }
+    return entry;
   }
 
   async getCollectionBySlug(slug: string, variantAliases?: string[]): Promise<Collection | null> {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getCollectionBySlug(slug, variantAliases);
+    const entry = await contentstack.getCollectionBySlug(slug, variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'collection');
+    }
+    return entry;
   }
 
   async getFeaturedCollections(variantAliases?: string[]): Promise<Collection[]> {
@@ -250,7 +270,11 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getCollectionLandingPage(collectionUid, variantAliases);
+    const entry = await contentstack.getCollectionLandingPage(collectionUid, variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'collection_landing_page');
+    }
+    return entry;
   }
 
   // Lookbooks
@@ -258,14 +282,20 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getLookbooks(variantAliases);
+    const entries = await contentstack.getLookbooks(variantAliases);
+    entries.forEach(e => addEditableTags(e, 'lookbook_page'));
+    return entries;
   }
 
   async getLookbookBySlug(slug: string, variantAliases?: string[]): Promise<LookbookPage | null> {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getLookbookBySlug(slug, variantAliases);
+    const entry = await contentstack.getLookbookBySlug(slug, variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'lookbook_page');
+    }
+    return entry;
   }
 
   // Modular Category Pages
@@ -285,14 +315,20 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getCampaigns(isActive, variantAliases);
+    const entries = await contentstack.getCampaigns(isActive, variantAliases);
+    entries.forEach(e => addEditableTags(e, 'campaign'));
+    return entries;
   }
 
   async getCampaign(uid: string, variantAliases?: string[]): Promise<Campaign | null> {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getCampaign(uid, variantAliases);
+    const entry = await contentstack.getCampaign(uid, variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'campaign');
+    }
+    return entry;
   }
 
   async getActiveCampaigns(variantAliases?: string[]): Promise<Campaign[]> {
@@ -304,7 +340,9 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getValuePropositions(variantAliases);
+    const entries = await contentstack.getValuePropositions(variantAliases);
+    entries.forEach(e => addEditableTags(e, 'value_proposition'));
+    return entries;
   }
 
   // Feature Items
@@ -312,7 +350,9 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getFeatureItems(variantAliases);
+    const entries = await contentstack.getFeatureItems(variantAliases);
+    entries.forEach(e => addEditableTags(e, 'feature_item'));
+    return entries;
   }
 
   // Testimonials
@@ -320,7 +360,9 @@ export class DataService {
     if (!this.useContentstack) {
       throw new Error('Contentstack not configured. Please add credentials to .env.local');
     }
-    return await contentstack.getTestimonials(featured, variantAliases);
+    const entries = await contentstack.getTestimonials(featured, variantAliases);
+    entries.forEach(e => addEditableTags(e, 'testimonial'));
+    return entries;
   }
 
   async getFeaturedTestimonials(variantAliases?: string[]): Promise<Testimonial[]> {

@@ -8,6 +8,7 @@ import { ProductImageGallery } from '@/components/product/ProductImageGallery';
 import { ProductBlockRenderer } from '@/components/product/ProductBlockRenderer';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
+import { configurePreview } from '@/lib/preview-context';
 import { formatPrice } from '@/lib/utils';
 import { Star, Truck, Shield, RotateCcw } from 'lucide-react';
 
@@ -18,12 +19,16 @@ interface ProductPageProps {
   params: Promise<{
     slug: string;
   }>;
+  searchParams: Promise<Record<string, string>>;
 }
 
 export default async function ProductPage(props: ProductPageProps) {
+  // Configure live preview stack when Visual Builder reloads the iframe
+  configurePreview(await props.searchParams);
+
   // Get product by slug instead of UID
   const { slug } = await props.params;
-  
+
   // Get variant aliases from cookies (for personalization without flicker)
   const variantAliases = await getVariantAliasesFromCookies();
   

@@ -3,6 +3,7 @@ import { Footer } from '@/components/layout/Footer';
 import { SectionRenderer } from '@/components/blocks';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
+import { configurePreview } from '@/lib/preview-context';
 
 // Force dynamic rendering - Contentstack credentials not available at build time
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,14 @@ export const metadata = {
   description: 'Stay informed about the latest trends, innovations, and insights in wearable technologies and technofurniture.',
 };
 
-export default async function BlogPage() {
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
+  // Configure live preview stack when Visual Builder reloads the iframe
+  configurePreview(await searchParams);
+
   // Get variant aliases from cookies (for personalization without flicker)
   const variantAliases = await getVariantAliasesFromCookies();
 

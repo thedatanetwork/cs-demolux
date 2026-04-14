@@ -8,6 +8,7 @@
  */
 import { stack as _sharedStack, isLivePreviewEnabled } from './contentstack-client';
 import { addEditableTags as _addEditableTags } from '@contentstack/utils';
+import { getPreviewStack } from './preview-context';
 
 // Use the shared stack from contentstack-client.ts
 
@@ -669,8 +670,18 @@ export class ContentstackService {
     this.stack = getStack();
   }
 
+  /**
+   * Get the active stack for the current request.
+   * Uses a per-request preview stack (from preview-context.ts) when Visual Builder
+   * reloads the iframe with live_preview query params, otherwise falls back to
+   * the shared stack.
+   */
+  private getActiveStack(): any {
+    return getPreviewStack() || this.stack;
+  }
+
   private isConfigured(): boolean {
-    return !!this.stack;
+    return !!this.getActiveStack();
   }
 
 
@@ -681,7 +692,7 @@ export class ContentstackService {
     }
 
     try {
-      const Query = this.stack.ContentType(contentType).Query();
+      const Query = this.getActiveStack().ContentType(contentType).Query();
       
       // Add variant aliases if provided for personalized content
       // Using the .variants() method as per Contentstack documentation
@@ -740,7 +751,7 @@ export class ContentstackService {
     }
 
     try {
-      const Query = this.stack.ContentType(contentType).Query();
+      const Query = this.getActiveStack().ContentType(contentType).Query();
       Query.where('uid', uid);
       
       // Add variant aliases if provided for personalized content
@@ -893,7 +904,7 @@ export class ContentstackService {
 
     try {
       console.log('Fetching home page from Contentstack...');
-      const Query = this.stack.ContentType('home_page').Query();
+      const Query = this.getActiveStack().ContentType('home_page').Query();
       Query.includeReference(['hero_image']);
       Query.includeMetadata();
       Query.limit(1);
@@ -928,7 +939,7 @@ export class ContentstackService {
 
     try {
       console.log('Fetching modular home page from Contentstack...');
-      const Query = this.stack.ContentType('modular_home_page').Query();
+      const Query = this.getActiveStack().ContentType('modular_home_page').Query();
       // Include page_sections and all nested references within blocks
       Query.includeReference([
         'page_sections',
@@ -983,7 +994,7 @@ export class ContentstackService {
 
     try {
       console.log('Fetching blog page from Contentstack...');
-      const Query = this.stack.ContentType('blog_page').Query();
+      const Query = this.getActiveStack().ContentType('blog_page').Query();
       // Include page_sections and all nested references within blocks
       Query.includeReference([
         'page_sections',
@@ -1045,7 +1056,7 @@ export class ContentstackService {
     }
 
     try {
-      const Query = this.stack.ContentType('collection').Query();
+      const Query = this.getActiveStack().ContentType('collection').Query();
       Query.where('uid', uid);
       Query.includeReference(['featured_image', 'products']);
       Query.includeMetadata();
@@ -1075,7 +1086,7 @@ export class ContentstackService {
     }
 
     try {
-      const Query = this.stack.ContentType('collection_landing_page').Query();
+      const Query = this.getActiveStack().ContentType('collection_landing_page').Query();
       Query.where('collection.uid', collectionUid);
       Query.includeReference(['collection', 'hero_section', 'page_sections']);
       Query.includeMetadata();
@@ -1098,7 +1109,7 @@ export class ContentstackService {
     }
 
     try {
-      const Query = this.stack.ContentType('lookbook_page').Query();
+      const Query = this.getActiveStack().ContentType('lookbook_page').Query();
       Query.orderByDescending('created_at');
       Query.includeReference(['featured_image', 'page_sections', 'products']);
       Query.includeMetadata();
@@ -1128,7 +1139,7 @@ export class ContentstackService {
     }
 
     try {
-      const Query = this.stack.ContentType('modular_category_page').Query();
+      const Query = this.getActiveStack().ContentType('modular_category_page').Query();
       Query.where('category_slug', categorySlug);
       Query.includeReference(['hero_section', 'page_sections']);
       Query.includeMetadata();
@@ -1175,7 +1186,7 @@ export class ContentstackService {
     }
 
     try {
-      const Query = this.stack.ContentType('dynamic_feeds_page').Query();
+      const Query = this.getActiveStack().ContentType('dynamic_feeds_page').Query();
       // Resolve component_list references (dynamic_product_feed entries)
       // and their nested rule_group reference fields
       Query.includeReference([
@@ -1224,7 +1235,7 @@ export class ContentstackService {
     }
 
     try {
-      const Query = this.stack.ContentType('dynamic_feeds_dropdown_page').Query();
+      const Query = this.getActiveStack().ContentType('dynamic_feeds_dropdown_page').Query();
       // Resolve component_list references — no nested rule_group refs needed
       // because dropdown fields return string values directly
       Query.includeReference(['component_list']);
@@ -1253,7 +1264,7 @@ export class ContentstackService {
     }
 
     try {
-      const Query = this.stack.ContentType('dynamic_product_feed').Query();
+      const Query = this.getActiveStack().ContentType('dynamic_product_feed').Query();
       // Include references within the embedded global field
       Query.includeReference([
         'rule_group.include_categories',
@@ -1293,7 +1304,7 @@ export class ContentstackService {
     if (!this.isConfigured()) return null;
 
     try {
-      const Query = this.stack.ContentType('composable_page').Query();
+      const Query = this.getActiveStack().ContentType('composable_page').Query();
       Query.includeReference(['page_sections']);
       Query.includeEmbeddedItems();
       Query.includeMetadata();

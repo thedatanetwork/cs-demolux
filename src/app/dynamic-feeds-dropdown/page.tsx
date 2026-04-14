@@ -1,12 +1,20 @@
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
+import { configurePreview } from '@/lib/preview-context';
 import { convertDropdownFeedEntry } from '@/lib/rule-engine';
 import type { DynamicProductFeedConfig } from '@/lib/rule-engine';
 import { DynamicFeedsClient } from '../dynamic-feeds/DynamicFeedsClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DynamicFeedsDropdownPage() {
+export default async function DynamicFeedsDropdownPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
+  // Configure live preview stack when Visual Builder reloads the iframe
+  configurePreview(await searchParams);
+
   const variantAliases = await getVariantAliasesFromCookies();
 
   let feedConfigs: DynamicProductFeedConfig[] = [];

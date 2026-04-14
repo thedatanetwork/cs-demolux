@@ -5,6 +5,7 @@ import { SectionRenderer } from '@/components/blocks';
 import { ProductCard } from '@/components/product/ProductCard';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
+import { configurePreview } from '@/lib/preview-context';
 import Image from 'next/image';
 
 // Force dynamic rendering - Contentstack credentials not available at build time
@@ -14,6 +15,7 @@ interface LookbookPageProps {
   params: Promise<{
     slug: string;
   }>;
+  searchParams: Promise<Record<string, string>>;
 }
 
 export async function generateMetadata(props: LookbookPageProps) {
@@ -34,6 +36,9 @@ export async function generateMetadata(props: LookbookPageProps) {
 }
 
 export default async function LookbookPage(props: LookbookPageProps) {
+  // Configure live preview stack when Visual Builder reloads the iframe
+  configurePreview(await props.searchParams);
+
   const { slug } = await props.params;
   const variantAliases = await getVariantAliasesFromCookies();
 

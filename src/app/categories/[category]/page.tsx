@@ -5,6 +5,7 @@ import { ProductCard } from '@/components/product/ProductCard';
 import { SectionRenderer } from '@/components/blocks';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
+import { configurePreview } from '@/lib/preview-context';
 
 // Force dynamic rendering - Contentstack credentials not available at build time
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,7 @@ interface CategoryPageProps {
   params: Promise<{
     category: string;
   }>;
+  searchParams: Promise<Record<string, string>>;
 }
 
 // Fallback metadata (used when no CMS entry exists)
@@ -61,6 +63,9 @@ export async function generateMetadata(props: CategoryPageProps) {
 }
 
 export default async function CategoryPage(props: CategoryPageProps) {
+  // Configure live preview stack when Visual Builder reloads the iframe
+  configurePreview(await props.searchParams);
+
   const { category } = await props.params;
   // Get variant aliases from cookies (for personalization without flicker)
   const variantAliases = await getVariantAliasesFromCookies();

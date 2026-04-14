@@ -3,6 +3,7 @@ import { Footer } from '@/components/layout/Footer';
 import { SectionRenderer } from '@/components/blocks';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
+import { configurePreview } from '@/lib/preview-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,14 @@ export const metadata = {
   description: 'Demonstrates dynamic product feed blocks composed alongside traditional CMS blocks on a single modular page.',
 };
 
-export default async function ComposableDemoPage() {
+export default async function ComposableDemoPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
+  // Configure live preview stack when Visual Builder reloads the iframe
+  configurePreview(await searchParams);
+
   const variantAliases = await getVariantAliasesFromCookies();
 
   const [page, navigation, siteSettings] = await Promise.all([
