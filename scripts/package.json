@@ -49,7 +49,8 @@
     "seed-dropdown-feed-data": "node seed-dropdown-feed-data.js",
     "setup-dropdown-feeds": "node create-dropdown-feed-schemas.js && node seed-dropdown-feed-data.js",
     "add-dropdown-feed-to-home-page": "node add-dropdown-feed-to-home-page.js",
-    "create-composable-demo-page": "node create-composable-demo-page.js"
+    "create-composable-demo-page": "node create-composable-demo-page.js",
+    "fix-icon-extensions": "node fix-icon-extensions.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",
