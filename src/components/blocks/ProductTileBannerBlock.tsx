@@ -60,13 +60,6 @@ const badgeColorClasses: Record<string, string> = {
   black: 'bg-black text-white',
 };
 
-// Color used for the "punch hole" on price-tag shape (matches section background)
-const holeColorClasses: Record<string, string> = {
-  white: 'bg-white',
-  gray: 'bg-gray-50',
-  dark: 'bg-gray-900',
-};
-
 export function ProductTileBannerBlock({ block }: ProductTileBannerBlockProps) {
   const {
     eyebrow_label,
@@ -145,7 +138,6 @@ export function ProductTileBannerBlock({ block }: ProductTileBannerBlockProps) {
               cornerRadius={corner_radius}
               labelAlignment={label_alignment}
               showLabels={show_labels !== false}
-              backgroundStyle={background_style}
               isDark={isDark}
               itemTag={$[`tiles__${index}`] || {}}
             />
@@ -167,7 +159,6 @@ interface ProductTileProps {
   cornerRadius: string;
   labelAlignment: string;
   showLabels: boolean;
-  backgroundStyle: string;
   isDark: boolean;
   itemTag: Record<string, any>;
 }
@@ -183,7 +174,6 @@ function ProductTile({
   cornerRadius,
   labelAlignment,
   showLabels,
-  backgroundStyle,
   isDark,
   itemTag,
 }: ProductTileProps) {
@@ -223,7 +213,6 @@ function ProductTile({
             color={badgeColor}
             shape={badgeShape}
             position={badgePosition}
-            backgroundStyle={backgroundStyle}
           />
         )}
       </div>
@@ -242,105 +231,115 @@ function ProductTile({
   );
 }
 
+// CSS mask: punches a real transparent hole through the badge so the tile
+// image shows through. Coords are in absolute pixels so the hole stays a
+// perfect circle regardless of badge dimensions.
+const HOLE_RADIUS = 3;
+const HOLE_INSET = 10;
+const HOLE_MASK_LEFT = `radial-gradient(circle ${HOLE_RADIUS}px at ${HOLE_INSET}px 50%, transparent 99%, #000 100%)`;
+const HOLE_MASK_RIGHT = `radial-gradient(circle ${HOLE_RADIUS}px at calc(100% - ${HOLE_INSET}px) 50%, transparent 99%, #000 100%)`;
+
 function PriceBadge({
   tile,
   t$,
   color,
   shape,
   position,
-  backgroundStyle,
 }: {
   tile: any;
   t$: Record<string, any>;
   color: string;
   shape: string;
   position: string;
-  backgroundStyle: string;
 }) {
   const colorClass = badgeColorClasses[color] || badgeColorClasses.teal;
-  const holeClass = holeColorClasses[backgroundStyle] || holeColorClasses.white;
 
   const isPriceTag = shape === 'price_tag';
   const isPill = shape === 'pill';
+  const onRight = position === 'top_right';
 
   // Position classes — slight inset so badge "pins" inside the tile
-  const positionClass =
-    position === 'top_right'
-      ? 'top-2 right-2 sm:top-3 sm:right-3'
-      : 'top-2 left-2 sm:top-3 sm:left-3';
+  const positionClass = onRight
+    ? 'top-2 right-2 sm:top-3 sm:right-3'
+    : 'top-2 left-2 sm:top-3 sm:left-3';
 
-  // Shape classes
+  // Shape classes — extra padding on the side that hosts the hole
   const shapeClass = isPill
-    ? 'rounded-full px-3 py-1.5'
+    ? 'rounded-full px-3 py-1'
     : isPriceTag
-      ? 'rounded-md pl-4 pr-3 py-1.5 sm:pl-5 sm:pr-4 sm:py-2'
-      : 'rounded-md px-3 py-1.5 sm:px-4 sm:py-2';
+      ? `rounded-md ${onRight ? 'pl-2.5 pr-5 sm:pl-3 sm:pr-6' : 'pl-5 pr-2.5 sm:pl-6 sm:pr-3'} py-1 sm:py-1.5`
+      : 'rounded-md px-3 py-1 sm:px-3.5 sm:py-1.5';
+
+  // Real punched hole via CSS mask. drop-shadow honors the mask alpha so the
+  // shadow follows the actual silhouette (including the hole).
+  const maskStyle = isPriceTag
+    ? {
+        WebkitMaskImage: onRight ? HOLE_MASK_RIGHT : HOLE_MASK_LEFT,
+        maskImage: onRight ? HOLE_MASK_RIGHT : HOLE_MASK_LEFT,
+      }
+    : undefined;
 
   return (
     <div
-      className={`absolute ${positionClass} ${colorClass} ${shapeClass} shadow-sm flex items-stretch gap-1 sm:gap-1.5 z-10 select-none`}
+      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.18))' }}
+      className={`absolute ${positionClass} z-10 select-none`}
     >
-      {/* Price-tag punch hole — stylized as a small ring on the leading edge */}
-      {isPriceTag && (
-        <span
-          aria-hidden
-          className={`absolute top-1/2 -translate-y-1/2 ${
-            position === 'top_right' ? 'right-1.5' : 'left-1.5'
-          } w-1.5 h-1.5 rounded-full ${holeClass} ring-1 ring-black/10`}
-        />
-      )}
-
-      {/* Left column: eyebrow + value (and prefix nestled with it) */}
-      <div className={`flex flex-col ${isPriceTag && position === 'top_right' ? 'mr-3 sm:mr-4' : ''} ${isPriceTag && position === 'top_left' ? 'ml-2 sm:ml-3' : ''}`}>
-        {tile.eyebrow && (
-          <span
-            {...t$['eyebrow']}
-            className="text-[9px] sm:text-[10px] font-medium leading-none italic opacity-95 mb-0.5"
-          >
-            {tile.eyebrow}
-          </span>
-        )}
-        <div className="flex items-baseline gap-0.5">
-          {tile.prefix && (
+      <div
+        style={maskStyle}
+        className={`${colorClass} ${shapeClass} flex items-stretch gap-1 sm:gap-1.5`}
+      >
+        {/* Left column: eyebrow + (prefix + value) */}
+        <div className="flex flex-col justify-center">
+          {tile.eyebrow && (
             <span
-              {...t$['prefix']}
-              className="text-[10px] sm:text-xs font-bold leading-none self-start mt-0.5"
+              {...t$['eyebrow']}
+              className="text-[9px] sm:text-[10px] font-medium leading-none italic opacity-95 mb-0.5"
             >
-              {tile.prefix}
+              {tile.eyebrow}
             </span>
           )}
-          {tile.value && (
-            <span
-              {...t$['value']}
-              className="text-xl sm:text-2xl md:text-3xl font-bold leading-none tracking-tight"
-            >
-              {tile.value}
-            </span>
-          )}
+          <div className="flex items-baseline gap-px">
+            {tile.prefix && (
+              <span
+                {...t$['prefix']}
+                className="text-[10px] sm:text-xs font-bold leading-none self-start mt-0.5"
+              >
+                {tile.prefix}
+              </span>
+            )}
+            {tile.value && (
+              <span
+                {...t$['value']}
+                className="text-xl sm:text-2xl md:text-[26px] font-bold leading-[0.9] tracking-tight"
+              >
+                {tile.value}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Right column: suffix + sublabel stacked */}
-      {(tile.suffix || tile.sublabel) && (
-        <div className="flex flex-col justify-between py-0.5">
-          {tile.suffix && (
-            <span
-              {...t$['suffix']}
-              className="text-[10px] sm:text-xs font-bold leading-none"
+        {/* Right column: suffix + sublabel stacked */}
+        {(tile.suffix || tile.sublabel) && (
+          <div className="flex flex-col justify-between py-px">
+            {tile.suffix && (
+              <span
+                {...t$['suffix']}
+                className="text-[10px] sm:text-xs font-bold leading-none"
             >
               {tile.suffix}
             </span>
           )}
-          {tile.sublabel && (
-            <span
-              {...t$['sublabel']}
-              className="text-[9px] sm:text-[10px] font-medium leading-none mt-auto opacity-95"
-            >
-              {tile.sublabel}
-            </span>
-          )}
-        </div>
-      )}
+            {tile.sublabel && (
+              <span
+                {...t$['sublabel']}
+                className="text-[9px] sm:text-[10px] font-medium leading-none italic mt-auto opacity-95"
+              >
+                {tile.sublabel}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
