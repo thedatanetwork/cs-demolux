@@ -26,9 +26,9 @@ const columnClasses: Record<string, string> = {
 };
 
 const gapClasses: Record<string, string> = {
-  tight: 'gap-x-2 gap-y-4 md:gap-x-3 md:gap-y-6',
-  normal: 'gap-x-3 gap-y-6 md:gap-x-5 md:gap-y-8',
-  loose: 'gap-x-5 gap-y-8 md:gap-x-8 md:gap-y-12',
+  tight: 'gap-x-3 gap-y-6 md:gap-x-4 md:gap-y-8',
+  normal: 'gap-x-4 gap-y-8 md:gap-x-6 md:gap-y-10',
+  loose: 'gap-x-6 gap-y-10 md:gap-x-10 md:gap-y-14',
 };
 
 const aspectClasses: Record<string, string> = {
@@ -230,7 +230,7 @@ function ProductTile({
       {showLabels && tile.label && (
         <div
           {...t$['label']}
-          className={`mt-2 md:mt-3 text-xs md:text-sm font-medium ${labelAlignClass} ${
+          className={`mt-3 md:mt-4 text-sm md:text-base font-medium ${labelAlignClass} ${
             isDark ? 'text-gray-300' : 'text-gray-700'
           }`}
         >
@@ -247,9 +247,9 @@ function ProductTile({
 // Both use absolute pixel offsets so the notch and hole stay crisp regardless
 // of how wide the badge gets. The hole is parked between the notch and the
 // content padding so it always sits in the body of the tag, not in the notch.
-const NOTCH_WIDTH = 14; // px of the arrow notch
-const HOLE_RADIUS = 3;
-const HOLE_INSET = 10; // px from the leading edge to the hole center (inside the arrow tip)
+const NOTCH_WIDTH = 19; // px of the arrow notch
+const HOLE_RADIUS = 4;
+const HOLE_INSET = 14; // px from the leading edge to the hole center (inside the arrow tip)
 const HOLE_MASK_LEFT = `radial-gradient(circle ${HOLE_RADIUS}px at ${HOLE_INSET}px 50%, transparent 99%, #000 100%)`;
 const HOLE_MASK_RIGHT = `radial-gradient(circle ${HOLE_RADIUS}px at calc(100% - ${HOLE_INSET}px) 50%, transparent 99%, #000 100%)`;
 const ARROW_CLIP_LEFT = `polygon(${NOTCH_WIDTH}px 0, 100% 0, 100% 100%, ${NOTCH_WIDTH}px 100%, 0 50%)`;
@@ -271,43 +271,43 @@ const SIZE_TOKENS: Record<string, {
   colGap: string;
 }> = {
   small: {
-    py: 'py-1.5',
-    notchLeftPad: 'pl-5 sm:pl-6 pr-2.5',
-    notchRightPad: 'pl-2.5 pr-5 sm:pr-6',
-    rectPad: 'pl-2.5 pr-2.5',
-    eyebrow: 'text-[9px] sm:text-[10px]',
-    prefix: 'text-[10px] sm:text-xs',
-    value: 'text-xl sm:text-2xl',
-    suffix: 'text-[10px] sm:text-xs',
-    sublabel: 'text-[9px] sm:text-[10px]',
+    py: 'py-2',
+    notchLeftPad: 'pl-7 sm:pl-8 pr-3',
+    notchRightPad: 'pl-3 pr-7 sm:pr-8',
+    rectPad: 'pl-3 pr-3',
+    eyebrow: 'text-[11px] sm:text-xs',
+    prefix: 'text-xs sm:text-sm',
+    value: 'text-[26px] sm:text-[30px]',
+    suffix: 'text-xs sm:text-sm',
+    sublabel: 'text-[11px] sm:text-xs',
     eyebrowGap: 'mb-0.5',
     colGap: 'gap-0.5',
   },
   medium: {
-    py: 'py-2',
-    notchLeftPad: 'pl-6 sm:pl-7 pr-3',
-    notchRightPad: 'pl-3 pr-6 sm:pr-7',
-    rectPad: 'pl-3 pr-3',
-    eyebrow: 'text-[11px] sm:text-xs',
-    prefix: 'text-sm',
-    value: 'text-[28px] sm:text-[32px]',
-    suffix: 'text-sm',
-    sublabel: 'text-[10px] sm:text-[11px]',
+    py: 'py-2.5',
+    notchLeftPad: 'pl-8 sm:pl-9 pr-4',
+    notchRightPad: 'pl-4 pr-8 sm:pr-9',
+    rectPad: 'pl-4 pr-4',
+    eyebrow: 'text-sm sm:text-base',
+    prefix: 'text-base sm:text-lg',
+    value: 'text-[38px] sm:text-[44px]',
+    suffix: 'text-base sm:text-lg',
+    sublabel: 'text-sm sm:text-[15px]',
     eyebrowGap: 'mb-1',
     colGap: 'gap-1',
   },
   large: {
-    py: 'py-2.5',
-    notchLeftPad: 'pl-7 sm:pl-8 pr-3.5',
-    notchRightPad: 'pl-3.5 pr-7 sm:pr-8',
-    rectPad: 'pl-3.5 pr-3.5',
-    eyebrow: 'text-xs sm:text-sm',
-    prefix: 'text-base',
-    value: 'text-[34px] sm:text-[40px]',
-    suffix: 'text-base',
-    sublabel: 'text-xs',
-    eyebrowGap: 'mb-1.5',
-    colGap: 'gap-1.5',
+    py: 'py-3.5',
+    notchLeftPad: 'pl-9 sm:pl-11 pr-5',
+    notchRightPad: 'pl-5 pr-9 sm:pr-11',
+    rectPad: 'pl-5 pr-5',
+    eyebrow: 'text-base sm:text-lg',
+    prefix: 'text-lg sm:text-xl',
+    value: 'text-[46px] sm:text-[54px]',
+    suffix: 'text-lg sm:text-xl',
+    sublabel: 'text-base sm:text-lg',
+    eyebrowGap: 'mb-2',
+    colGap: 'gap-2',
   },
 };
 
