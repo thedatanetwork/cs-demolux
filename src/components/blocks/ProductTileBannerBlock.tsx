@@ -231,13 +231,19 @@ function ProductTile({
   );
 }
 
-// CSS mask: punches a real transparent hole through the badge so the tile
-// image shows through. Coords are in absolute pixels so the hole stays a
-// perfect circle regardless of badge dimensions.
+// Price-tag silhouette:
+//   - clip-path polygon carves an arrow notch on the leading edge
+//   - mask-image radial-gradient punches a real circular hole through the tag
+// Both use absolute pixel offsets so the notch and hole stay crisp regardless
+// of how wide the badge gets. The hole is parked between the notch and the
+// content padding so it always sits in the body of the tag, not in the notch.
+const NOTCH_WIDTH = 14; // px of the arrow notch
 const HOLE_RADIUS = 3;
-const HOLE_INSET = 10;
+const HOLE_INSET = 24; // px from the leading edge to the hole center
 const HOLE_MASK_LEFT = `radial-gradient(circle ${HOLE_RADIUS}px at ${HOLE_INSET}px 50%, transparent 99%, #000 100%)`;
 const HOLE_MASK_RIGHT = `radial-gradient(circle ${HOLE_RADIUS}px at calc(100% - ${HOLE_INSET}px) 50%, transparent 99%, #000 100%)`;
+const ARROW_CLIP_LEFT = `polygon(${NOTCH_WIDTH}px 0, 100% 0, 100% 100%, ${NOTCH_WIDTH}px 100%, 0 50%)`;
+const ARROW_CLIP_RIGHT = `polygon(0 0, calc(100% - ${NOTCH_WIDTH}px) 0, 100% 50%, calc(100% - ${NOTCH_WIDTH}px) 100%, 0 100%)`;
 
 function PriceBadge({
   tile,
@@ -263,17 +269,22 @@ function PriceBadge({
     ? 'top-2 right-2 sm:top-3 sm:right-3'
     : 'top-2 left-2 sm:top-3 sm:left-3';
 
-  // Shape classes — extra padding on the side that hosts the hole
+  // Shape classes — extra padding on the leading side hosts the notch + hole;
+  // price_tag shape is defined by clip-path so we skip border-radius on it.
   const shapeClass = isPill
     ? 'rounded-full px-3 py-1'
     : isPriceTag
-      ? `rounded-md ${onRight ? 'pl-3 pr-5 sm:pl-3.5 sm:pr-6' : 'pl-5 pr-3 sm:pl-6 sm:pr-3.5'} py-1.5`
+      ? onRight
+        ? 'pl-3 pr-9 py-1.5'
+        : 'pl-9 pr-3 py-1.5'
       : 'rounded-md px-3.5 py-1.5';
 
-  // Real punched hole via CSS mask. drop-shadow honors the mask alpha so the
-  // shadow follows the actual silhouette (including the hole).
-  const maskStyle = isPriceTag
+  // Real notched silhouette + transparent punch hole. drop-shadow honors both
+  // clip-path and mask alpha so the shadow follows the visible tag shape.
+  const tagStyle = isPriceTag
     ? {
+        clipPath: onRight ? ARROW_CLIP_RIGHT : ARROW_CLIP_LEFT,
+        WebkitClipPath: onRight ? ARROW_CLIP_RIGHT : ARROW_CLIP_LEFT,
         WebkitMaskImage: onRight ? HOLE_MASK_RIGHT : HOLE_MASK_LEFT,
         maskImage: onRight ? HOLE_MASK_RIGHT : HOLE_MASK_LEFT,
       }
@@ -287,7 +298,7 @@ function PriceBadge({
       className={`absolute ${positionClass} z-10 select-none`}
     >
       <div
-        style={maskStyle}
+        style={tagStyle}
         className={`${colorClass} ${shapeClass} flex flex-col`}
       >
         {/* Eyebrow row — centered above the value */}
