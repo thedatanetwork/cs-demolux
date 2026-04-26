@@ -564,6 +564,8 @@ export interface ProductTileBannerBlock {
   badge_color: 'teal' | 'gold' | 'red' | 'navy' | 'black';
   badge_shape?: 'price_tag' | 'rectangle' | 'pill';
   badge_position?: 'top_left' | 'top_right';
+  badge_size?: 'small' | 'medium' | 'large';
+  badge_angle?: 'straight' | 'tilt_left' | 'tilt_right';
   tile_aspect_ratio?: 'square' | 'portrait_4_5' | 'portrait_3_4' | 'landscape_4_3';
   tile_image_fit?: 'cover' | 'contain';
   tile_background?: 'transparent' | 'white' | 'soft_gray' | 'soft_warm';

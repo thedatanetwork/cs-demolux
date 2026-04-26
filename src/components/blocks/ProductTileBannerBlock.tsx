@@ -77,6 +77,8 @@ export function ProductTileBannerBlock({ block }: ProductTileBannerBlockProps) {
     label_alignment = 'center',
     show_labels = true,
     gap_size = 'normal',
+    badge_size = 'medium',
+    badge_angle = 'tilt_left',
     tiles = [],
   } = block;
 
@@ -132,6 +134,8 @@ export function ProductTileBannerBlock({ block }: ProductTileBannerBlockProps) {
               badgeColor={badge_color}
               badgeShape={badge_shape}
               badgePosition={badge_position}
+              badgeSize={badge_size}
+              badgeAngle={badge_angle}
               aspectRatio={tile_aspect_ratio}
               imageFit={tile_image_fit}
               tileBg={tile_background}
@@ -153,6 +157,8 @@ interface ProductTileProps {
   badgeColor: string;
   badgeShape: string;
   badgePosition: string;
+  badgeSize: string;
+  badgeAngle: string;
   aspectRatio: string;
   imageFit: string;
   tileBg: string;
@@ -168,6 +174,8 @@ function ProductTile({
   badgeColor,
   badgeShape,
   badgePosition,
+  badgeSize,
+  badgeAngle,
   aspectRatio,
   imageFit,
   tileBg,
@@ -213,6 +221,8 @@ function ProductTile({
             color={badgeColor}
             shape={badgeShape}
             position={badgePosition}
+            size={badgeSize}
+            angle={badgeAngle}
           />
         )}
       </div>
@@ -239,11 +249,73 @@ function ProductTile({
 // content padding so it always sits in the body of the tag, not in the notch.
 const NOTCH_WIDTH = 14; // px of the arrow notch
 const HOLE_RADIUS = 3;
-const HOLE_INSET = 19; // px from the leading edge to the hole center (just behind the notch)
+const HOLE_INSET = 10; // px from the leading edge to the hole center (inside the arrow tip)
 const HOLE_MASK_LEFT = `radial-gradient(circle ${HOLE_RADIUS}px at ${HOLE_INSET}px 50%, transparent 99%, #000 100%)`;
 const HOLE_MASK_RIGHT = `radial-gradient(circle ${HOLE_RADIUS}px at calc(100% - ${HOLE_INSET}px) 50%, transparent 99%, #000 100%)`;
 const ARROW_CLIP_LEFT = `polygon(${NOTCH_WIDTH}px 0, 100% 0, 100% 100%, ${NOTCH_WIDTH}px 100%, 0 50%)`;
 const ARROW_CLIP_RIGHT = `polygon(0 0, calc(100% - ${NOTCH_WIDTH}px) 0, 100% 50%, calc(100% - ${NOTCH_WIDTH}px) 100%, 0 100%)`;
+
+// Per-size tokens. Padding is explicit pl/pr so Tailwind class ordering
+// doesn't trip on px-* vs pl-* conflicts.
+const SIZE_TOKENS: Record<string, {
+  py: string;
+  notchLeftPad: string; // notch on left:  large pl-, small pr-
+  notchRightPad: string; // notch on right: small pl-, large pr-
+  rectPad: string; // for non-priceTag shapes
+  eyebrow: string;
+  prefix: string;
+  value: string;
+  suffix: string;
+  sublabel: string;
+  eyebrowGap: string;
+  colGap: string;
+}> = {
+  small: {
+    py: 'py-1.5',
+    notchLeftPad: 'pl-5 sm:pl-6 pr-2.5',
+    notchRightPad: 'pl-2.5 pr-5 sm:pr-6',
+    rectPad: 'pl-2.5 pr-2.5',
+    eyebrow: 'text-[9px] sm:text-[10px]',
+    prefix: 'text-[10px] sm:text-xs',
+    value: 'text-xl sm:text-2xl',
+    suffix: 'text-[10px] sm:text-xs',
+    sublabel: 'text-[9px] sm:text-[10px]',
+    eyebrowGap: 'mb-0.5',
+    colGap: 'gap-0.5',
+  },
+  medium: {
+    py: 'py-2',
+    notchLeftPad: 'pl-6 sm:pl-7 pr-3',
+    notchRightPad: 'pl-3 pr-6 sm:pr-7',
+    rectPad: 'pl-3 pr-3',
+    eyebrow: 'text-[11px] sm:text-xs',
+    prefix: 'text-sm',
+    value: 'text-[28px] sm:text-[32px]',
+    suffix: 'text-sm',
+    sublabel: 'text-[10px] sm:text-[11px]',
+    eyebrowGap: 'mb-1',
+    colGap: 'gap-1',
+  },
+  large: {
+    py: 'py-2.5',
+    notchLeftPad: 'pl-7 sm:pl-8 pr-3.5',
+    notchRightPad: 'pl-3.5 pr-7 sm:pr-8',
+    rectPad: 'pl-3.5 pr-3.5',
+    eyebrow: 'text-xs sm:text-sm',
+    prefix: 'text-base',
+    value: 'text-[34px] sm:text-[40px]',
+    suffix: 'text-base',
+    sublabel: 'text-xs',
+    eyebrowGap: 'mb-1.5',
+    colGap: 'gap-1.5',
+  },
+};
+
+const ANGLE_TRANSFORMS: Record<string, string> = {
+  straight: 'rotate(0deg)',
+  tilt_left: 'rotate(-7deg)',
+  tilt_right: 'rotate(7deg)',
+};
 
 function PriceBadge({
   tile,
@@ -251,20 +323,27 @@ function PriceBadge({
   color,
   shape,
   position,
+  size,
+  angle,
 }: {
   tile: any;
   t$: Record<string, any>;
   color: string;
   shape: string;
   position: string;
+  size: string;
+  angle: string;
 }) {
   const colorClass = badgeColorClasses[color] || badgeColorClasses.teal;
+  const tokens = SIZE_TOKENS[size] || SIZE_TOKENS.medium;
+  const transform = ANGLE_TRANSFORMS[angle] || ANGLE_TRANSFORMS.straight;
 
   const isPriceTag = shape === 'price_tag';
   const isPill = shape === 'pill';
   const onRight = position === 'top_right';
 
-  // Position classes — slight inset so badge "pins" inside the tile
+  // Position classes — slight inset so badge "pins" inside the tile.
+  // Origin matches the rotation pivot (the tip of the arrow on the leading edge).
   const positionClass = onRight
     ? 'top-2 right-2 sm:top-3 sm:right-3'
     : 'top-2 left-2 sm:top-3 sm:left-3';
@@ -272,12 +351,10 @@ function PriceBadge({
   // Shape classes — extra padding on the leading side hosts the notch + hole;
   // price_tag shape is defined by clip-path so we skip border-radius on it.
   const shapeClass = isPill
-    ? 'rounded-full px-3 py-1'
+    ? `rounded-full ${tokens.rectPad} ${tokens.py}`
     : isPriceTag
-      ? onRight
-        ? 'pl-3 pr-7 py-1.5'
-        : 'pl-7 pr-3 py-1.5'
-      : 'rounded-md px-3.5 py-1.5';
+      ? `${onRight ? tokens.notchRightPad : tokens.notchLeftPad} ${tokens.py}`
+      : `rounded-md ${tokens.rectPad} ${tokens.py}`;
 
   // Real notched silhouette + transparent punch hole. drop-shadow honors both
   // clip-path and mask alpha so the shadow follows the visible tag shape.
@@ -292,9 +369,20 @@ function PriceBadge({
 
   const hasSuffixCol = Boolean(tile.suffix || tile.sublabel);
 
+  // Pivot rotation around the leading edge so the tag swings from the "string"
+  // (the punch hole) rather than from the center, matching how a real paper
+  // tag dangles. Origin: hole position on leading edge.
+  const transformOrigin = onRight
+    ? `calc(100% - ${HOLE_INSET}px) 50%`
+    : `${HOLE_INSET}px 50%`;
+
   return (
     <div
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.18))' }}
+      style={{
+        filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.22))',
+        transform,
+        transformOrigin,
+      }}
       className={`absolute ${positionClass} z-10 select-none`}
     >
       <div
@@ -305,18 +393,18 @@ function PriceBadge({
         {tile.eyebrow && (
           <span
             {...t$['eyebrow']}
-            className="text-[10px] sm:text-[11px] font-semibold leading-none italic text-center mb-1 opacity-95"
+            className={`${tokens.eyebrow} font-semibold leading-none italic text-center ${tokens.eyebrowGap} opacity-95`}
           >
             {tile.eyebrow}
           </span>
         )}
 
         {/* Value row — prefix top-left, big value, suffix top-right with sublabel underneath */}
-        <div className={`flex items-stretch ${hasSuffixCol || tile.prefix ? 'gap-1' : ''} justify-center`}>
+        <div className={`flex items-stretch ${hasSuffixCol || tile.prefix ? tokens.colGap : ''} justify-center`}>
           {tile.prefix && (
             <span
               {...t$['prefix']}
-              className="text-xs sm:text-sm font-bold leading-none self-start"
+              className={`${tokens.prefix} font-bold leading-none self-start`}
             >
               {tile.prefix}
             </span>
@@ -324,7 +412,7 @@ function PriceBadge({
           {tile.value && (
             <span
               {...t$['value']}
-              className="text-2xl sm:text-[28px] font-bold leading-none tracking-tight"
+              className={`${tokens.value} font-bold leading-none tracking-tight`}
             >
               {tile.value}
             </span>
@@ -334,7 +422,7 @@ function PriceBadge({
               {tile.suffix && (
                 <span
                   {...t$['suffix']}
-                  className="text-xs sm:text-sm font-bold leading-none"
+                  className={`${tokens.suffix} font-bold leading-none`}
                 >
                   {tile.suffix}
                 </span>
@@ -342,7 +430,7 @@ function PriceBadge({
               {tile.sublabel && (
                 <span
                   {...t$['sublabel']}
-                  className="text-[10px] sm:text-[11px] font-medium leading-none italic opacity-95"
+                  className={`${tokens.sublabel} font-medium leading-none italic opacity-95`}
                 >
                   {tile.sublabel}
                 </span>

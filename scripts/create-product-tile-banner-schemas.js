@@ -205,6 +205,30 @@ const productTileBannerBlockSchema = {
       field_metadata: { default_value: 'normal', description: 'Spacing between tiles' },
     },
     {
+      display_name: 'Badge Size',
+      uid: 'badge_size',
+      data_type: 'text',
+      display_type: 'dropdown',
+      enum: { advanced: false, choices: [{ value: 'small' }, { value: 'medium' }, { value: 'large' }] },
+      mandatory: false,
+      field_metadata: { default_value: 'medium', description: 'Overall size of the price tag' },
+    },
+    {
+      display_name: 'Badge Angle',
+      uid: 'badge_angle',
+      data_type: 'text',
+      display_type: 'dropdown',
+      enum: {
+        advanced: false,
+        choices: [{ value: 'straight' }, { value: 'tilt_left' }, { value: 'tilt_right' }],
+      },
+      mandatory: false,
+      field_metadata: {
+        default_value: 'tilt_left',
+        description: 'Rotation of the tag — tilt mimics a real paper tag dangling from a string',
+      },
+    },
+    {
       display_name: 'Tiles',
       uid: 'tiles',
       data_type: 'group',
