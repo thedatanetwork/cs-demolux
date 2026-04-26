@@ -562,6 +562,15 @@ export interface ProductTileBannerBlock {
   columns: '4' | '5' | '6';
   background_style: 'white' | 'gray' | 'dark';
   badge_color: 'teal' | 'gold' | 'red' | 'navy' | 'black';
+  badge_shape?: 'price_tag' | 'rectangle' | 'pill';
+  badge_position?: 'top_left' | 'top_right';
+  tile_aspect_ratio?: 'square' | 'portrait_4_5' | 'portrait_3_4' | 'landscape_4_3';
+  tile_image_fit?: 'cover' | 'contain';
+  tile_background?: 'transparent' | 'white' | 'soft_gray' | 'soft_warm';
+  corner_radius?: 'none' | 'small' | 'medium' | 'large';
+  label_alignment?: 'center' | 'left';
+  show_labels?: boolean;
+  gap_size?: 'tight' | 'normal' | 'loose';
   tiles: ProductTileBannerTile[];
 }
 

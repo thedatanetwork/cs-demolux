@@ -118,21 +118,22 @@ export default async function ProductTileBannerPage({
 
             <div className="mt-12 p-6 bg-white rounded-xl border border-gray-200">
               <h3 className="font-heading text-lg font-semibold text-gray-900 mb-3">
-                Block-level Settings
+                Block-level Design Settings
               </h3>
               <ul className="space-y-2 text-gray-600 text-sm">
-                <li>
-                  <strong>Columns:</strong> 4, 5, or 6 — controls grid density on desktop
-                </li>
-                <li>
-                  <strong>Background:</strong> white, gray, or dark
-                </li>
-                <li>
-                  <strong>Badge color:</strong> teal, gold, red, navy, or black
-                </li>
-                <li>
-                  <strong>Tile cap:</strong> up to 30 tiles per banner
-                </li>
+                <li><strong>Columns:</strong> 4, 5, or 6 — desktop grid density (scales 2/3/4/5/6 across breakpoints)</li>
+                <li><strong>Background:</strong> white, gray, or dark</li>
+                <li><strong>Gap size:</strong> tight, normal, or loose</li>
+                <li><strong>Tile aspect ratio:</strong> square, 4:5, 3:4, or 4:3</li>
+                <li><strong>Tile image fit:</strong> cover (crop) or contain (full image with padding)</li>
+                <li><strong>Tile background:</strong> transparent, white, soft gray, or soft warm</li>
+                <li><strong>Corner radius:</strong> none, small, medium, or large</li>
+                <li><strong>Badge color:</strong> teal, gold, red, navy, or black</li>
+                <li><strong>Badge shape:</strong> price tag (with punch hole), rectangle, or pill</li>
+                <li><strong>Badge position:</strong> top-left or top-right</li>
+                <li><strong>Label alignment:</strong> center or left</li>
+                <li><strong>Show labels:</strong> toggle the caption under each tile</li>
+                <li><strong>Tile cap:</strong> up to 30 tiles per banner</li>
               </ul>
             </div>
           </div>
