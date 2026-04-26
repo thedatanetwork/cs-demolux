@@ -239,7 +239,7 @@ function ProductTile({
 // content padding so it always sits in the body of the tag, not in the notch.
 const NOTCH_WIDTH = 14; // px of the arrow notch
 const HOLE_RADIUS = 3;
-const HOLE_INSET = 24; // px from the leading edge to the hole center
+const HOLE_INSET = 19; // px from the leading edge to the hole center (just behind the notch)
 const HOLE_MASK_LEFT = `radial-gradient(circle ${HOLE_RADIUS}px at ${HOLE_INSET}px 50%, transparent 99%, #000 100%)`;
 const HOLE_MASK_RIGHT = `radial-gradient(circle ${HOLE_RADIUS}px at calc(100% - ${HOLE_INSET}px) 50%, transparent 99%, #000 100%)`;
 const ARROW_CLIP_LEFT = `polygon(${NOTCH_WIDTH}px 0, 100% 0, 100% 100%, ${NOTCH_WIDTH}px 100%, 0 50%)`;
@@ -275,8 +275,8 @@ function PriceBadge({
     ? 'rounded-full px-3 py-1'
     : isPriceTag
       ? onRight
-        ? 'pl-3 pr-9 py-1.5'
-        : 'pl-9 pr-3 py-1.5'
+        ? 'pl-3 pr-7 py-1.5'
+        : 'pl-7 pr-3 py-1.5'
       : 'rounded-md px-3.5 py-1.5';
 
   // Real notched silhouette + transparent punch hole. drop-shadow honors both
