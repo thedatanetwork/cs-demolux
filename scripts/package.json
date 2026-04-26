@@ -50,7 +50,10 @@
     "setup-dropdown-feeds": "node create-dropdown-feed-schemas.js && node seed-dropdown-feed-data.js",
     "add-dropdown-feed-to-home-page": "node add-dropdown-feed-to-home-page.js",
     "create-composable-demo-page": "node create-composable-demo-page.js",
-    "fix-icon-extensions": "node fix-icon-extensions.js"
+    "fix-icon-extensions": "node fix-icon-extensions.js",
+    "create-product-tile-banner-schemas": "node create-product-tile-banner-schemas.js",
+    "seed-product-tile-banner-data": "node seed-product-tile-banner-data.js",
+    "setup-product-tile-banner": "node create-product-tile-banner-schemas.js && node seed-product-tile-banner-data.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",

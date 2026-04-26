@@ -540,6 +540,31 @@ export interface FAQBlock {
   background_style: 'white' | 'gray' | 'gradient';
 }
 
+export interface ProductTileBannerTile {
+  image: Image | Image[];
+  label?: string;
+  link_url?: string;
+  eyebrow?: string;
+  prefix?: string;
+  value?: string;
+  suffix?: string;
+  sublabel?: string;
+  _metadata?: { uid: string };
+  $?: Record<string, any>;
+}
+
+export interface ProductTileBannerBlock {
+  block_type: 'product_tile_banner';
+  title?: string;
+  eyebrow_label?: string;
+  section_title?: string;
+  section_description?: string;
+  columns: '4' | '5' | '6';
+  background_style: 'white' | 'gray' | 'dark';
+  badge_color: 'teal' | 'gold' | 'red' | 'navy' | 'black';
+  tiles: ProductTileBannerTile[];
+}
+
 // Union type of all modular blocks
 export type ModularBlock =
   | HeroSectionBlock
@@ -553,7 +578,8 @@ export type ModularBlock =
   | TestimonialsBlock
   | StatisticsBlock
   | ProcessStepsBlock
-  | FAQBlock;
+  | FAQBlock
+  | ProductTileBannerBlock;
 
 // ============================================================================
 // MODULAR PAGE TYPES
@@ -1177,6 +1203,33 @@ export class ContentstackService {
   }
 
   // ============================================================================
+  // PRODUCT TILE BANNER PAGE
+  // ============================================================================
+
+  async getProductTileBannerPage(variantAliases?: string[]): Promise<ProductTileBannerPageEntry | null> {
+    if (!this.isConfigured()) {
+      return null;
+    }
+
+    try {
+      const Query = this.getActiveStack().ContentType('product_tile_banner_page').Query();
+      Query.includeReference(['tile_banners']);
+      Query.includeMetadata();
+      Query.limit(1);
+
+      if (variantAliases && variantAliases.length > 0) {
+        Query.variants(variantAliases.join(','));
+      }
+
+      const result = await Query.toJSON().find();
+      return result[0]?.[0] || null;
+    } catch (error) {
+      console.error('Error fetching product_tile_banner_page:', error);
+      return null;
+    }
+  }
+
+  // ============================================================================
   // DYNAMIC FEEDS PAGE
   // ============================================================================
 
@@ -1428,6 +1481,26 @@ export interface DynamicFeedsDropdownPageEntry {
   heading: string;
   subheading?: string;
   component_list: DynamicProductFeedDropdownEntry[];
+  created_at: string;
+  updated_at: string;
+  $?: Record<string, any>;
+}
+
+/** A product_tile_banner_page entry — page that references one or more tile banner blocks */
+export interface ProductTileBannerPageEntry {
+  uid: string;
+  title: string;
+  url: string;
+  heading: string;
+  subheading?: string;
+  tile_banners: (ProductTileBannerBlock & {
+    uid: string;
+    _content_type_uid?: string;
+    _metadata?: { uid: string };
+    $?: Record<string, any>;
+  })[];
+  seo_meta_title?: string;
+  seo_meta_description?: string;
   created_at: string;
   updated_at: string;
   $?: Record<string, any>;
