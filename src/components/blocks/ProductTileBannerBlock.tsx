@@ -267,8 +267,8 @@ function PriceBadge({
   const shapeClass = isPill
     ? 'rounded-full px-3 py-1'
     : isPriceTag
-      ? `rounded-md ${onRight ? 'pl-2.5 pr-5 sm:pl-3 sm:pr-6' : 'pl-5 pr-2.5 sm:pl-6 sm:pr-3'} py-1 sm:py-1.5`
-      : 'rounded-md px-3 py-1 sm:px-3.5 sm:py-1.5';
+      ? `rounded-md ${onRight ? 'pl-3 pr-5 sm:pl-3.5 sm:pr-6' : 'pl-5 pr-3 sm:pl-6 sm:pr-3.5'} py-1.5`
+      : 'rounded-md px-3.5 py-1.5';
 
   // Real punched hole via CSS mask. drop-shadow honors the mask alpha so the
   // shadow follows the actual silhouette (including the hole).
@@ -279,6 +279,8 @@ function PriceBadge({
       }
     : undefined;
 
+  const hasSuffixCol = Boolean(tile.suffix || tile.sublabel);
+
   return (
     <div
       style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.18))' }}
@@ -286,59 +288,57 @@ function PriceBadge({
     >
       <div
         style={maskStyle}
-        className={`${colorClass} ${shapeClass} flex items-stretch gap-1 sm:gap-1.5`}
+        className={`${colorClass} ${shapeClass} flex flex-col`}
       >
-        {/* Left column: eyebrow + (prefix + value) */}
-        <div className="flex flex-col justify-center">
-          {tile.eyebrow && (
-            <span
-              {...t$['eyebrow']}
-              className="text-[9px] sm:text-[10px] font-medium leading-none italic opacity-95 mb-0.5"
-            >
-              {tile.eyebrow}
-            </span>
-          )}
-          <div className="flex items-baseline gap-px">
-            {tile.prefix && (
-              <span
-                {...t$['prefix']}
-                className="text-[10px] sm:text-xs font-bold leading-none self-start mt-0.5"
-              >
-                {tile.prefix}
-              </span>
-            )}
-            {tile.value && (
-              <span
-                {...t$['value']}
-                className="text-xl sm:text-2xl md:text-[26px] font-bold leading-[0.9] tracking-tight"
-              >
-                {tile.value}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Right column: suffix + sublabel stacked */}
-        {(tile.suffix || tile.sublabel) && (
-          <div className="flex flex-col justify-between py-px">
-            {tile.suffix && (
-              <span
-                {...t$['suffix']}
-                className="text-[10px] sm:text-xs font-bold leading-none"
-            >
-              {tile.suffix}
-            </span>
-          )}
-            {tile.sublabel && (
-              <span
-                {...t$['sublabel']}
-                className="text-[9px] sm:text-[10px] font-medium leading-none italic mt-auto opacity-95"
-              >
-                {tile.sublabel}
-              </span>
-            )}
-          </div>
+        {/* Eyebrow row — centered above the value */}
+        {tile.eyebrow && (
+          <span
+            {...t$['eyebrow']}
+            className="text-[10px] sm:text-[11px] font-semibold leading-none italic text-center mb-1 opacity-95"
+          >
+            {tile.eyebrow}
+          </span>
         )}
+
+        {/* Value row — prefix top-left, big value, suffix top-right with sublabel underneath */}
+        <div className={`flex items-stretch ${hasSuffixCol || tile.prefix ? 'gap-1' : ''} justify-center`}>
+          {tile.prefix && (
+            <span
+              {...t$['prefix']}
+              className="text-xs sm:text-sm font-bold leading-none self-start"
+            >
+              {tile.prefix}
+            </span>
+          )}
+          {tile.value && (
+            <span
+              {...t$['value']}
+              className="text-2xl sm:text-[28px] font-bold leading-none tracking-tight"
+            >
+              {tile.value}
+            </span>
+          )}
+          {hasSuffixCol && (
+            <div className="flex flex-col justify-between leading-none">
+              {tile.suffix && (
+                <span
+                  {...t$['suffix']}
+                  className="text-xs sm:text-sm font-bold leading-none"
+                >
+                  {tile.suffix}
+                </span>
+              )}
+              {tile.sublabel && (
+                <span
+                  {...t$['sublabel']}
+                  className="text-[10px] sm:text-[11px] font-medium leading-none italic opacity-95"
+                >
+                  {tile.sublabel}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
