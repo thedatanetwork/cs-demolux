@@ -419,13 +419,13 @@ function PriceBadge({
   const isCentered = !isBannerNotch && position === 'center';
   const onRight = !isBannerNotch && position === 'top_right';
 
-  // Position classes — banner_notch spans the full top edge; centered pins to
-  // tile midpoint via translate(-50%,-50%); top-corner variants pin a slight
-  // inset.
+  // Position classes — banner_notch spans the full top edge; centered pins
+  // to TOP-center (horizontally centered, top-anchored, just like the corner
+  // positions but in the middle); corners pin a slight inset.
   const positionClass = isBannerNotch
     ? 'top-0 inset-x-0'
     : isCentered
-      ? 'top-1/2 left-1/2'
+      ? 'top-2 left-1/2 sm:top-3'
       : onRight
         ? 'top-2 right-2 sm:top-3 sm:right-3'
         : 'top-2 left-2 sm:top-3 sm:left-3';
@@ -440,7 +440,7 @@ function PriceBadge({
       : isRound
         ? `${tokens.roundSize} ${tokens.py} items-center justify-center text-center`
         : isBannerNotch
-          ? 'w-full px-4 sm:px-6 pt-3 sm:pt-4 pb-[clamp(28px,11cqi,80px)] items-center justify-center text-center'
+          ? 'w-full px-4 sm:px-6 pt-3 sm:pt-4 pb-[clamp(28px,11cqi,80px)] items-center justify-start text-center'
           : `rounded-md ${tokens.rectPad} ${tokens.py}`;
 
   // clip-path silhouette + (for circle) transparent punch hole. drop-shadow
