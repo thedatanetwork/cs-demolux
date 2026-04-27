@@ -553,6 +553,36 @@ export interface ProductTileBannerTile {
   $?: Record<string, any>;
 }
 
+export interface HeroSevenTile {
+  image: Image | Image[];
+  label?: string;
+  link_url?: string;
+  overlay_headline?: string;
+  overlay_subheadline?: string;
+  overlay_cta_label?: string;
+  _metadata?: { uid: string };
+  $?: Record<string, any>;
+}
+
+export interface HeroSevenBlock {
+  block_type: 'hero_seven';
+  title?: string;
+  eyebrow_label?: string;
+  section_title?: string;
+  section_description?: string;
+  background_style: 'white' | 'gray' | 'dark';
+  right_columns: '2' | '3';
+  right_rows: '1' | '2';
+  hero_position: 'left' | 'right';
+  hero_overlay_position: 'top_left' | 'top_right' | 'bottom_left' | 'bottom_right' | 'center';
+  hero_overlay_text_color: 'light' | 'dark';
+  show_hero_scrim?: boolean;
+  show_tile_labels?: boolean;
+  tile_corner_radius?: 'none' | 'small' | 'medium' | 'large';
+  gap_size?: 'tight' | 'normal' | 'loose';
+  tiles: HeroSevenTile[];
+}
+
 export interface ProductTileBannerBlock {
   block_type: 'product_tile_banner';
   title?: string;
@@ -590,7 +620,8 @@ export type ModularBlock =
   | StatisticsBlock
   | ProcessStepsBlock
   | FAQBlock
-  | ProductTileBannerBlock;
+  | ProductTileBannerBlock
+  | HeroSevenBlock;
 
 // ============================================================================
 // MODULAR PAGE TYPES
@@ -1214,6 +1245,33 @@ export class ContentstackService {
   }
 
   // ============================================================================
+  // HERO 7 PAGE
+  // ============================================================================
+
+  async getHeroSevenPage(variantAliases?: string[]): Promise<HeroSevenPageEntry | null> {
+    if (!this.isConfigured()) {
+      return null;
+    }
+
+    try {
+      const Query = this.getActiveStack().ContentType('hero_seven_page').Query();
+      Query.includeReference(['hero_banners']);
+      Query.includeMetadata();
+      Query.limit(1);
+
+      if (variantAliases && variantAliases.length > 0) {
+        Query.variants(variantAliases.join(','));
+      }
+
+      const result = await Query.toJSON().find();
+      return result[0]?.[0] || null;
+    } catch (error) {
+      console.error('Error fetching hero_seven_page:', error);
+      return null;
+    }
+  }
+
+  // ============================================================================
   // PRODUCT TILE BANNER PAGE
   // ============================================================================
 
@@ -1492,6 +1550,26 @@ export interface DynamicFeedsDropdownPageEntry {
   heading: string;
   subheading?: string;
   component_list: DynamicProductFeedDropdownEntry[];
+  created_at: string;
+  updated_at: string;
+  $?: Record<string, any>;
+}
+
+/** A hero_seven_page entry — page that references one or more hero 7 blocks */
+export interface HeroSevenPageEntry {
+  uid: string;
+  title: string;
+  url: string;
+  heading: string;
+  subheading?: string;
+  hero_banners: (HeroSevenBlock & {
+    uid: string;
+    _content_type_uid?: string;
+    _metadata?: { uid: string };
+    $?: Record<string, any>;
+  })[];
+  seo_meta_title?: string;
+  seo_meta_description?: string;
   created_at: string;
   updated_at: string;
   $?: Record<string, any>;

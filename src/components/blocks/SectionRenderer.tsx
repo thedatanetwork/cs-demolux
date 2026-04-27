@@ -13,6 +13,7 @@ import { TestimonialsBlock } from './TestimonialsBlock';
 import { FAQBlock } from './FAQBlock';
 import { DynamicProductFeedBlock } from './DynamicProductFeedBlock';
 import { ProductTileBannerBlock } from './ProductTileBannerBlock';
+import { HeroSevenBlock } from './HeroSevenBlock';
 import { convertDropdownFeedEntry } from '@/lib/rule-engine';
 
 interface SectionRendererProps {
@@ -54,6 +55,7 @@ const BLOCK_TYPE_MAP: Record<string, string> = {
   dynamic_product_feed: 'dynamic_product_feed_block',
   dynamic_product_feed_dropdown: 'dynamic_product_feed_dropdown_block',
   product_tile_banner: 'product_tile_banner_block',
+  hero_seven: 'hero_seven_block',
   // Full UIDs (from reference-based blocks) - map to themselves
   hero_section_block: 'hero_section_block',
   featured_content_grid_block: 'featured_content_grid_block',
@@ -70,6 +72,7 @@ const BLOCK_TYPE_MAP: Record<string, string> = {
   dynamic_product_feed_block: 'dynamic_product_feed_block',
   dynamic_product_feed_dropdown_block: 'dynamic_product_feed_dropdown_block',
   product_tile_banner_block: 'product_tile_banner_block',
+  hero_seven_block: 'hero_seven_block',
 };
 
 /**
@@ -219,6 +222,9 @@ export function SectionRenderer({ sections, entry, fieldPath }: SectionRendererP
 
             case 'product_tile_banner_block':
               return <ProductTileBannerBlock block={data} />;
+
+            case 'hero_seven_block':
+              return <HeroSevenBlock block={data} />;
 
             // Additional block types - not yet implemented
             case 'text_media_section_block':
