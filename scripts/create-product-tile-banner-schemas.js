@@ -214,6 +214,29 @@ const productTileBannerBlockSchema = {
       field_metadata: { default_value: 'medium', description: 'Overall size of the price tag' },
     },
     {
+      display_name: 'Badge Font Scale',
+      uid: 'badge_font_scale',
+      data_type: 'text',
+      display_type: 'dropdown',
+      enum: {
+        advanced: false,
+        choices: [
+          { value: 'xs' },
+          { value: 'sm' },
+          { value: 'md' },
+          { value: 'lg' },
+          { value: 'xl' },
+          { value: '2xl' },
+        ],
+      },
+      mandatory: false,
+      field_metadata: {
+        default_value: 'md',
+        description:
+          'Multiplier applied to the entire price tag (text, padding, notch, hole). md = 1.0x, xs = 0.7x, 2xl = 1.65x.',
+      },
+    },
+    {
       display_name: 'Badge Angle',
       uid: 'badge_angle',
       data_type: 'text',

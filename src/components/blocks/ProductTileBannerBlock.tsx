@@ -79,6 +79,7 @@ export function ProductTileBannerBlock({ block }: ProductTileBannerBlockProps) {
     gap_size = 'normal',
     badge_size = 'medium',
     badge_angle = 'tilt_left',
+    badge_font_scale = 'md',
     tiles = [],
   } = block;
 
@@ -136,6 +137,7 @@ export function ProductTileBannerBlock({ block }: ProductTileBannerBlockProps) {
               badgePosition={badge_position}
               badgeSize={badge_size}
               badgeAngle={badge_angle}
+              badgeFontScale={badge_font_scale}
               aspectRatio={tile_aspect_ratio}
               imageFit={tile_image_fit}
               tileBg={tile_background}
@@ -159,6 +161,7 @@ interface ProductTileProps {
   badgePosition: string;
   badgeSize: string;
   badgeAngle: string;
+  badgeFontScale: string;
   aspectRatio: string;
   imageFit: string;
   tileBg: string;
@@ -176,6 +179,7 @@ function ProductTile({
   badgePosition,
   badgeSize,
   badgeAngle,
+  badgeFontScale,
   aspectRatio,
   imageFit,
   tileBg,
@@ -223,6 +227,7 @@ function ProductTile({
             position={badgePosition}
             size={badgeSize}
             angle={badgeAngle}
+            fontScale={badgeFontScale}
           />
         )}
       </div>
@@ -281,7 +286,7 @@ const SIZE_TOKENS: Record<string, {
     suffix: 'text-xs sm:text-sm',
     sublabel: 'text-[11px] sm:text-xs',
     eyebrowGap: 'mb-0.5',
-    colGap: 'gap-0.5',
+    colGap: 'gap-px',
   },
   medium: {
     py: 'py-2.5',
@@ -294,7 +299,7 @@ const SIZE_TOKENS: Record<string, {
     suffix: 'text-base sm:text-lg',
     sublabel: 'text-sm sm:text-[15px]',
     eyebrowGap: 'mb-1',
-    colGap: 'gap-1',
+    colGap: 'gap-0.5',
   },
   large: {
     py: 'py-3.5',
@@ -307,7 +312,7 @@ const SIZE_TOKENS: Record<string, {
     suffix: 'text-lg sm:text-xl',
     sublabel: 'text-base sm:text-lg',
     eyebrowGap: 'mb-2',
-    colGap: 'gap-2',
+    colGap: 'gap-1',
   },
 };
 
@@ -315,6 +320,17 @@ const ANGLE_TRANSFORMS: Record<string, string> = {
   straight: 'rotate(0deg)',
   tilt_left: 'rotate(-7deg)',
   tilt_right: 'rotate(7deg)',
+};
+
+// Multiplier applied via transform: scale() so it stacks cleanly with rotation.
+// Scales the entire badge silhouette: text, padding, notch, hole.
+const FONT_SCALE_MULTIPLIERS: Record<string, number> = {
+  xs: 0.7,
+  sm: 0.85,
+  md: 1.0,
+  lg: 1.2,
+  xl: 1.4,
+  '2xl': 1.65,
 };
 
 function PriceBadge({
@@ -325,6 +341,7 @@ function PriceBadge({
   position,
   size,
   angle,
+  fontScale,
 }: {
   tile: any;
   t$: Record<string, any>;
@@ -333,10 +350,13 @@ function PriceBadge({
   position: string;
   size: string;
   angle: string;
+  fontScale: string;
 }) {
   const colorClass = badgeColorClasses[color] || badgeColorClasses.teal;
   const tokens = SIZE_TOKENS[size] || SIZE_TOKENS.medium;
-  const transform = ANGLE_TRANSFORMS[angle] || ANGLE_TRANSFORMS.straight;
+  const rotateTransform = ANGLE_TRANSFORMS[angle] || ANGLE_TRANSFORMS.straight;
+  const scaleMultiplier = FONT_SCALE_MULTIPLIERS[fontScale] ?? 1.0;
+  const transform = scaleMultiplier === 1 ? rotateTransform : `${rotateTransform} scale(${scaleMultiplier})`;
 
   const isPriceTag = shape === 'price_tag';
   const isPill = shape === 'pill';

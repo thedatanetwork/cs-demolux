@@ -596,6 +596,7 @@ export interface ProductTileBannerBlock {
   badge_position?: 'top_left' | 'top_right';
   badge_size?: 'small' | 'medium' | 'large';
   badge_angle?: 'straight' | 'tilt_left' | 'tilt_right';
+  badge_font_scale?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   tile_aspect_ratio?: 'square' | 'portrait_4_5' | 'portrait_3_4' | 'landscape_4_3';
   tile_image_fit?: 'cover' | 'contain';
   tile_background?: 'transparent' | 'white' | 'soft_gray' | 'soft_warm';

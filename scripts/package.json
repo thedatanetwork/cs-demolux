@@ -56,6 +56,7 @@
     "setup-product-tile-banner": "node create-product-tile-banner-schemas.js && node seed-product-tile-banner-data.js",
     "add-tile-banner-design-fields": "node add-tile-banner-design-fields.js",
     "add-tile-banner-size-angle-fields": "node add-tile-banner-size-angle-fields.js",
+    "add-tile-banner-font-scale-field": "node add-tile-banner-font-scale-field.js",
     "create-hero-seven-schemas": "node create-hero-seven-schemas.js",
     "seed-hero-seven-data": "node seed-hero-seven-data.js",
     "setup-hero-seven": "node create-hero-seven-schemas.js && node seed-hero-seven-data.js",
