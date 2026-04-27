@@ -110,7 +110,16 @@ const productTileBannerBlockSchema = {
       uid: 'badge_shape',
       data_type: 'text',
       display_type: 'dropdown',
-      enum: { advanced: false, choices: [{ value: 'price_tag' }, { value: 'rectangle' }, { value: 'pill' }] },
+      enum: {
+        advanced: false,
+        choices: [
+          { value: 'price_tag' },
+          { value: 'rectangle' },
+          { value: 'pill' },
+          { value: 'circle_tag' },
+          { value: 'burst_tag' },
+        ],
+      },
       mandatory: false,
       field_metadata: { default_value: 'price_tag', description: 'Visual shape of the price/discount badge overlay' },
     },

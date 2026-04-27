@@ -658,7 +658,7 @@ export interface ProductTileBannerBlock {
   columns: '4' | '5' | '6';
   background_style: 'white' | 'gray' | 'dark';
   badge_color: 'teal' | 'gold' | 'red' | 'navy' | 'black';
-  badge_shape?: 'price_tag' | 'rectangle' | 'pill';
+  badge_shape?: 'price_tag' | 'rectangle' | 'pill' | 'circle_tag' | 'burst_tag';
   badge_position?: 'top_left' | 'top_right';
   badge_size?: 'small' | 'medium' | 'large';
   badge_angle?: 'straight' | 'tilt_left' | 'tilt_right';

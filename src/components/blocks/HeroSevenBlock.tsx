@@ -198,7 +198,7 @@ function HeroTile({
     <TileWrapper
       {...wrapperProps}
       {...tileTag}
-      className={`group relative ${cornerClass} ${placement} overflow-hidden block aspect-[4/3] lg:aspect-auto lg:min-h-[460px]`}
+      className={`group relative ${cornerClass} ${placement} overflow-hidden block aspect-[4/3] lg:aspect-auto lg:min-h-[460px] [container-type:inline-size]`}
     >
       {image?.url && (
         <div {...t$['image']} className="absolute inset-0">
@@ -223,7 +223,7 @@ function HeroTile({
             {tile.overlay_headline && (
               <h3
                 {...t$['overlay_headline']}
-                className={`font-heading text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-3 sm:mb-4 ${headlineColor}`}
+                className={`font-heading text-[clamp(22px,8cqi,52px)] font-bold leading-tight mb-3 sm:mb-4 ${headlineColor}`}
               >
                 {tile.overlay_headline}
               </h3>
@@ -231,7 +231,7 @@ function HeroTile({
             {tile.overlay_subheadline && (
               <p
                 {...t$['overlay_subheadline']}
-                className={`text-base sm:text-lg leading-relaxed mb-5 sm:mb-6 ${subColor}`}
+                className={`text-[clamp(13px,3cqi,20px)] leading-relaxed mb-5 sm:mb-6 ${subColor}`}
               >
                 {tile.overlay_subheadline}
               </p>
@@ -239,7 +239,7 @@ function HeroTile({
             {tile.overlay_cta_label && (
               <span
                 {...t$['overlay_cta_label']}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-full font-semibold text-sm sm:text-base transition-colors shadow-md ${ctaClass}`}
+                className={`inline-flex items-center gap-2 px-[clamp(14px,3.5cqi,24px)] py-[clamp(8px,1.8cqi,12px)] rounded-full font-semibold text-[clamp(12px,2.6cqi,16px)] transition-colors shadow-md ${ctaClass}`}
               >
                 {tile.overlay_cta_label}
                 <ArrowRight className="h-4 w-4" />

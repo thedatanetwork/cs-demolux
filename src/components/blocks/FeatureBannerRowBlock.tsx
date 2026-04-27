@@ -57,10 +57,13 @@ const panelPaddingClasses: Record<string, string> = {
   xl: 'p-10 md:p-16 lg:p-20',
 };
 
+// Column breakpoints lean conservative — at narrower widths a panel needs to
+// stay wide enough that the headline and description don't get cramped.
+// 3-up only kicks in at xl (1280px+), 4-up at 2xl (1536px+).
 const panelGridClasses: Record<string, string> = {
   '2': 'grid-cols-1 md:grid-cols-2',
-  '3': 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-  '4': 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+  '3': 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3',
+  '4': 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4',
 };
 
 // In a flex-col, items-* = horizontal alignment, justify-* = vertical.
@@ -205,7 +208,7 @@ function FeaturePanel({
     <PanelWrapper
       {...wrapperProps}
       {...panelTag}
-      className={`group relative ${aspectClass} ${cornerClass} overflow-hidden block`}
+      className={`group relative ${aspectClass} ${cornerClass} overflow-hidden block [container-type:inline-size]`}
     >
       {bg?.url && (
         <div {...p$['background_image']} className="absolute inset-0">
@@ -251,7 +254,7 @@ function FeaturePanel({
             {panel.eyebrow && (
               <div
                 {...p$['eyebrow']}
-                className={`text-xs sm:text-sm font-semibold uppercase tracking-[0.18em] ${
+                className={`text-[clamp(10px,2cqi,14px)] font-semibold uppercase tracking-[0.18em] ${
                   isLight ? 'text-white/95' : 'text-gray-800'
                 }`}
               >
@@ -260,7 +263,7 @@ function FeaturePanel({
             )}
 
             {logo?.url && (
-              <div {...p$['logo_image']} className="relative h-14 sm:h-16 w-auto max-w-[180px]">
+              <div {...p$['logo_image']} className="relative h-[clamp(36px,9cqi,64px)] w-auto max-w-[180px]">
                 <img
                   src={logo.url}
                   alt={logo.title || 'Logo'}
@@ -272,7 +275,7 @@ function FeaturePanel({
             {panel.headline && (
               <h3
                 {...p$['headline']}
-                className={`font-heading text-3xl sm:text-4xl lg:text-5xl leading-tight ${
+                className={`font-heading text-[clamp(22px,7cqi,48px)] leading-tight ${
                   isLight ? 'text-white' : 'text-gray-900'
                 }`}
               >
@@ -283,7 +286,7 @@ function FeaturePanel({
             {panel.description && (
               <div
                 {...p$['description']}
-                className={`text-base sm:text-lg leading-relaxed ${
+                className={`text-[clamp(13px,2.6cqi,18px)] leading-relaxed ${
                   isLight ? 'text-white/90' : 'text-gray-700'
                 }`}
               >
@@ -297,7 +300,7 @@ function FeaturePanel({
                   <Link
                     key={i}
                     href={cta.url || '#'}
-                    className={`inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-full font-semibold text-xs sm:text-sm uppercase tracking-wider transition-colors shadow-sm ${
+                    className={`inline-flex items-center gap-2 px-[clamp(12px,3.5cqi,24px)] py-[clamp(8px,1.8cqi,12px)] rounded-full font-semibold text-[clamp(10px,2.2cqi,14px)] uppercase tracking-wider transition-colors shadow-sm ${
                       ctaButtonStyles[cta.style] || ctaButtonStyles.primary
                     }`}
                   >

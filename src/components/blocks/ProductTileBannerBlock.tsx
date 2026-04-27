@@ -218,7 +218,7 @@ function ProductTile({
   const labelAlignClass = labelAlignment === 'left' ? 'text-left' : 'text-center';
 
   return (
-    <TileWrapper {...wrapperProps} {...itemTag} className="group block">
+    <TileWrapper {...wrapperProps} {...itemTag} className="group block [container-type:inline-size]">
       <div className={`relative ${aspectClass} ${cornerClass} ${tileBgClass} overflow-hidden`}>
         {image?.url && (
           <div {...t$['image']} className="absolute inset-0">
@@ -274,6 +274,29 @@ const HOLE_MASK_RIGHT = `radial-gradient(circle ${HOLE_RADIUS}px at calc(100% - 
 const ARROW_CLIP_LEFT = `polygon(${NOTCH_WIDTH}px 0, 100% 0, 100% 100%, ${NOTCH_WIDTH}px 100%, 0 50%)`;
 const ARROW_CLIP_RIGHT = `polygon(0 0, calc(100% - ${NOTCH_WIDTH}px) 0, 100% 50%, calc(100% - ${NOTCH_WIDTH}px) 100%, 0 100%)`;
 
+// Circular tag — round badge that hangs from a hole punched near the top edge.
+// Hole sits ~10% in from the top so the tag dangles like a coat-check token.
+const CIRCLE_HOLE_RADIUS = 4;
+const CIRCLE_CLIP = 'circle(50% at 50% 50%)';
+const CIRCLE_HOLE_MASK = `radial-gradient(circle ${CIRCLE_HOLE_RADIUS}px at 50% 11%, transparent 99%, #000 100%)`;
+
+// Burst tag — JCP-style starburst silhouette built from a 16-point polygon
+// alternating outer (peak) and inner (valley) radii. Centered at 50%/50%.
+// Outer points sit at radius 50%, inner valleys at ~38% — gives crisp peaks
+// without making the inner edge look ragged. Generated once at module load.
+function buildBurstClipPath(points = 16, outer = 50, inner = 38) {
+  const coords: string[] = [];
+  for (let i = 0; i < points * 2; i++) {
+    const r = i % 2 === 0 ? outer : inner;
+    const angle = (Math.PI * 2 * i) / (points * 2) - Math.PI / 2; // start at 12 o'clock
+    const x = 50 + r * Math.cos(angle);
+    const y = 50 + r * Math.sin(angle);
+    coords.push(`${x.toFixed(2)}% ${y.toFixed(2)}%`);
+  }
+  return `polygon(${coords.join(', ')})`;
+}
+const BURST_CLIP = buildBurstClipPath();
+
 // Per-size tokens. Padding is explicit pl/pr so Tailwind class ordering
 // doesn't trip on px-* vs pl-* conflicts.
 const SIZE_TOKENS: Record<string, {
@@ -281,6 +304,7 @@ const SIZE_TOKENS: Record<string, {
   notchLeftPad: string; // notch on left:  large pl-, small pr-
   notchRightPad: string; // notch on right: small pl-, large pr-
   rectPad: string; // for non-priceTag shapes
+  roundSize: string; // square min dimensions for circle/burst shapes
   eyebrow: string;
   prefix: string;
   value: string;
@@ -294,11 +318,12 @@ const SIZE_TOKENS: Record<string, {
     notchLeftPad: 'pl-7 sm:pl-8 pr-3',
     notchRightPad: 'pl-3 pr-7 sm:pr-8',
     rectPad: 'pl-3 pr-3',
-    eyebrow: 'text-[11px] sm:text-xs',
-    prefix: 'text-xs sm:text-sm',
-    value: 'text-[26px] sm:text-[30px]',
-    suffix: 'text-xs sm:text-sm',
-    sublabel: 'text-[11px] sm:text-xs',
+    roundSize: 'min-w-[72px] min-h-[72px] px-2',
+    eyebrow: 'text-[clamp(9px,3cqi,12px)]',
+    prefix: 'text-[clamp(10px,3.5cqi,14px)]',
+    value: 'text-[clamp(18px,9cqi,30px)]',
+    suffix: 'text-[clamp(10px,3.5cqi,14px)]',
+    sublabel: 'text-[clamp(9px,3cqi,12px)]',
     eyebrowGap: 'mb-0',
     colGap: 'gap-px',
   },
@@ -307,11 +332,12 @@ const SIZE_TOKENS: Record<string, {
     notchLeftPad: 'pl-8 sm:pl-9 pr-4',
     notchRightPad: 'pl-4 pr-8 sm:pr-9',
     rectPad: 'pl-4 pr-4',
-    eyebrow: 'text-sm sm:text-base',
-    prefix: 'text-base sm:text-lg',
-    value: 'text-[38px] sm:text-[44px]',
-    suffix: 'text-base sm:text-lg',
-    sublabel: 'text-sm sm:text-[15px]',
+    roundSize: 'min-w-[96px] min-h-[96px] px-3',
+    eyebrow: 'text-[clamp(11px,4cqi,16px)]',
+    prefix: 'text-[clamp(12px,5cqi,18px)]',
+    value: 'text-[clamp(22px,13cqi,44px)]',
+    suffix: 'text-[clamp(12px,5cqi,18px)]',
+    sublabel: 'text-[clamp(11px,4cqi,15px)]',
     eyebrowGap: 'mb-0.5',
     colGap: 'gap-0.5',
   },
@@ -320,11 +346,12 @@ const SIZE_TOKENS: Record<string, {
     notchLeftPad: 'pl-9 sm:pl-11 pr-5',
     notchRightPad: 'pl-5 pr-9 sm:pr-11',
     rectPad: 'pl-5 pr-5',
-    eyebrow: 'text-base sm:text-lg',
-    prefix: 'text-lg sm:text-xl',
-    value: 'text-[46px] sm:text-[54px]',
-    suffix: 'text-lg sm:text-xl',
-    sublabel: 'text-base sm:text-lg',
+    roundSize: 'min-w-[124px] min-h-[124px] px-4',
+    eyebrow: 'text-[clamp(13px,4.5cqi,18px)]',
+    prefix: 'text-[clamp(14px,5.5cqi,20px)]',
+    value: 'text-[clamp(26px,16cqi,54px)]',
+    suffix: 'text-[clamp(14px,5.5cqi,20px)]',
+    sublabel: 'text-[clamp(13px,4.5cqi,18px)]',
     eyebrowGap: 'mb-1',
     colGap: 'gap-1',
   },
@@ -368,12 +395,18 @@ function PriceBadge({
 }) {
   const colorClass = badgeColorClasses[color] || badgeColorClasses.teal;
   const tokens = SIZE_TOKENS[size] || SIZE_TOKENS.medium;
-  const rotateTransform = ANGLE_TRANSFORMS[angle] || ANGLE_TRANSFORMS.straight;
+  const isPriceTag = shape === 'price_tag';
+  // Only the price-tag silhouette tilts — rectangle/pill/circle/burst stay level
+  // even if an angle is selected, so the badge keeps a deliberate look.
+  const rotateTransform = isPriceTag
+    ? (ANGLE_TRANSFORMS[angle] || ANGLE_TRANSFORMS.straight)
+    : 'rotate(0deg)';
   const scaleMultiplier = FONT_SCALE_MULTIPLIERS[fontScale] ?? 1.0;
   const transform = scaleMultiplier === 1 ? rotateTransform : `${rotateTransform} scale(${scaleMultiplier})`;
-
-  const isPriceTag = shape === 'price_tag';
   const isPill = shape === 'pill';
+  const isCircle = shape === 'circle_tag';
+  const isBurst = shape === 'burst_tag';
+  const isRound = isCircle || isBurst;
   const onRight = position === 'top_right';
 
   // Position classes — slight inset so badge "pins" inside the tile.
@@ -383,32 +416,46 @@ function PriceBadge({
     : 'top-2 left-2 sm:top-3 sm:left-3';
 
   // Shape classes — extra padding on the leading side hosts the notch + hole;
-  // price_tag shape is defined by clip-path so we skip border-radius on it.
+  // clip-path shapes (price_tag, burst, circle) skip border-radius; circle and
+  // burst use a square min-size and center their content.
   const shapeClass = isPill
     ? `rounded-full ${tokens.rectPad} ${tokens.py}`
     : isPriceTag
       ? `${onRight ? tokens.notchRightPad : tokens.notchLeftPad} ${tokens.py}`
-      : `rounded-md ${tokens.rectPad} ${tokens.py}`;
+      : isRound
+        ? `${tokens.roundSize} ${tokens.py} items-center justify-center text-center`
+        : `rounded-md ${tokens.rectPad} ${tokens.py}`;
 
-  // Real notched silhouette + transparent punch hole. drop-shadow honors both
-  // clip-path and mask alpha so the shadow follows the visible tag shape.
-  const tagStyle = isPriceTag
-    ? {
-        clipPath: onRight ? ARROW_CLIP_RIGHT : ARROW_CLIP_LEFT,
-        WebkitClipPath: onRight ? ARROW_CLIP_RIGHT : ARROW_CLIP_LEFT,
-        WebkitMaskImage: onRight ? HOLE_MASK_RIGHT : HOLE_MASK_LEFT,
-        maskImage: onRight ? HOLE_MASK_RIGHT : HOLE_MASK_LEFT,
-      }
-    : undefined;
+  // clip-path silhouette + (for circle) transparent punch hole. drop-shadow
+  // honors both so the shadow follows the visible tag shape.
+  let tagStyle: React.CSSProperties | undefined;
+  if (isPriceTag) {
+    const clip = onRight ? ARROW_CLIP_RIGHT : ARROW_CLIP_LEFT;
+    const mask = onRight ? HOLE_MASK_RIGHT : HOLE_MASK_LEFT;
+    tagStyle = { clipPath: clip, WebkitClipPath: clip, WebkitMaskImage: mask, maskImage: mask };
+  } else if (isCircle) {
+    tagStyle = {
+      clipPath: CIRCLE_CLIP,
+      WebkitClipPath: CIRCLE_CLIP,
+      WebkitMaskImage: CIRCLE_HOLE_MASK,
+      maskImage: CIRCLE_HOLE_MASK,
+    };
+  } else if (isBurst) {
+    tagStyle = { clipPath: BURST_CLIP, WebkitClipPath: BURST_CLIP };
+  }
 
   const hasSuffixCol = Boolean(tile.suffix || tile.sublabel);
 
-  // Pivot rotation around the leading edge so the tag swings from the "string"
-  // (the punch hole) rather than from the center, matching how a real paper
-  // tag dangles. Origin: hole position on leading edge.
-  const transformOrigin = onRight
-    ? `calc(100% - ${HOLE_INSET}px) 50%`
-    : `${HOLE_INSET}px 50%`;
+  // Pivot rotation around the "string" so the tag dangles like a real paper tag.
+  // price_tag: hole on leading edge. circle_tag: hole at top center. burst_tag:
+  // symmetric — pivot from center.
+  const transformOrigin = isPriceTag
+    ? onRight
+      ? `calc(100% - ${HOLE_INSET}px) 50%`
+      : `${HOLE_INSET}px 50%`
+    : isCircle
+      ? '50% 11%'
+      : '50% 50%';
 
   return (
     <div
