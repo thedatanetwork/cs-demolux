@@ -571,6 +571,14 @@ export interface FeatureBannerPanel {
     | 'bottom_left' | 'bottom_center' | 'bottom_right';
   text_color?: 'light' | 'dark';
   show_scrim?: boolean;
+  image_overlay?:
+    | 'none'
+    | 'darken_subtle'
+    | 'darken_medium'
+    | 'darken_strong'
+    | 'lighten_subtle'
+    | 'lighten_medium'
+    | 'lighten_strong';
   padding?: 'default' | 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   link_url?: string;
   ctas?: FeatureBannerCTA[];

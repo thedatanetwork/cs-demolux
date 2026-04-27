@@ -224,6 +224,29 @@ const featureBannerRowBlockSchema = {
           field_metadata: { default_value: 'dark' },
         },
         {
+          display_name: 'Image Overlay',
+          uid: 'image_overlay',
+          data_type: 'text',
+          display_type: 'dropdown',
+          enum: {
+            advanced: false,
+            choices: [
+              { value: 'none' },
+              { value: 'darken_subtle' },
+              { value: 'darken_medium' },
+              { value: 'darken_strong' },
+              { value: 'lighten_subtle' },
+              { value: 'lighten_medium' },
+              { value: 'lighten_strong' },
+            ],
+          },
+          mandatory: false,
+          field_metadata: {
+            default_value: 'none',
+            description: 'Tints the entire panel image. darken_* / lighten_* shift the image so clean text reads better.',
+          },
+        },
+        {
           display_name: 'Show Scrim',
           uid: 'show_scrim',
           data_type: 'boolean',

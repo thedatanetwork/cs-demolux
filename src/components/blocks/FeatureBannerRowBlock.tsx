@@ -35,6 +35,19 @@ const gapClasses: Record<string, string> = {
   loose: 'gap-6 md:gap-10',
 };
 
+// Full-image tints. Sit between the bg image and the text overlay so the
+// whole image shifts darker/lighter — useful when the photo's overall
+// contrast won't carry the text on its own.
+const imageOverlayClasses: Record<string, string> = {
+  none: '',
+  darken_subtle: 'bg-black/15',
+  darken_medium: 'bg-black/30',
+  darken_strong: 'bg-black/50',
+  lighten_subtle: 'bg-white/20',
+  lighten_medium: 'bg-white/40',
+  lighten_strong: 'bg-white/60',
+};
+
 const panelPaddingClasses: Record<string, string> = {
   none: 'p-0',
   xs: 'p-3 md:p-4',
@@ -204,6 +217,16 @@ function FeaturePanel({
             className="object-cover group-hover:scale-105 transition-transform duration-700"
           />
         </div>
+      )}
+
+      {/* Full-image tint (sits between image and text overlay) */}
+      {panel.image_overlay && panel.image_overlay !== 'none' && (
+        <div
+          aria-hidden
+          className={`absolute inset-0 pointer-events-none ${
+            imageOverlayClasses[panel.image_overlay] || ''
+          }`}
+        />
       )}
 
       {/* Custom HTML escape hatch — replaces structured overlay if present */}
