@@ -297,12 +297,12 @@ function buildBurstClipPath(points = 16, outer = 50, inner = 38) {
 }
 const BURST_CLIP = buildBurstClipPath();
 
-// Banner-notch — JCP-style banner: rectangle with a shallow downward V-notch
-// cut into the bottom-center. Two corner tabs hang slightly lower than the
-// middle. Center peak at y=72% gives a gentle chevron — sharper notches read
-// as a pennant; we want a banner. Content gets extra bottom padding so it
-// clears the chevron.
-const BANNER_NOTCH_CLIP = 'polygon(0% 0%, 100% 0%, 100% 100%, 50% 72%, 0% 100%)';
+// Banner-notch — JCP-style banner: rectangle with a downward V-notch cut into
+// the bottom-center. Two corner tabs hang lower than the middle. Center peak
+// at y=62% so the V dips meaningfully into the lower banner — combined with
+// extra bottom padding, this lets more of the underlying image peek through
+// the chevron while the banner reads as a banner (not a pennant).
+const BANNER_NOTCH_CLIP = 'polygon(0% 0%, 100% 0%, 100% 100%, 50% 62%, 0% 100%)';
 
 // Per-size tokens. Padding is explicit pl/pr so Tailwind class ordering
 // doesn't trip on px-* vs pl-* conflicts.
@@ -440,7 +440,7 @@ function PriceBadge({
       : isRound
         ? `${tokens.roundSize} ${tokens.py} items-center justify-center text-center`
         : isBannerNotch
-          ? 'w-full px-4 sm:px-6 pt-3 sm:pt-4 pb-[clamp(28px,11cqi,80px)] items-center justify-start text-center'
+          ? 'w-full px-4 sm:px-6 pt-3 sm:pt-4 pb-[clamp(44px,16cqi,120px)] items-center justify-start text-center'
           : `rounded-md ${tokens.rectPad} ${tokens.py}`;
 
   // clip-path silhouette + (for circle) transparent punch hole. drop-shadow
