@@ -216,9 +216,22 @@ function ProductTile({
   const objectFitClass = imageFit === 'contain' ? 'object-contain p-3 sm:p-4' : 'object-cover';
 
   const labelAlignClass = labelAlignment === 'left' ? 'text-left' : 'text-center';
+  const isBannerNotchShape = badgeShape === 'banner_notch';
 
   return (
     <TileWrapper {...wrapperProps} {...itemTag} className="group block [container-type:inline-size]">
+      {isBannerNotchShape && hasBadge && (
+        <PriceBadge
+          tile={tile}
+          t$={t$}
+          color={badgeColor}
+          shape={badgeShape}
+          position={badgePosition}
+          size={badgeSize}
+          angle={badgeAngle}
+          fontScale={badgeFontScale}
+        />
+      )}
       <div className={`relative ${aspectClass} ${cornerClass} ${tileBgClass} overflow-hidden`}>
         {image?.url && (
           <div {...t$['image']} className="absolute inset-0">
@@ -232,7 +245,7 @@ function ProductTile({
           </div>
         )}
 
-        {hasBadge && (
+        {hasBadge && !isBannerNotchShape && (
           <PriceBadge
             tile={tile}
             t$={t$}
@@ -298,11 +311,14 @@ function buildBurstClipPath(points = 16, outer = 50, inner = 38) {
 const BURST_CLIP = buildBurstClipPath();
 
 // Banner-notch — JCP-style banner: rectangle with a downward V-notch cut into
-// the bottom-center. Two corner tabs hang lower than the middle. Center peak
-// at y=62% so the V dips meaningfully into the lower banner — combined with
-// extra bottom padding, this lets more of the underlying image peek through
-// the chevron while the banner reads as a banner (not a pennant).
-const BANNER_NOTCH_CLIP = 'polygon(0% 0%, 100% 0%, 100% 100%, 50% 62%, 0% 100%)';
+// the bottom-center. Renders in-flow ABOVE the image: the rectangular portion
+// extends the tile upward, while only the chevron tabs overhang into the
+// image. The V-peak is pinned to the image's top edge via calc() — the bottom
+// `--banner-chevron` of the badge is what overlaps the image, and a matching
+// negative margin-bottom pulls subsequent layout up so only that strip covers
+// the photo.
+const BANNER_NOTCH_CHEVRON = 'clamp(36px, 14cqi, 100px)';
+const BANNER_NOTCH_CLIP = `polygon(0% 0%, 100% 0%, 100% 100%, 50% calc(100% - var(--banner-chevron)), 0% 100%)`;
 
 // Per-size tokens. Padding is explicit pl/pr so Tailwind class ordering
 // doesn't trip on px-* vs pl-* conflicts.
@@ -440,7 +456,7 @@ function PriceBadge({
       : isRound
         ? `${tokens.roundSize} ${tokens.py} items-center justify-center text-center`
         : isBannerNotch
-          ? 'w-full px-4 sm:px-6 pt-3 sm:pt-4 pb-[clamp(44px,16cqi,120px)] items-center justify-start text-center'
+          ? 'w-full px-4 sm:px-6 pt-3 sm:pt-4 items-center justify-start text-center'
           : `rounded-md ${tokens.rectPad} ${tokens.py}`;
 
   // clip-path silhouette + (for circle) transparent punch hole. drop-shadow
@@ -460,7 +476,11 @@ function PriceBadge({
   } else if (isBurst) {
     tagStyle = { clipPath: BURST_CLIP, WebkitClipPath: BURST_CLIP };
   } else if (isBannerNotch) {
-    tagStyle = { clipPath: BANNER_NOTCH_CLIP, WebkitClipPath: BANNER_NOTCH_CLIP };
+    tagStyle = {
+      clipPath: BANNER_NOTCH_CLIP,
+      WebkitClipPath: BANNER_NOTCH_CLIP,
+      paddingBottom: 'var(--banner-chevron)',
+    };
   }
 
   const hasSuffixCol = Boolean(tile.suffix || tile.sublabel);
@@ -494,14 +514,30 @@ function PriceBadge({
       ].filter(Boolean);
   const transform = transformParts.join(' ');
 
-  return (
-    <div
-      style={{
+  const outerStyle: React.CSSProperties = isBannerNotch
+    ? {
+        // CSS var drives both the bottom padding (chevron strip inside the
+        // banner element) and the negative margin-bottom (pulls the image up
+        // so only that chevron strip overlaps the photo). Defined here so the
+        // value is shared by tagStyle and the outer wrapper.
+        ['--banner-chevron' as any]: BANNER_NOTCH_CHEVRON,
+        marginBottom: 'calc(-1 * var(--banner-chevron))',
+        filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.22))',
+      }
+    : {
         filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.22))',
         transform,
         transformOrigin,
-      }}
-      className={`absolute ${positionClass} z-10 select-none`}
+      };
+
+  const outerClassName = isBannerNotch
+    ? 'relative z-10 select-none'
+    : `absolute ${positionClass} z-10 select-none`;
+
+  return (
+    <div
+      style={outerStyle}
+      className={outerClassName}
     >
       <div
         style={tagStyle}
