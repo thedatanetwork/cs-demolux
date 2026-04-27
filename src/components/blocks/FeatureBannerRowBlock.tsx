@@ -41,15 +41,16 @@ const panelGridClasses: Record<string, string> = {
   '4': 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
 };
 
+// In a flex-col, items-* = horizontal alignment, justify-* = vertical.
 const positionClasses: Record<string, string> = {
   top_left: 'items-start justify-start text-left',
-  top_center: 'items-start justify-center text-center',
-  top_right: 'items-start justify-end text-right',
-  middle_left: 'items-center justify-start text-left',
+  top_center: 'items-center justify-start text-center',
+  top_right: 'items-end justify-start text-right',
+  middle_left: 'items-start justify-center text-left',
   center: 'items-center justify-center text-center',
-  middle_right: 'items-center justify-end text-right',
-  bottom_left: 'items-end justify-start text-left',
-  bottom_center: 'items-end justify-center text-center',
+  middle_right: 'items-end justify-center text-right',
+  bottom_left: 'items-start justify-end text-left',
+  bottom_center: 'items-center justify-end text-center',
   bottom_right: 'items-end justify-end text-right',
 };
 
@@ -212,7 +213,17 @@ function FeaturePanel({
           dangerouslySetInnerHTML={{ __html: panel.custom_html_override }}
         />
       ) : (
-        <div className={`absolute inset-0 p-6 md:p-8 lg:p-10 flex flex-col ${positionClass}`}>
+        <div
+          className={`absolute inset-0 p-6 md:p-8 lg:p-10 flex flex-col ${positionClass}`}
+          style={{
+            // Text-shadow defense layer: improves legibility over busy
+            // photography regardless of scrim state. Light text gets a dark
+            // halo, dark text gets a light halo.
+            textShadow: isLight
+              ? '0 1px 6px rgba(0,0,0,0.45)'
+              : '0 1px 6px rgba(255,255,255,0.65)',
+          }}
+        >
           <div className={`max-w-md flex flex-col gap-3 sm:gap-4 ${innerAlignClass}`}>
             {panel.eyebrow && (
               <div

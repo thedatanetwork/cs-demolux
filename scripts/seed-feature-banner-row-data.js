@@ -192,7 +192,7 @@ function buildPanels(bgUids, logoUid) {
       ),
       text_position: 'top_center',
       text_color: 'dark',
-      show_scrim: false,
+      show_scrim: true,
       ctas: [{ label: 'SHOP THE COLLAB', url: '/categories/technofurniture', style: 'primary' }],
     },
     // Panel 2: italic-on-one-word headline ("the Smart Wearable") — Cropped Button-Down style
@@ -219,7 +219,7 @@ function buildPanels(bgUids, logoUid) {
       ),
       text_position: 'top_center',
       text_color: 'dark',
-      show_scrim: false,
+      show_scrim: true,
       ctas: [
         { label: 'SHOP WOMEN', url: '/categories/wearable-tech', style: 'primary' },
         { label: 'SHOP MEN', url: '/categories/technofurniture', style: 'primary' },
