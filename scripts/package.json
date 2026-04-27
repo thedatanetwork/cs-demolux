@@ -70,7 +70,9 @@
     "add-feature-banner-padding-field": "node add-feature-banner-padding-field.js",
     "add-feature-panel-padding-override": "node add-feature-panel-padding-override.js",
     "add-feature-panel-image-overlay-field": "node add-feature-panel-image-overlay-field.js",
-    "add-tile-banner-circle-and-burst-shapes": "node add-tile-banner-circle-and-burst-shapes.js"
+    "add-tile-banner-circle-and-burst-shapes": "node add-tile-banner-circle-and-burst-shapes.js",
+    "add-tile-banner-banner-notch-shape": "node add-tile-banner-banner-notch-shape.js",
+    "add-tile-banner-center-position": "node add-tile-banner-center-position.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",
