@@ -196,6 +196,18 @@ const productTileBannerBlockSchema = {
       field_metadata: { default_value: true, description: 'Toggle the caption label under each tile' },
     },
     {
+      display_name: 'Tile Label Size',
+      uid: 'tile_label_size',
+      data_type: 'text',
+      display_type: 'dropdown',
+      enum: {
+        advanced: false,
+        choices: [{ value: 'sm' }, { value: 'md' }, { value: 'lg' }, { value: 'xl' }, { value: '2xl' }],
+      },
+      mandatory: false,
+      field_metadata: { default_value: 'lg', description: 'Caption-under-tile font size' },
+    },
+    {
       display_name: 'Gap Size',
       uid: 'gap_size',
       data_type: 'text',

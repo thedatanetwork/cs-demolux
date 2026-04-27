@@ -45,6 +45,16 @@ const cornerClasses: Record<string, string> = {
   large: 'rounded-2xl',
 };
 
+// Tile caption sizes — 'lg' is the new default (previous default was sm/base
+// and read too small at typical browsing distance).
+const LABEL_SIZE_CLASSES: Record<string, string> = {
+  sm: 'text-sm md:text-base',
+  md: 'text-base md:text-lg',
+  lg: 'text-lg md:text-xl',
+  xl: 'text-xl md:text-2xl',
+  '2xl': 'text-2xl md:text-3xl',
+};
+
 const tileBgClasses: Record<string, string> = {
   transparent: 'bg-gray-100',
   white: 'bg-white border border-gray-100',
@@ -76,6 +86,7 @@ export function ProductTileBannerBlock({ block }: ProductTileBannerBlockProps) {
     corner_radius = 'medium',
     label_alignment = 'center',
     show_labels = true,
+    tile_label_size = 'lg',
     gap_size = 'normal',
     badge_size = 'medium',
     badge_angle = 'tilt_left',
@@ -143,6 +154,7 @@ export function ProductTileBannerBlock({ block }: ProductTileBannerBlockProps) {
               tileBg={tile_background}
               cornerRadius={corner_radius}
               labelAlignment={label_alignment}
+              labelSize={tile_label_size}
               showLabels={show_labels !== false}
               isDark={isDark}
               itemTag={$[`tiles__${index}`] || {}}
@@ -167,6 +179,7 @@ interface ProductTileProps {
   tileBg: string;
   cornerRadius: string;
   labelAlignment: string;
+  labelSize: string;
   showLabels: boolean;
   isDark: boolean;
   itemTag: Record<string, any>;
@@ -185,6 +198,7 @@ function ProductTile({
   tileBg,
   cornerRadius,
   labelAlignment,
+  labelSize,
   showLabels,
   isDark,
   itemTag,
@@ -235,7 +249,7 @@ function ProductTile({
       {showLabels && tile.label && (
         <div
           {...t$['label']}
-          className={`mt-3 md:mt-4 text-sm md:text-base font-medium ${labelAlignClass} ${
+          className={`mt-3 md:mt-4 ${LABEL_SIZE_CLASSES[labelSize] || LABEL_SIZE_CLASSES.lg} font-medium ${labelAlignClass} ${
             isDark ? 'text-gray-300' : 'text-gray-700'
           }`}
         >

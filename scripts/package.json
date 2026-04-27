@@ -57,11 +57,16 @@
     "add-tile-banner-design-fields": "node add-tile-banner-design-fields.js",
     "add-tile-banner-size-angle-fields": "node add-tile-banner-size-angle-fields.js",
     "add-tile-banner-font-scale-field": "node add-tile-banner-font-scale-field.js",
+    "add-tile-banner-label-size-field": "node add-tile-banner-label-size-field.js",
     "create-hero-seven-schemas": "node create-hero-seven-schemas.js",
     "seed-hero-seven-data": "node seed-hero-seven-data.js",
     "setup-hero-seven": "node create-hero-seven-schemas.js && node seed-hero-seven-data.js",
     "add-tile-blocks-to-modular-pages": "node add-tile-blocks-to-modular-pages.js",
-    "add-tile-blocks-to-composable-demo": "node add-tile-blocks-to-composable-demo.js"
+    "add-tile-blocks-to-composable-demo": "node add-tile-blocks-to-composable-demo.js",
+    "fill-composable-demo-page": "node fill-composable-demo-page.js",
+    "create-feature-banner-row-schemas": "node create-feature-banner-row-schemas.js",
+    "seed-feature-banner-row-data": "node seed-feature-banner-row-data.js",
+    "setup-feature-banner-row": "node create-feature-banner-row-schemas.js && node seed-feature-banner-row-data.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",

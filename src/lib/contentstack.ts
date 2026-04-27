@@ -553,6 +553,62 @@ export interface ProductTileBannerTile {
   $?: Record<string, any>;
 }
 
+export interface FeatureBannerCTA {
+  label: string;
+  url: string;
+  style?: 'primary' | 'outline' | 'underline';
+}
+
+export interface FeatureBannerPanel {
+  background_image: Image | Image[];
+  eyebrow?: string;
+  logo_image?: Image | Image[];
+  headline?: any; // JSON RTE document
+  description?: any; // JSON RTE document
+  text_position?:
+    | 'top_left' | 'top_center' | 'top_right'
+    | 'middle_left' | 'center' | 'middle_right'
+    | 'bottom_left' | 'bottom_center' | 'bottom_right';
+  text_color?: 'light' | 'dark';
+  show_scrim?: boolean;
+  link_url?: string;
+  ctas?: FeatureBannerCTA[];
+  custom_html_override?: string;
+  _metadata?: { uid: string };
+  $?: Record<string, any>;
+}
+
+export interface FeatureBannerRowBlock {
+  block_type: 'feature_banner_row';
+  title?: string;
+  eyebrow_label?: string;
+  section_title?: string;
+  section_description?: string;
+  background_style: 'white' | 'gray' | 'dark';
+  panel_count: '2' | '3' | '4';
+  panel_aspect_ratio: 'square' | 'portrait_4_5' | 'portrait_3_4' | 'landscape_4_3';
+  gap_size?: 'tight' | 'normal' | 'loose';
+  corner_radius?: 'none' | 'small' | 'medium' | 'large';
+  panels: FeatureBannerPanel[];
+}
+
+export interface FeatureBannerRowPageEntry {
+  uid: string;
+  title: string;
+  url: string;
+  heading: string;
+  subheading?: string;
+  banners: (FeatureBannerRowBlock & {
+    uid: string;
+    _content_type_uid?: string;
+    _metadata?: { uid: string };
+    $?: Record<string, any>;
+  })[];
+  created_at: string;
+  updated_at: string;
+  $?: Record<string, any>;
+}
+
 export interface HeroSevenTile {
   image: Image | Image[];
   label?: string;
@@ -603,6 +659,7 @@ export interface ProductTileBannerBlock {
   corner_radius?: 'none' | 'small' | 'medium' | 'large';
   label_alignment?: 'center' | 'left';
   show_labels?: boolean;
+  tile_label_size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   gap_size?: 'tight' | 'normal' | 'loose';
   tiles: ProductTileBannerTile[];
 }
@@ -622,7 +679,8 @@ export type ModularBlock =
   | ProcessStepsBlock
   | FAQBlock
   | ProductTileBannerBlock
-  | HeroSevenBlock;
+  | HeroSevenBlock
+  | FeatureBannerRowBlock;
 
 // ============================================================================
 // MODULAR PAGE TYPES
@@ -1243,6 +1301,33 @@ export class ContentstackService {
     }
 
     return this.getEntries<Testimonial>('testimonial', query, variantAliases);
+  }
+
+  // ============================================================================
+  // FEATURE BANNER ROW PAGE
+  // ============================================================================
+
+  async getFeatureBannerRowPage(variantAliases?: string[]): Promise<FeatureBannerRowPageEntry | null> {
+    if (!this.isConfigured()) {
+      return null;
+    }
+
+    try {
+      const Query = this.getActiveStack().ContentType('feature_banner_row_page').Query();
+      Query.includeReference(['banners']);
+      Query.includeMetadata();
+      Query.limit(1);
+
+      if (variantAliases && variantAliases.length > 0) {
+        Query.variants(variantAliases.join(','));
+      }
+
+      const result = await Query.toJSON().find();
+      return result[0]?.[0] || null;
+    } catch (error) {
+      console.error('Error fetching feature_banner_row_page:', error);
+      return null;
+    }
   }
 
   // ============================================================================
