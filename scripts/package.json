@@ -76,7 +76,8 @@
     "add-feature-panel-logo-size-field": "node add-feature-panel-logo-size-field.js",
     "create-flash-sale-banner-schema": "node create-flash-sale-banner-schema.js",
     "seed-flash-sale-banner-data": "node seed-flash-sale-banner-data.js",
-    "setup-flash-sale-banner": "node create-flash-sale-banner-schema.js && node seed-flash-sale-banner-data.js"
+    "setup-flash-sale-banner": "node create-flash-sale-banner-schema.js && node seed-flash-sale-banner-data.js",
+    "add-flash-sale-banner-to-composable-demo": "node add-flash-sale-banner-to-composable-demo.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",
