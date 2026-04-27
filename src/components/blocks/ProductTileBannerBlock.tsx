@@ -299,7 +299,7 @@ const SIZE_TOKENS: Record<string, {
     value: 'text-[26px] sm:text-[30px]',
     suffix: 'text-xs sm:text-sm',
     sublabel: 'text-[11px] sm:text-xs',
-    eyebrowGap: 'mb-0.5',
+    eyebrowGap: 'mb-0',
     colGap: 'gap-px',
   },
   medium: {
@@ -312,7 +312,7 @@ const SIZE_TOKENS: Record<string, {
     value: 'text-[38px] sm:text-[44px]',
     suffix: 'text-base sm:text-lg',
     sublabel: 'text-sm sm:text-[15px]',
-    eyebrowGap: 'mb-1',
+    eyebrowGap: 'mb-0.5',
     colGap: 'gap-0.5',
   },
   large: {
@@ -325,7 +325,7 @@ const SIZE_TOKENS: Record<string, {
     value: 'text-[46px] sm:text-[54px]',
     suffix: 'text-lg sm:text-xl',
     sublabel: 'text-base sm:text-lg',
-    eyebrowGap: 'mb-2',
+    eyebrowGap: 'mb-1',
     colGap: 'gap-1',
   },
 };
