@@ -63,18 +63,6 @@ const positionClasses: Record<string, string> = {
   bottom_right: 'items-end justify-end text-right',
 };
 
-const scrimByPosition: Record<string, string> = {
-  top_left: 'bg-gradient-to-br from-black/55 via-black/15 to-transparent',
-  top_center: 'bg-gradient-to-b from-black/55 via-black/15 to-transparent',
-  top_right: 'bg-gradient-to-bl from-black/55 via-black/15 to-transparent',
-  middle_left: 'bg-gradient-to-r from-black/55 via-black/15 to-transparent',
-  center: 'bg-black/30',
-  middle_right: 'bg-gradient-to-l from-black/55 via-black/15 to-transparent',
-  bottom_left: 'bg-gradient-to-tr from-black/55 via-black/15 to-transparent',
-  bottom_center: 'bg-gradient-to-t from-black/55 via-black/15 to-transparent',
-  bottom_right: 'bg-gradient-to-tl from-black/55 via-black/15 to-transparent',
-};
-
 export function FeatureBannerRowBlock({ block }: FeatureBannerRowBlockProps) {
   const {
     eyebrow_label,
@@ -174,7 +162,6 @@ function FeaturePanel({
   const logo = Array.isArray(panel.logo_image) ? panel.logo_image[0] : panel.logo_image;
   const isLight = panel.text_color === 'light';
   const positionClass = positionClasses[panel.text_position] || positionClasses.top_center;
-  const scrimClass = scrimByPosition[panel.text_position] || scrimByPosition.top_center;
 
   const PanelWrapper: React.ElementType = panel.link_url ? Link : 'div';
   const wrapperProps = panel.link_url ? { href: panel.link_url } : {};
@@ -219,10 +206,6 @@ function FeaturePanel({
         </div>
       )}
 
-      {panel.show_scrim && (
-        <div aria-hidden className={`absolute inset-0 pointer-events-none ${scrimClass}`} />
-      )}
-
       {/* Custom HTML escape hatch — replaces structured overlay if present */}
       {panel.custom_html_override && panel.custom_html_override.trim() ? (
         <div
@@ -232,18 +215,16 @@ function FeaturePanel({
           dangerouslySetInnerHTML={{ __html: panel.custom_html_override }}
         />
       ) : (
-        <div
-          className={`absolute inset-0 ${paddingClass} flex flex-col ${positionClass}`}
-          style={{
-            // Text-shadow defense layer: improves legibility over busy
-            // photography regardless of scrim state. Light text gets a dark
-            // halo, dark text gets a light halo.
-            textShadow: isLight
-              ? '0 1px 6px rgba(0,0,0,0.45)'
-              : '0 1px 6px rgba(255,255,255,0.65)',
-          }}
-        >
-          <div className={`max-w-md flex flex-col gap-3 sm:gap-4 ${innerAlignClass}`}>
+        <div className={`absolute inset-0 ${paddingClass} flex flex-col ${positionClass}`}>
+          <div
+            className={`max-w-md flex flex-col gap-3 sm:gap-4 ${innerAlignClass} ${
+              panel.show_scrim
+                ? `${
+                    isLight ? 'bg-black/55' : 'bg-white/85'
+                  } backdrop-blur-sm rounded-xl px-5 py-5 sm:px-6 sm:py-6`
+                : ''
+            }`}
+          >
             {panel.eyebrow && (
               <div
                 {...p$['eyebrow']}
