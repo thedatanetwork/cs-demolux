@@ -74,7 +74,9 @@
     "add-tile-banner-banner-notch-shape": "node add-tile-banner-banner-notch-shape.js",
     "add-tile-banner-center-position": "node add-tile-banner-center-position.js",
     "add-feature-panel-logo-size-field": "node add-feature-panel-logo-size-field.js",
-    "create-flash-sale-banner-schema": "node create-flash-sale-banner-schema.js"
+    "create-flash-sale-banner-schema": "node create-flash-sale-banner-schema.js",
+    "seed-flash-sale-banner-data": "node seed-flash-sale-banner-data.js",
+    "setup-flash-sale-banner": "node create-flash-sale-banner-schema.js && node seed-flash-sale-banner-data.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",
