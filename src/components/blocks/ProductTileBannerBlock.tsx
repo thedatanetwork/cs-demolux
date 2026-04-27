@@ -456,7 +456,7 @@ function PriceBadge({
       : isRound
         ? `${tokens.roundSize} ${tokens.py} items-center justify-center text-center`
         : isBannerNotch
-          ? 'w-full px-4 sm:px-6 pt-3 sm:pt-4 items-center justify-start text-center'
+          ? 'w-full px-4 sm:px-6 items-center justify-center text-center'
           : `rounded-md ${tokens.rectPad} ${tokens.py}`;
 
   // clip-path silhouette + (for circle) transparent punch hole. drop-shadow

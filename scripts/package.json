@@ -73,7 +73,8 @@
     "add-tile-banner-circle-and-burst-shapes": "node add-tile-banner-circle-and-burst-shapes.js",
     "add-tile-banner-banner-notch-shape": "node add-tile-banner-banner-notch-shape.js",
     "add-tile-banner-center-position": "node add-tile-banner-center-position.js",
-    "add-feature-panel-logo-size-field": "node add-feature-panel-logo-size-field.js"
+    "add-feature-panel-logo-size-field": "node add-feature-panel-logo-size-field.js",
+    "create-flash-sale-banner-schema": "node create-flash-sale-banner-schema.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",

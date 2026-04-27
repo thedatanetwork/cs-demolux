@@ -675,6 +675,42 @@ export interface ProductTileBannerBlock {
   tiles: ProductTileBannerTile[];
 }
 
+export interface FlashSaleDiscountCallout {
+  eyebrow?: string;
+  value?: string;
+  unit?: string;
+  suffix?: string;
+  _metadata?: { uid: string };
+  $?: Record<string, any>;
+}
+
+export interface FlashSaleBannerBlock {
+  block_type: 'flash_sale_banner';
+  title?: string;
+  eyebrow_tag?: string;
+  eyebrow_tag_color?: 'orange' | 'red' | 'gold' | 'navy' | 'teal';
+  title_lead?: string;
+  title_lead_weight?: 'regular' | 'medium' | 'bold';
+  title_lead_style?: 'normal' | 'italic';
+  title_middle?: string;
+  title_middle_weight?: 'regular' | 'medium' | 'bold';
+  title_middle_style?: 'normal' | 'italic';
+  title_tail?: string;
+  title_tail_weight?: 'regular' | 'medium' | 'bold';
+  title_tail_style?: 'normal' | 'italic';
+  discount_callouts?: FlashSaleDiscountCallout[];
+  disclaimer?: string;
+  disclaimer_link_text?: string;
+  disclaimer_link_url?: string;
+  left_icon?: Image | Image[];
+  right_image?: Image | Image[];
+  background_color?: 'black' | 'navy' | 'red' | 'orange' | 'white' | 'transparent';
+  background_image?: Image | Image[];
+  text_color?: 'light' | 'dark';
+  cta_link_url?: string;
+  height?: 'compact' | 'standard' | 'tall';
+}
+
 // Union type of all modular blocks
 export type ModularBlock =
   | HeroSectionBlock
@@ -691,7 +727,8 @@ export type ModularBlock =
   | FAQBlock
   | ProductTileBannerBlock
   | HeroSevenBlock
-  | FeatureBannerRowBlock;
+  | FeatureBannerRowBlock
+  | FlashSaleBannerBlock;
 
 // ============================================================================
 // MODULAR PAGE TYPES
