@@ -182,6 +182,27 @@ const featureBannerRowBlockSchema = {
           mandatory: false,
           field_metadata: { description: 'Optional inline logo overlay (e.g., a brand collab logo)' },
         },
+        {
+          display_name: 'Logo Size',
+          uid: 'logo_size',
+          data_type: 'text',
+          display_type: 'dropdown',
+          enum: {
+            advanced: false,
+            choices: [
+              { value: 'sm' },
+              { value: 'md' },
+              { value: 'lg' },
+              { value: 'xl' },
+              { value: '2xl' },
+            ],
+          },
+          mandatory: false,
+          field_metadata: {
+            default_value: 'md',
+            description: 'Height of the inline logo overlay. Scales fluidly with panel width.',
+          },
+        },
         RTE_FIELD(
           'headline',
           'Headline',

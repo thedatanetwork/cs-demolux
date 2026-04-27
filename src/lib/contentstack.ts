@@ -563,6 +563,7 @@ export interface FeatureBannerPanel {
   background_image: Image | Image[];
   eyebrow?: string;
   logo_image?: Image | Image[];
+  logo_size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   headline?: any; // JSON RTE document
   description?: any; // JSON RTE document
   text_position?:

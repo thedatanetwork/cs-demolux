@@ -66,6 +66,17 @@ const panelGridClasses: Record<string, string> = {
   '4': 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4',
 };
 
+// Logo height — fluid with panel width via cqi clamps so a small panel logo
+// shrinks while a large panel can carry a hero-sized brandmark. Heights match
+// `clamp(min, X cqi, max)` so they cap on both ends.
+const logoSizeClasses: Record<string, string> = {
+  sm: 'h-[clamp(28px,7cqi,52px)] max-w-[140px]',
+  md: 'h-[clamp(36px,9cqi,72px)] max-w-[180px]',
+  lg: 'h-[clamp(48px,12cqi,100px)] max-w-[240px]',
+  xl: 'h-[clamp(60px,16cqi,140px)] max-w-[320px]',
+  '2xl': 'h-[clamp(80px,22cqi,200px)] max-w-[420px]',
+};
+
 // In a flex-col, items-* = horizontal alignment, justify-* = vertical.
 const positionClasses: Record<string, string> = {
   top_left: 'items-start justify-start text-left',
@@ -136,6 +147,14 @@ export function FeatureBannerRowBlock({ block }: FeatureBannerRowBlockProps) {
           {...$['panels']}
           className={`grid ${panelGridClasses[panel_count] || panelGridClasses['3']} ${
             gapClasses[gap_size] || gapClasses.normal
+          } ${
+            // When panel_count is 3 but the viewport collapses to 2-up, the
+            // orphan third panel would land in the left column. Span it across
+            // both columns and center it at the same width as its siblings so
+            // the row reads as a centered footer panel.
+            panel_count === '3'
+              ? '[&>*:nth-child(3):last-child]:sm:col-span-2 [&>*:nth-child(3):last-child]:sm:max-w-[calc(50%-0.75rem)] [&>*:nth-child(3):last-child]:sm:mx-auto [&>*:nth-child(3):last-child]:sm:w-full [&>*:nth-child(3):last-child]:xl:col-span-1 [&>*:nth-child(3):last-child]:xl:max-w-none [&>*:nth-child(3):last-child]:xl:mx-0'
+              : ''
           }`}
         >
           {panels.slice(0, Number(panel_count)).map((panel, i) => {
@@ -263,7 +282,12 @@ function FeaturePanel({
             )}
 
             {logo?.url && (
-              <div {...p$['logo_image']} className="relative h-[clamp(36px,9cqi,64px)] w-auto max-w-[180px]">
+              <div
+                {...p$['logo_image']}
+                className={`relative w-auto ${
+                  logoSizeClasses[panel.logo_size as string] || logoSizeClasses.md
+                }`}
+              >
                 <img
                   src={logo.url}
                   alt={logo.title || 'Logo'}

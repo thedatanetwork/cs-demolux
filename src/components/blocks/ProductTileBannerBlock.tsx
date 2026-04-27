@@ -297,11 +297,12 @@ function buildBurstClipPath(points = 16, outer = 50, inner = 38) {
 }
 const BURST_CLIP = buildBurstClipPath();
 
-// Banner-notch — JCP-style banner: rectangle with a downward V-notch cut into
-// the bottom-center. Two corner tabs hang lower than the middle. Center peak
-// at y=58% creates ~42% notch depth, matching the JCP "Daily Deals" silhouette.
-// Content needs extra bottom padding so it clears the notch.
-const BANNER_NOTCH_CLIP = 'polygon(0% 0%, 100% 0%, 100% 100%, 50% 58%, 0% 100%)';
+// Banner-notch — JCP-style banner: rectangle with a shallow downward V-notch
+// cut into the bottom-center. Two corner tabs hang slightly lower than the
+// middle. Center peak at y=72% gives a gentle chevron — sharper notches read
+// as a pennant; we want a banner. Content gets extra bottom padding so it
+// clears the chevron.
+const BANNER_NOTCH_CLIP = 'polygon(0% 0%, 100% 0%, 100% 100%, 50% 72%, 0% 100%)';
 
 // Per-size tokens. Padding is explicit pl/pr so Tailwind class ordering
 // doesn't trip on px-* vs pl-* conflicts.
@@ -413,17 +414,21 @@ function PriceBadge({
   const isBurst = shape === 'burst_tag';
   const isBannerNotch = shape === 'banner_notch';
   const isRound = isCircle || isBurst;
-  const isCentered = position === 'center';
-  const onRight = position === 'top_right';
+  // banner_notch always renders as a full-width top ribbon — it ignores both
+  // position and angle so it locks to the top of the tile like the JCP layout.
+  const isCentered = !isBannerNotch && position === 'center';
+  const onRight = !isBannerNotch && position === 'top_right';
 
-  // Position classes — top-corner variants pin a slight inset; centered pins
-  // to tile center and uses translate(-50%,-50%) on the inline transform so
-  // the badge sits dead-center regardless of its own size.
-  const positionClass = isCentered
-    ? 'top-1/2 left-1/2'
-    : onRight
-      ? 'top-2 right-2 sm:top-3 sm:right-3'
-      : 'top-2 left-2 sm:top-3 sm:left-3';
+  // Position classes — banner_notch spans the full top edge; centered pins to
+  // tile midpoint via translate(-50%,-50%); top-corner variants pin a slight
+  // inset.
+  const positionClass = isBannerNotch
+    ? 'top-0 inset-x-0'
+    : isCentered
+      ? 'top-1/2 left-1/2'
+      : onRight
+        ? 'top-2 right-2 sm:top-3 sm:right-3'
+        : 'top-2 left-2 sm:top-3 sm:left-3';
 
   // Shape classes — extra padding on the leading side hosts the notch + hole;
   // clip-path shapes (price_tag, burst, circle) skip border-radius; circle and
@@ -435,7 +440,7 @@ function PriceBadge({
       : isRound
         ? `${tokens.roundSize} ${tokens.py} items-center justify-center text-center`
         : isBannerNotch
-          ? `${tokens.rectPad} pt-2 pb-[28%] items-center justify-center text-center`
+          ? 'w-full px-4 sm:px-6 pt-3 sm:pt-4 pb-[clamp(28px,11cqi,80px)] items-center justify-center text-center'
           : `rounded-md ${tokens.rectPad} ${tokens.py}`;
 
   // clip-path silhouette + (for circle) transparent punch hole. drop-shadow
@@ -460,28 +465,33 @@ function PriceBadge({
 
   const hasSuffixCol = Boolean(tile.suffix || tile.sublabel);
 
-  // Pivot rotation around the "string" so the tag dangles like a real paper tag.
-  // price_tag: hole on leading edge. circle_tag: hole at top center. burst_tag:
-  // symmetric — pivot from center. Centered position always pivots from the
-  // badge center so translate(-50%,-50%) keeps it perfectly aligned.
-  const transformOrigin = isCentered
-    ? '50% 50%'
-    : isPriceTag
-      ? onRight
-        ? `calc(100% - ${HOLE_INSET}px) 50%`
-        : `${HOLE_INSET}px 50%`
-      : isCircle
-        ? '50% 11%'
-        : '50% 50%';
+  // Transform origin governs both rotation pivot and scale anchor. Corner-
+  // anchored shapes (rectangle, pill, circle, burst) anchor at the inset
+  // corner so any fontScale > 1 expands INTO the tile rather than leaking
+  // past the inset and getting clipped by the tile's overflow:hidden.
+  // price_tag uses the hole position so the tag swings from its "string".
+  const transformOrigin = isBannerNotch
+    ? '50% 0%'
+    : isCentered
+      ? '50% 50%'
+      : isPriceTag
+        ? onRight
+          ? `calc(100% - ${HOLE_INSET}px) 50%`
+          : `${HOLE_INSET}px 50%`
+        : onRight
+          ? '100% 0%'
+          : '0% 0%';
 
   // Compose final transform. Centered badges need translate(-50%,-50%) so they
   // sit at the tile midpoint regardless of their own size; rotation and scale
-  // stack on top.
-  const transformParts = [
-    isCentered ? 'translate(-50%, -50%)' : '',
-    rotateTransform,
-    scaleMultiplier !== 1 ? `scale(${scaleMultiplier})` : '',
-  ].filter(Boolean);
+  // stack on top. banner_notch is full-width and locked, so no transforms.
+  const transformParts = isBannerNotch
+    ? []
+    : [
+        isCentered ? 'translate(-50%, -50%)' : '',
+        rotateTransform,
+        scaleMultiplier !== 1 ? `scale(${scaleMultiplier})` : '',
+      ].filter(Boolean);
   const transform = transformParts.join(' ');
 
   return (
