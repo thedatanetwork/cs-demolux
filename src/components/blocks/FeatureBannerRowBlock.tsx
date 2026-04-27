@@ -35,6 +35,15 @@ const gapClasses: Record<string, string> = {
   loose: 'gap-6 md:gap-10',
 };
 
+const panelPaddingClasses: Record<string, string> = {
+  none: 'p-0',
+  xs: 'p-3 md:p-4',
+  sm: 'p-4 md:p-6',
+  md: 'p-6 md:p-8 lg:p-10',
+  lg: 'p-8 md:p-12 lg:p-16',
+  xl: 'p-10 md:p-16 lg:p-20',
+};
+
 const panelGridClasses: Record<string, string> = {
   '2': 'grid-cols-1 md:grid-cols-2',
   '3': 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
@@ -76,6 +85,7 @@ export function FeatureBannerRowBlock({ block }: FeatureBannerRowBlockProps) {
     panel_aspect_ratio = 'portrait_4_5',
     gap_size = 'normal',
     corner_radius = 'medium',
+    panel_padding = 'md',
     panels = [],
   } = block;
 
@@ -130,6 +140,7 @@ export function FeatureBannerRowBlock({ block }: FeatureBannerRowBlockProps) {
               panel={panel}
               aspectClass={aspectClasses[panel_aspect_ratio] || aspectClasses.portrait_4_5}
               cornerClass={cornerClasses[corner_radius] || cornerClasses.medium}
+              paddingClass={panelPaddingClasses[panel_padding] || panelPaddingClasses.md}
               panelTag={$[`panels__${i}`] || {}}
             />
           ))}
@@ -143,11 +154,13 @@ function FeaturePanel({
   panel,
   aspectClass,
   cornerClass,
+  paddingClass,
   panelTag,
 }: {
   panel: any;
   aspectClass: string;
   cornerClass: string;
+  paddingClass: string;
   panelTag: Record<string, any>;
 }) {
   const p$ = panel.$ || {};
@@ -207,14 +220,14 @@ function FeaturePanel({
       {/* Custom HTML escape hatch — replaces structured overlay if present */}
       {panel.custom_html_override && panel.custom_html_override.trim() ? (
         <div
-          className={`absolute inset-0 p-6 md:p-8 lg:p-10 flex flex-col ${positionClass} ${
+          className={`absolute inset-0 ${paddingClass} flex flex-col ${positionClass} ${
             isLight ? 'text-white' : 'text-gray-900'
           }`}
           dangerouslySetInnerHTML={{ __html: panel.custom_html_override }}
         />
       ) : (
         <div
-          className={`absolute inset-0 p-6 md:p-8 lg:p-10 flex flex-col ${positionClass}`}
+          className={`absolute inset-0 ${paddingClass} flex flex-col ${positionClass}`}
           style={{
             // Text-shadow defense layer: improves legibility over busy
             // photography regardless of scrim state. Light text gets a dark

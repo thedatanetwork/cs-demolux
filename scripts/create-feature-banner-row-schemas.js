@@ -133,6 +133,25 @@ const featureBannerRowBlockSchema = {
       field_metadata: { default_value: 'medium' },
     },
     {
+      display_name: 'Panel Padding',
+      uid: 'panel_padding',
+      data_type: 'text',
+      display_type: 'dropdown',
+      enum: {
+        advanced: false,
+        choices: [
+          { value: 'none' },
+          { value: 'xs' },
+          { value: 'sm' },
+          { value: 'md' },
+          { value: 'lg' },
+          { value: 'xl' },
+        ],
+      },
+      mandatory: false,
+      field_metadata: { default_value: 'md', description: 'Inner padding around overlay content' },
+    },
+    {
       display_name: 'Panels',
       uid: 'panels',
       data_type: 'group',

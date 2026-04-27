@@ -589,6 +589,7 @@ export interface FeatureBannerRowBlock {
   panel_aspect_ratio: 'square' | 'portrait_4_5' | 'portrait_3_4' | 'landscape_4_3';
   gap_size?: 'tight' | 'normal' | 'loose';
   corner_radius?: 'none' | 'small' | 'medium' | 'large';
+  panel_padding?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   panels: FeatureBannerPanel[];
 }
 
