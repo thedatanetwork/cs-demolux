@@ -274,7 +274,7 @@ function SecondaryTile({
     <TileWrapper
       {...wrapperProps}
       {...tileTag}
-      className="group block"
+      className="group block [container-type:inline-size]"
     >
       <div className={`relative aspect-square ${cornerClass} bg-gray-100 overflow-hidden`}>
         {image?.url && (
@@ -298,7 +298,7 @@ function SecondaryTile({
         {showLabel && tile.label && (
           <div
             {...t$['label']}
-            className="absolute inset-x-0 bottom-0 px-4 py-4 sm:py-5 text-center text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight"
+            className="absolute inset-x-0 bottom-0 px-[clamp(10px,4cqi,20px)] py-[clamp(12px,4.5cqi,22px)] text-center text-[clamp(15px,7cqi,30px)] font-bold text-white tracking-tight"
           >
             {tile.label}
           </div>
