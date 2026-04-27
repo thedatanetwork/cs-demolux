@@ -234,6 +234,29 @@ const featureBannerRowBlockSchema = {
           },
         },
         {
+          display_name: 'Padding (override)',
+          uid: 'padding',
+          data_type: 'text',
+          display_type: 'dropdown',
+          enum: {
+            advanced: false,
+            choices: [
+              { value: 'default' },
+              { value: 'none' },
+              { value: 'xs' },
+              { value: 'sm' },
+              { value: 'md' },
+              { value: 'lg' },
+              { value: 'xl' },
+            ],
+          },
+          mandatory: false,
+          field_metadata: {
+            default_value: 'default',
+            description: 'Per-panel padding override. "default" inherits the block-level Panel Padding.',
+          },
+        },
+        {
           display_name: 'Panel Link URL',
           uid: 'link_url',
           data_type: 'text',

@@ -67,7 +67,8 @@
     "create-feature-banner-row-schemas": "node create-feature-banner-row-schemas.js",
     "seed-feature-banner-row-data": "node seed-feature-banner-row-data.js",
     "setup-feature-banner-row": "node create-feature-banner-row-schemas.js && node seed-feature-banner-row-data.js",
-    "add-feature-banner-padding-field": "node add-feature-banner-padding-field.js"
+    "add-feature-banner-padding-field": "node add-feature-banner-padding-field.js",
+    "add-feature-panel-padding-override": "node add-feature-panel-padding-override.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",

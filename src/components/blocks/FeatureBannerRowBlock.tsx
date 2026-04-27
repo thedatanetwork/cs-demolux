@@ -134,16 +134,22 @@ export function FeatureBannerRowBlock({ block }: FeatureBannerRowBlockProps) {
             gapClasses[gap_size] || gapClasses.normal
           }`}
         >
-          {panels.slice(0, Number(panel_count)).map((panel, i) => (
-            <FeaturePanel
-              key={panel._metadata?.uid || i}
-              panel={panel}
-              aspectClass={aspectClasses[panel_aspect_ratio] || aspectClasses.portrait_4_5}
-              cornerClass={cornerClasses[corner_radius] || cornerClasses.medium}
-              paddingClass={panelPaddingClasses[panel_padding] || panelPaddingClasses.md}
-              panelTag={$[`panels__${i}`] || {}}
-            />
-          ))}
+          {panels.slice(0, Number(panel_count)).map((panel, i) => {
+            // Per-panel padding override: if the panel sets a value other than
+            // 'default', it wins; otherwise inherit the block-level setting.
+            const effectivePadding =
+              panel.padding && panel.padding !== 'default' ? panel.padding : panel_padding;
+            return (
+              <FeaturePanel
+                key={panel._metadata?.uid || i}
+                panel={panel}
+                aspectClass={aspectClasses[panel_aspect_ratio] || aspectClasses.portrait_4_5}
+                cornerClass={cornerClasses[corner_radius] || cornerClasses.medium}
+                paddingClass={panelPaddingClasses[effectivePadding] || panelPaddingClasses.md}
+                panelTag={$[`panels__${i}`] || {}}
+              />
+            );
+          })}
         </div>
       </div>
     </section>
