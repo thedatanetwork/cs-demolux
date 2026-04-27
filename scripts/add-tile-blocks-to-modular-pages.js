@@ -27,7 +27,7 @@ const PAGE_CONTENT_TYPES = [
   'modular_blog_page',
 ];
 
-const NEW_BLOCK_UIDS = ['product_tile_banner_block', 'hero_seven_block'];
+const NEW_BLOCK_UIDS = ['product_tile_banner_block', 'hero_seven_block', 'feature_banner_row_block'];
 
 async function patchContentType(stack, contentTypeUid) {
   let ct;

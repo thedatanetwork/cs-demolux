@@ -23,6 +23,7 @@ import {
   DynamicFeedsDropdownPageEntry,
   ProductTileBannerPageEntry,
   HeroSevenPageEntry,
+  FeatureBannerRowPageEntry,
 } from './contentstack';
 
 // Fallback site settings for when Contentstack is not available
@@ -369,6 +370,18 @@ export class DataService {
 
   async getFeaturedTestimonials(variantAliases?: string[]): Promise<Testimonial[]> {
     return this.getTestimonials(true, variantAliases);
+  }
+
+  // Feature Banner Row Page
+  async getFeatureBannerRowPage(variantAliases?: string[]): Promise<FeatureBannerRowPageEntry | null> {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
+    }
+    const entry = await contentstack.getFeatureBannerRowPage(variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'feature_banner_row_page');
+    }
+    return entry;
   }
 
   // Hero 7 Page
