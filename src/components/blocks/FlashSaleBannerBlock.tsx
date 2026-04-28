@@ -85,7 +85,9 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
   // be set explicitly (not just inherited from the wrapper).
   const textBaseClass = isLight ? 'text-white' : 'text-gray-900';
   const disclaimerColorClass = isLight ? 'text-white/85' : 'text-gray-700';
-  const linkColorClass = isLight ? 'text-white underline decoration-white/60' : 'text-gray-900 underline decoration-gray-500';
+  const linkColorClass = isLight
+    ? 'text-white underline decoration-white/70 underline-offset-2'
+    : 'text-gray-900 underline decoration-gray-500 underline-offset-2';
 
   const bgClass = backgroundColorClasses[background_color] || backgroundColorClasses.black;
   const heightClass = heightClasses[height] || heightClasses.standard;
@@ -96,13 +98,13 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
   return (
     <Wrapper
       {...wrapperProps}
-      // [container-type:inline-size] activates `cqi` units for fluid scaling
-      // — same trick the product tile badges use, so text/spacing track the
-      // banner width instead of viewport breakpoints.
+      // [container-type:inline-size] activates `cqi` units so type/icon/spacing
+      // scale with the banner's own width — same trick the product tile badges
+      // use. overflow-hidden lets the bolt bleed off top/bottom edges cleanly.
       className={`relative block w-full overflow-hidden [container-type:inline-size] ${bgClass} ${textBaseClass}`}
     >
       {bgImage?.url && (
-        <div className="absolute inset-0 -z-0" {...$['background_image']}>
+        <div className="absolute inset-0 z-0" {...$['background_image']}>
           <Image
             src={bgImage.url}
             alt={bgImage.title || ''}
@@ -114,75 +116,55 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
         </div>
       )}
 
-      <div className={`relative container-padding ${heightClass}`}>
-        {eyebrow_tag && (
-          <div
-            {...$['eyebrow_tag']}
-            className={`absolute top-0 left-0 inline-flex items-center px-3 py-1 text-[clamp(10px,1.4cqi,14px)] font-bold uppercase tracking-wide ${
-              tagColorClasses[eyebrow_tag_color] || tagColorClasses.orange
-            }`}
-          >
-            {eyebrow_tag}
-          </div>
+      {eyebrow_tag && (
+        <div
+          {...$['eyebrow_tag']}
+          className={`absolute top-0 left-0 z-20 inline-flex items-center px-3 py-1 text-[clamp(10px,1.4cqi,14px)] font-bold uppercase tracking-[0.04em] ${
+            tagColorClasses[eyebrow_tag_color] || tagColorClasses.orange
+          }`}
+        >
+          {eyebrow_tag}
+        </div>
+      )}
+
+      {/* Bolt: anchored to the left, sized larger than the banner so the
+          tail bleeds off the bottom edge (overflow-hidden on the wrapper
+          clips it cleanly). Both the CMS asset path and the SVG fallback
+          share the same container so they render at identical scale. */}
+      <div
+        {...(leftIcon?.url ? $['left_icon'] : {})}
+        className="absolute left-[clamp(8px,1.5cqi,32px)] top-1/2 -translate-y-1/2 z-10 h-[clamp(110px,22cqi,260px)] w-[clamp(60px,12cqi,140px)] pointer-events-none"
+      >
+        {leftIcon?.url ? (
+          <Image
+            src={leftIcon.url}
+            alt={leftIcon.title || ''}
+            fill
+            sizes="160px"
+            className="object-contain"
+          />
+        ) : (
+          <DefaultBoltIcon />
         )}
+      </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-x-[clamp(12px,2.5cqi,40px)] gap-y-3">
-          {leftIcon?.url ? (
-            <div
-              {...$['left_icon']}
-              className="relative shrink-0 h-[clamp(36px,7cqi,96px)] w-[clamp(36px,7cqi,96px)]"
-            >
-              <Image
-                src={leftIcon.url}
-                alt={leftIcon.title || ''}
-                fill
-                sizes="96px"
-                className="object-contain"
-              />
-            </div>
-          ) : (
-            // Inline lightning-bolt fallback so the banner reads correctly
-            // without requiring an icon upload. Editors override by adding
-            // an asset to the Left Icon field.
-            <DefaultBoltIcon {...$['left_icon']} />
-          )}
-
-          {(title_lead || title_middle || title_tail) && (
-            <h2
-              className={`font-heading leading-none tracking-tight text-[clamp(32px,7cqi,84px)] ${textBaseClass}`}
-            >
-              {title_lead && (
-                <span
-                  {...$['title_lead']}
-                  className={`${weightClasses[title_lead_weight] || weightClasses.bold} ${
-                    styleClasses[title_lead_style] || styleClasses.normal
-                  }`}
-                >
-                  {title_lead}
-                </span>
-              )}
-              {title_middle && (
-                <span
-                  {...$['title_middle']}
-                  className={`${weightClasses[title_middle_weight] || weightClasses.regular} ${
-                    styleClasses[title_middle_style] || styleClasses.italic
-                  }`}
-                >
-                  {title_middle}
-                </span>
-              )}
-              {title_tail && (
-                <span
-                  {...$['title_tail']}
-                  className={`${weightClasses[title_tail_weight] || weightClasses.bold} ${
-                    styleClasses[title_tail_style] || styleClasses.normal
-                  }`}
-                >
-                  {title_tail}
-                </span>
-              )}
-            </h2>
-          )}
+      <div className={`relative z-10 container-padding ${heightClass}`}>
+        {/* The bolt occupies a reserved chunk of left padding so the rest of
+            the row centers cleanly beside it instead of crashing into it. */}
+        <div className="flex flex-wrap items-center justify-center gap-x-[clamp(16px,3cqi,56px)] gap-y-3 pl-[clamp(70px,14cqi,170px)]">
+          <Headline
+            $={$}
+            lead={title_lead}
+            leadWeight={title_lead_weight}
+            leadStyle={title_lead_style}
+            middle={title_middle}
+            middleWeight={title_middle_weight}
+            middleStyle={title_middle_style}
+            tail={title_tail}
+            tailWeight={title_tail_weight}
+            tailStyle={title_tail_style}
+            colorClass={textBaseClass}
+          />
 
           {discount_callouts.length > 0 && (
             <div
@@ -194,7 +176,7 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
                   {index > 0 && (
                     <span
                       aria-hidden
-                      className="font-extrabold leading-none text-[clamp(28px,5.5cqi,68px)]"
+                      className="font-extrabold leading-none text-[clamp(28px,5.5cqi,68px)] -mx-1"
                     >
                       +
                     </span>
@@ -206,7 +188,9 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
           )}
 
           {(disclaimer || disclaimer_link_text) && (
-            <div className={`text-[clamp(10px,1.3cqi,14px)] leading-tight max-w-[14ch] ${disclaimerColorClass}`}>
+            <div
+              className={`text-[clamp(9px,1.05cqi,12px)] leading-[1.15] max-w-[12ch] font-medium ${disclaimerColorClass}`}
+            >
               {disclaimer && <span {...$['disclaimer']}>{disclaimer}</span>}
               {disclaimer_link_text && (
                 disclaimer_link_url ? (
@@ -229,13 +213,13 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
           {rightImage?.url && (
             <div
               {...$['right_image']}
-              className="relative shrink-0 h-[clamp(48px,9cqi,120px)] w-[clamp(80px,15cqi,200px)]"
+              className="relative shrink-0 h-[clamp(56px,11cqi,140px)] w-[clamp(96px,18cqi,220px)]"
             >
               <Image
                 src={rightImage.url}
                 alt={rightImage.title || ''}
                 fill
-                sizes="200px"
+                sizes="220px"
                 className="object-contain"
               />
             </div>
@@ -246,84 +230,143 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
   );
 }
 
-function DefaultBoltIcon(props: React.HTMLAttributes<HTMLDivElement>) {
+// ----- Headline -----------------------------------------------------------
+// Each part of the composite headline is rendered as its own little span so
+// the editor's per-part weight + italic settings can be dialed in without
+// the parts bleeding into one another. Tight tracking + leading reproduces
+// the JCP-style "JewelryFlashSale" run-together look without manual kerning.
+function Headline({
+  $,
+  lead,
+  leadWeight,
+  leadStyle,
+  middle,
+  middleWeight,
+  middleStyle,
+  tail,
+  tailWeight,
+  tailStyle,
+  colorClass,
+}: {
+  $: Record<string, any>;
+  lead?: string;
+  leadWeight: string;
+  leadStyle: string;
+  middle?: string;
+  middleWeight: string;
+  middleStyle: string;
+  tail?: string;
+  tailWeight: string;
+  tailStyle: string;
+  colorClass: string;
+}) {
+  if (!lead && !middle && !tail) return null;
+
+  const partClass = (weight: string, style: string) =>
+    `${weightClasses[weight] || weightClasses.bold} ${styleClasses[style] || styleClasses.normal}`;
+
   return (
-    <div
-      {...props}
-      className="shrink-0 h-[clamp(36px,7cqi,96px)] w-[clamp(36px,7cqi,96px)] text-orange-500"
-      aria-hidden
+    <h2
+      className={`font-sans leading-[0.95] tracking-[-0.025em] text-[clamp(34px,7.4cqi,92px)] whitespace-nowrap ${colorClass}`}
     >
-      <svg
-        viewBox="0 0 24 24"
-        className="h-full w-full"
-        fill="currentColor"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M13.5 2 4 14h6l-1.5 8L20 9.5h-6L15.5 2z" />
-      </svg>
-    </div>
+      {lead && (
+        <span {...$['title_lead']} className={partClass(leadWeight, leadStyle)}>
+          {lead}
+        </span>
+      )}
+      {middle && (
+        <span {...$['title_middle']} className={partClass(middleWeight, middleStyle)}>
+          {middle}
+        </span>
+      )}
+      {tail && (
+        <span {...$['title_tail']} className={partClass(tailWeight, tailStyle)}>
+          {tail}
+        </span>
+      )}
+    </h2>
   );
 }
 
+// ----- Default bolt icon --------------------------------------------------
+// Outline (stroke, not fill) so the orange reads as a graphic accent rather
+// than a chunky fill. Stroke width is set in viewBox units so it scales
+// proportionally with the icon size. Lightning-bolt path is the standard
+// 7-vertex polygon used in Lucide's Zap icon.
+function DefaultBoltIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-full w-full text-orange-500"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinejoin="round"
+      strokeLinecap="round"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  );
+}
+
+// ----- Discount callout ---------------------------------------------------
+// Layout pattern borrowed from the ProductTileBanner PriceBadge:
+//   - row uses items-stretch so the right column matches the value's height
+//   - right column is a flex-col with justify-between, putting eyebrow at
+//     the top, unit in the middle, and suffix at the bottom — together they
+//     read as a tight rectangle stacked beside the big number.
 interface DiscountCalloutProps {
   callout: FlashSaleBannerBlockType['discount_callouts'] extends (infer U)[] | undefined ? U : never;
 }
 
-// Layout pattern borrowed from the ProductTileBanner PriceBadge:
-//   - eyebrow centered above the value
-//   - row uses items-stretch so the suffix column matches the value's height
-//   - suffix column uses flex-col + justify-between to pin unit to the top
-//     (level with the top of the value) and suffix to the bottom (level with
-//     the value's baseline) — the visual we get is "60" with "%" sitting at
-//     its top-right and "OFF" sitting at its bottom-right, tightly clustered.
 function DiscountCallout({ callout }: DiscountCalloutProps) {
   const c$ = (callout as any).$ || {};
   const { eyebrow, value, unit, suffix } = callout || {};
 
   if (!eyebrow && !value && !unit && !suffix) return null;
 
-  const hasSuffixCol = Boolean(unit || suffix);
+  const hasRightCol = Boolean(eyebrow || unit || suffix);
 
   return (
-    <div className="flex flex-col items-center leading-none">
-      {eyebrow && (
+    <div className="flex items-stretch leading-none">
+      {value && (
         <span
-          {...c$['eyebrow']}
-          className="text-[clamp(10px,1.6cqi,16px)] font-semibold italic leading-none mb-0.5 opacity-95"
+          {...c$['value']}
+          className="font-extrabold tracking-[-0.02em] leading-[0.85] text-[clamp(44px,9cqi,108px)]"
         >
-          {eyebrow}
+          {value}
         </span>
       )}
-      <div className="flex items-stretch leading-none">
-        {value && (
-          <span
-            {...c$['value']}
-            className="font-extrabold tracking-tight leading-none text-[clamp(40px,8cqi,96px)]"
-          >
-            {value}
-          </span>
-        )}
-        {hasSuffixCol && (
-          <div className="flex flex-col justify-between leading-none ml-[2px] sm:ml-1 py-[2px]">
-            {unit && (
-              <span
-                {...c$['unit']}
-                className="font-bold leading-none text-[clamp(12px,2.6cqi,28px)]"
-              >
-                {unit}
-              </span>
-            )}
-            {suffix && (
-              <span
-                {...c$['suffix']}
-                className="font-bold leading-none text-[clamp(10px,1.6cqi,18px)]"
-              >
-                {suffix}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+      {hasRightCol && (
+        <div className="flex flex-col justify-between leading-none ml-[3px] py-[2px] text-left">
+          {eyebrow && (
+            <span
+              {...c$['eyebrow']}
+              className="font-semibold italic leading-none text-[clamp(10px,1.6cqi,16px)] -mt-1"
+            >
+              {eyebrow}
+            </span>
+          )}
+          {unit && (
+            <span
+              {...c$['unit']}
+              className="font-extrabold leading-none text-[clamp(13px,2.4cqi,28px)]"
+            >
+              {unit}
+            </span>
+          )}
+          {suffix && (
+            <span
+              {...c$['suffix']}
+              className="font-bold leading-none tracking-wide text-[clamp(9px,1.4cqi,14px)] -mb-0.5"
+            >
+              {suffix}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
