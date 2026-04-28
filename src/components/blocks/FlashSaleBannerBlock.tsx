@@ -81,6 +81,8 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
   const bgImage = getImage(background_image);
 
   const isLight = text_color === 'light';
+  // Globals.css applies text-gray-900 to all h1-h6, so the heading color must
+  // be set explicitly (not just inherited from the wrapper).
   const textBaseClass = isLight ? 'text-white' : 'text-gray-900';
   const disclaimerColorClass = isLight ? 'text-white/85' : 'text-gray-700';
   const linkColorClass = isLight ? 'text-white underline decoration-white/60' : 'text-gray-900 underline decoration-gray-500';
@@ -88,14 +90,16 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
   const bgClass = backgroundColorClasses[background_color] || backgroundColorClasses.black;
   const heightClass = heightClasses[height] || heightClasses.standard;
 
-  // Wrapper anchors the relative bg image stack and the optional outer link.
   const Wrapper: React.ElementType = cta_link_url ? Link : 'section';
   const wrapperProps = cta_link_url ? { href: cta_link_url } : {};
 
   return (
     <Wrapper
       {...wrapperProps}
-      className={`relative block w-full overflow-hidden ${bgClass} ${textBaseClass}`}
+      // [container-type:inline-size] activates `cqi` units for fluid scaling
+      // — same trick the product tile badges use, so text/spacing track the
+      // banner width instead of viewport breakpoints.
+      className={`relative block w-full overflow-hidden [container-type:inline-size] ${bgClass} ${textBaseClass}`}
     >
       {bgImage?.url && (
         <div className="absolute inset-0 -z-0" {...$['background_image']}>
@@ -114,7 +118,7 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
         {eyebrow_tag && (
           <div
             {...$['eyebrow_tag']}
-            className={`absolute top-0 left-0 inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold uppercase tracking-wide ${
+            className={`absolute top-0 left-0 inline-flex items-center px-3 py-1 text-[clamp(10px,1.4cqi,14px)] font-bold uppercase tracking-wide ${
               tagColorClasses[eyebrow_tag_color] || tagColorClasses.orange
             }`}
           >
@@ -122,24 +126,26 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 sm:gap-x-6 md:gap-x-8">
+        <div className="flex flex-wrap items-center justify-center gap-x-[clamp(12px,2.5cqi,40px)] gap-y-3">
           {leftIcon?.url && (
             <div
               {...$['left_icon']}
-              className="relative shrink-0 h-10 w-10 sm:h-12 sm:w-12 md:h-16 md:w-16"
+              className="relative shrink-0 h-[clamp(36px,7cqi,96px)] w-[clamp(36px,7cqi,96px)]"
             >
               <Image
                 src={leftIcon.url}
                 alt={leftIcon.title || ''}
                 fill
-                sizes="64px"
+                sizes="96px"
                 className="object-contain"
               />
             </div>
           )}
 
           {(title_lead || title_middle || title_tail) && (
-            <h2 className="font-heading leading-none tracking-tight text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+            <h2
+              className={`font-heading leading-none tracking-tight text-[clamp(32px,7cqi,84px)] ${textBaseClass}`}
+            >
               {title_lead && (
                 <span
                   {...$['title_lead']}
@@ -176,12 +182,15 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
           {discount_callouts.length > 0 && (
             <div
               {...$['discount_callouts']}
-              className="flex items-center gap-x-3 sm:gap-x-4 md:gap-x-5"
+              className="flex items-center gap-x-[clamp(8px,1.6cqi,24px)]"
             >
               {discount_callouts.map((callout, index) => (
                 <React.Fragment key={callout._metadata?.uid || index}>
                   {index > 0 && (
-                    <span aria-hidden className="text-3xl sm:text-4xl md:text-5xl font-bold leading-none">
+                    <span
+                      aria-hidden
+                      className="font-extrabold leading-none text-[clamp(28px,5.5cqi,68px)]"
+                    >
                       +
                     </span>
                   )}
@@ -192,10 +201,8 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
           )}
 
           {(disclaimer || disclaimer_link_text) && (
-            <div className={`text-xs sm:text-sm leading-tight max-w-[16ch] ${disclaimerColorClass}`}>
-              {disclaimer && (
-                <span {...$['disclaimer']}>{disclaimer}</span>
-              )}
+            <div className={`text-[clamp(10px,1.3cqi,14px)] leading-tight max-w-[14ch] ${disclaimerColorClass}`}>
+              {disclaimer && <span {...$['disclaimer']}>{disclaimer}</span>}
               {disclaimer_link_text && (
                 disclaimer_link_url ? (
                   <Link
@@ -217,13 +224,13 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
           {rightImage?.url && (
             <div
               {...$['right_image']}
-              className="relative shrink-0 h-12 w-20 sm:h-16 sm:w-28 md:h-20 md:w-36"
+              className="relative shrink-0 h-[clamp(48px,9cqi,120px)] w-[clamp(80px,15cqi,200px)]"
             >
               <Image
                 src={rightImage.url}
                 alt={rightImage.title || ''}
                 fill
-                sizes="(max-width: 640px) 80px, 144px"
+                sizes="200px"
                 className="object-contain"
               />
             </div>
@@ -238,52 +245,61 @@ interface DiscountCalloutProps {
   callout: FlashSaleBannerBlockType['discount_callouts'] extends (infer U)[] | undefined ? U : never;
 }
 
+// Layout pattern borrowed from the ProductTileBanner PriceBadge:
+//   - eyebrow centered above the value
+//   - row uses items-stretch so the suffix column matches the value's height
+//   - suffix column uses flex-col + justify-between to pin unit to the top
+//     (level with the top of the value) and suffix to the bottom (level with
+//     the value's baseline) — the visual we get is "60" with "%" sitting at
+//     its top-right and "OFF" sitting at its bottom-right, tightly clustered.
 function DiscountCallout({ callout }: DiscountCalloutProps) {
   const c$ = (callout as any).$ || {};
   const { eyebrow, value, unit, suffix } = callout || {};
 
   if (!eyebrow && !value && !unit && !suffix) return null;
 
+  const hasSuffixCol = Boolean(unit || suffix);
+
   return (
-    <div className="flex items-baseline leading-none">
-      <div className="flex flex-col items-center">
-        {eyebrow && (
-          <span
-            {...c$['eyebrow']}
-            className="text-[clamp(10px,2cqi,14px)] font-semibold leading-none mb-0.5 italic opacity-95"
-          >
-            {eyebrow}
-          </span>
-        )}
+    <div className="flex flex-col items-center leading-none">
+      {eyebrow && (
+        <span
+          {...c$['eyebrow']}
+          className="text-[clamp(10px,1.6cqi,16px)] font-semibold italic leading-none mb-0.5 opacity-95"
+        >
+          {eyebrow}
+        </span>
+      )}
+      <div className="flex items-stretch leading-none">
         {value && (
           <span
             {...c$['value']}
-            className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-none"
+            className="font-extrabold tracking-tight leading-none text-[clamp(40px,8cqi,96px)]"
           >
             {value}
           </span>
         )}
+        {hasSuffixCol && (
+          <div className="flex flex-col justify-between leading-none ml-[2px] sm:ml-1 py-[2px]">
+            {unit && (
+              <span
+                {...c$['unit']}
+                className="font-bold leading-none text-[clamp(12px,2.6cqi,28px)]"
+              >
+                {unit}
+              </span>
+            )}
+            {suffix && (
+              <span
+                {...c$['suffix']}
+                className="font-bold leading-none text-[clamp(10px,1.6cqi,18px)]"
+              >
+                {suffix}
+              </span>
+            )}
+          </div>
+        )}
       </div>
-      {(unit || suffix) && (
-        <div className="flex flex-col leading-none ml-0.5">
-          {unit && (
-            <span
-              {...c$['unit']}
-              className="text-base sm:text-lg md:text-xl font-bold leading-none"
-            >
-              {unit}
-            </span>
-          )}
-          {suffix && (
-            <span
-              {...c$['suffix']}
-              className="text-xs sm:text-sm md:text-base font-bold leading-none mt-0.5"
-            >
-              {suffix}
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 }
