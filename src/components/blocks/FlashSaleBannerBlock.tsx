@@ -127,20 +127,20 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
         </div>
       )}
 
-      {/* Bolt: anchored to the left, sized larger than the banner so the
-          tail bleeds off the bottom edge (overflow-hidden on the wrapper
-          clips it cleanly). Both the CMS asset path and the SVG fallback
-          share the same container so they render at identical scale. */}
+      {/* Bolt: anchored to the left, sized slightly larger than the banner
+          so the tail bleeds off the bottom edge (overflow-hidden on the
+          wrapper clips it cleanly). Same container hosts the CMS asset path
+          and the SVG fallback so they render at identical scale. */}
       <div
         {...(leftIcon?.url ? $['left_icon'] : {})}
-        className="absolute left-[clamp(8px,1.5cqi,32px)] top-1/2 -translate-y-1/2 z-10 h-[clamp(110px,22cqi,260px)] w-[clamp(60px,12cqi,140px)] pointer-events-none"
+        className="absolute left-[clamp(8px,1.5cqi,28px)] top-1/2 -translate-y-1/2 z-10 h-[clamp(70px,9cqi,130px)] w-[clamp(48px,5cqi,80px)] pointer-events-none"
       >
         {leftIcon?.url ? (
           <Image
             src={leftIcon.url}
             alt={leftIcon.title || ''}
             fill
-            sizes="160px"
+            sizes="120px"
             className="object-contain"
           />
         ) : (
@@ -149,9 +149,11 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
       </div>
 
       <div className={`relative z-10 container-padding ${heightClass}`}>
-        {/* The bolt occupies a reserved chunk of left padding so the rest of
-            the row centers cleanly beside it instead of crashing into it. */}
-        <div className="flex flex-wrap items-center justify-center gap-x-[clamp(16px,3cqi,56px)] gap-y-3 pl-[clamp(70px,14cqi,170px)]">
+        {/* nowrap keeps everything on a single row at typical widths so the
+            right-side image stays visible. flex-1 isn't used — items size
+            themselves and gap absorbs the slack. The bolt occupies its own
+            reserved column via padding-left. */}
+        <div className="flex flex-nowrap items-center justify-center gap-x-[clamp(10px,2cqi,32px)] pl-[clamp(56px,7cqi,110px)]">
           <Headline
             $={$}
             lead={title_lead}
@@ -169,14 +171,14 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
           {discount_callouts.length > 0 && (
             <div
               {...$['discount_callouts']}
-              className="flex items-center gap-x-[clamp(8px,1.6cqi,24px)]"
+              className="flex items-center gap-x-[clamp(6px,1.2cqi,18px)] shrink-0"
             >
               {discount_callouts.map((callout, index) => (
                 <React.Fragment key={callout._metadata?.uid || index}>
                   {index > 0 && (
                     <span
                       aria-hidden
-                      className="font-extrabold leading-none text-[clamp(28px,5.5cqi,68px)] -mx-1"
+                      className="font-extrabold leading-none text-[clamp(22px,4cqi,52px)]"
                     >
                       +
                     </span>
@@ -189,7 +191,7 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
 
           {(disclaimer || disclaimer_link_text) && (
             <div
-              className={`text-[clamp(9px,1.05cqi,12px)] leading-[1.15] max-w-[12ch] font-medium ${disclaimerColorClass}`}
+              className={`text-[clamp(9px,0.95cqi,11px)] leading-[1.15] max-w-[12ch] font-medium shrink-0 ${disclaimerColorClass}`}
             >
               {disclaimer && <span {...$['disclaimer']}>{disclaimer}</span>}
               {disclaimer_link_text && (
@@ -213,13 +215,13 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
           {rightImage?.url && (
             <div
               {...$['right_image']}
-              className="relative shrink-0 h-[clamp(56px,11cqi,140px)] w-[clamp(96px,18cqi,220px)]"
+              className="relative shrink-0 h-[clamp(44px,7cqi,90px)] w-[clamp(80px,12cqi,150px)]"
             >
               <Image
                 src={rightImage.url}
                 alt={rightImage.title || ''}
                 fill
-                sizes="220px"
+                sizes="150px"
                 className="object-contain"
               />
             </div>
@@ -267,7 +269,7 @@ function Headline({
 
   return (
     <h2
-      className={`font-sans leading-[0.95] tracking-[-0.025em] text-[clamp(34px,7.4cqi,92px)] whitespace-nowrap ${colorClass}`}
+      className={`font-sans leading-[0.95] tracking-[-0.025em] text-[clamp(24px,4.4cqi,56px)] whitespace-nowrap shrink-0 ${colorClass}`}
     >
       {lead && (
         <span {...$['title_lead']} className={partClass(leadWeight, leadStyle)}>
@@ -334,17 +336,17 @@ function DiscountCallout({ callout }: DiscountCalloutProps) {
       {value && (
         <span
           {...c$['value']}
-          className="font-extrabold tracking-[-0.02em] leading-[0.85] text-[clamp(44px,9cqi,108px)]"
+          className="font-extrabold tracking-[-0.02em] leading-[0.85] text-[clamp(34px,5.6cqi,72px)]"
         >
           {value}
         </span>
       )}
       {hasRightCol && (
-        <div className="flex flex-col justify-between leading-none ml-[3px] py-[2px] text-left">
+        <div className="flex flex-col justify-between leading-none ml-[2px] text-left">
           {eyebrow && (
             <span
               {...c$['eyebrow']}
-              className="font-semibold italic leading-none text-[clamp(10px,1.6cqi,16px)] -mt-1"
+              className="font-semibold italic leading-none text-[clamp(9px,1.05cqi,12px)]"
             >
               {eyebrow}
             </span>
@@ -352,7 +354,7 @@ function DiscountCallout({ callout }: DiscountCalloutProps) {
           {unit && (
             <span
               {...c$['unit']}
-              className="font-extrabold leading-none text-[clamp(13px,2.4cqi,28px)]"
+              className="font-extrabold leading-none text-[clamp(11px,1.7cqi,20px)]"
             >
               {unit}
             </span>
@@ -360,7 +362,7 @@ function DiscountCallout({ callout }: DiscountCalloutProps) {
           {suffix && (
             <span
               {...c$['suffix']}
-              className="font-bold leading-none tracking-wide text-[clamp(9px,1.4cqi,14px)] -mb-0.5"
+              className="font-bold leading-none tracking-wide text-[clamp(8px,1cqi,12px)]"
             >
               {suffix}
             </span>
