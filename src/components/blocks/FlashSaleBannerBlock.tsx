@@ -119,7 +119,7 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
       {eyebrow_tag && (
         <div
           {...$['eyebrow_tag']}
-          className={`absolute top-0 left-0 z-20 inline-flex items-center px-3 py-1 text-[clamp(10px,1.4cqi,14px)] font-bold uppercase tracking-[0.04em] ${
+          className={`absolute top-0 left-0 z-20 inline-flex items-center px-[clamp(8px,1.2cqi,14px)] py-[clamp(2px,0.5cqi,5px)] text-[clamp(10px,1.35cqi,14px)] font-semibold tracking-[0.01em] ${
             tagColorClasses[eyebrow_tag_color] || tagColorClasses.orange
           }`}
         >
@@ -191,7 +191,7 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
 
           {(disclaimer || disclaimer_link_text) && (
             <div
-              className={`text-[clamp(9px,0.95cqi,11px)] leading-[1.15] max-w-[12ch] font-medium shrink-0 ${disclaimerColorClass}`}
+              className={`text-[clamp(10px,1.1cqi,13px)] leading-[1.2] max-w-[12ch] font-normal shrink-0 ${disclaimerColorClass}`}
             >
               {disclaimer && <span {...$['disclaimer']}>{disclaimer}</span>}
               {disclaimer_link_text && (
@@ -302,7 +302,7 @@ function DefaultBoltIcon() {
       className="h-full w-full text-orange-500"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2}
+      strokeWidth={2.75}
       strokeLinejoin="round"
       strokeLinecap="round"
       xmlns="http://www.w3.org/2000/svg"
@@ -336,17 +336,17 @@ function DiscountCallout({ callout }: DiscountCalloutProps) {
       {value && (
         <span
           {...c$['value']}
-          className="font-extrabold tracking-[-0.02em] leading-[0.85] text-[clamp(34px,5.6cqi,72px)]"
+          className="font-extrabold tracking-[-0.02em] leading-[0.85] text-[clamp(38px,6.2cqi,78px)]"
         >
           {value}
         </span>
       )}
       {hasRightCol && (
-        <div className="flex flex-col justify-between leading-none ml-[2px] text-left">
+        <div className="flex flex-col justify-between leading-none ml-[3px] text-left">
           {eyebrow && (
             <span
               {...c$['eyebrow']}
-              className="font-semibold italic leading-none text-[clamp(9px,1.05cqi,12px)]"
+              className="font-medium leading-[1] text-[clamp(10px,1.3cqi,16px)]"
             >
               {eyebrow}
             </span>
@@ -354,7 +354,7 @@ function DiscountCallout({ callout }: DiscountCalloutProps) {
           {unit && (
             <span
               {...c$['unit']}
-              className="font-extrabold leading-none text-[clamp(11px,1.7cqi,20px)]"
+              className="font-extrabold leading-none text-[clamp(13px,2cqi,24px)]"
             >
               {unit}
             </span>
@@ -362,7 +362,7 @@ function DiscountCallout({ callout }: DiscountCalloutProps) {
           {suffix && (
             <span
               {...c$['suffix']}
-              className="font-bold leading-none tracking-wide text-[clamp(8px,1cqi,12px)]"
+              className="font-bold leading-none tracking-[0.02em] text-[clamp(9px,1.15cqi,14px)]"
             >
               {suffix}
             </span>
