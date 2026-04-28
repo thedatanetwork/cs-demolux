@@ -1618,6 +1618,32 @@ export class ContentstackService {
       return null;
     }
   }
+
+  async getComposablePageByUrl(
+    url: string,
+    variantAliases?: string[],
+  ): Promise<ComposablePageEntry | null> {
+    if (!this.isConfigured()) return null;
+
+    try {
+      const Query = this.getActiveStack().ContentType('composable_page').Query();
+      Query.where('url', url);
+      Query.includeReference(['page_sections']);
+      Query.includeEmbeddedItems();
+      Query.includeMetadata();
+      Query.limit(1);
+
+      if (variantAliases && variantAliases.length > 0) {
+        Query.variants(variantAliases.join(','));
+      }
+
+      const result = await Query.toJSON().find();
+      return result[0]?.[0] || null;
+    } catch (error) {
+      console.error(`Error fetching composable_page for url "${url}":`, error);
+      return null;
+    }
+  }
 }
 
 // ============================================================================

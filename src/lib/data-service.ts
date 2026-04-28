@@ -444,6 +444,17 @@ export class DataService {
     return entry;
   }
 
+  async getComposablePageByUrl(url: string, variantAliases?: string[]) {
+    if (!this.useContentstack) {
+      throw new Error('Contentstack not configured. Please add credentials to .env.local');
+    }
+    const entry = await contentstack.getComposablePageByUrl(url, variantAliases);
+    if (entry) {
+      addEditableTags(entry, 'composable_page');
+    }
+    return entry;
+  }
+
   // Dynamic Product Feeds
   async getDynamicProductFeeds(variantAliases?: string[]): Promise<DynamicProductFeedEntry[]> {
     if (!this.useContentstack) {
