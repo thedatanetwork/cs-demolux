@@ -127,7 +127,7 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
         )}
 
         <div className="flex flex-wrap items-center justify-center gap-x-[clamp(12px,2.5cqi,40px)] gap-y-3">
-          {leftIcon?.url && (
+          {leftIcon?.url ? (
             <div
               {...$['left_icon']}
               className="relative shrink-0 h-[clamp(36px,7cqi,96px)] w-[clamp(36px,7cqi,96px)]"
@@ -140,6 +140,11 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
                 className="object-contain"
               />
             </div>
+          ) : (
+            // Inline lightning-bolt fallback so the banner reads correctly
+            // without requiring an icon upload. Editors override by adding
+            // an asset to the Left Icon field.
+            <DefaultBoltIcon {...$['left_icon']} />
           )}
 
           {(title_lead || title_middle || title_tail) && (
@@ -238,6 +243,25 @@ export function FlashSaleBannerBlock({ block }: FlashSaleBannerBlockProps) {
         </div>
       </div>
     </Wrapper>
+  );
+}
+
+function DefaultBoltIcon(props: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      {...props}
+      className="shrink-0 h-[clamp(36px,7cqi,96px)] w-[clamp(36px,7cqi,96px)] text-orange-500"
+      aria-hidden
+    >
+      <svg
+        viewBox="0 0 24 24"
+        className="h-full w-full"
+        fill="currentColor"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="M13.5 2 4 14h6l-1.5 8L20 9.5h-6L15.5 2z" />
+      </svg>
+    </div>
   );
 }
 

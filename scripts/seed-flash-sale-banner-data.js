@@ -12,6 +12,13 @@
  *
  * Idempotent: if an entry with the same title already exists, it is
  * updated and re-published; otherwise a fresh one is created.
+ *
+ * Right image: by default the seed reuses an existing transparent PNG
+ * asset already in the stack (RIGHT_IMAGE_ASSET_UID). Override via env
+ * var to point at a different asset, or set it to empty to fall back to
+ * the Unsplash download path:
+ *   RIGHT_IMAGE_ASSET_UID=bltXXXX npm run seed-flash-sale-banner-data
+ *   RIGHT_IMAGE_ASSET_UID=        npm run seed-flash-sale-banner-data
  */
 
 const contentstack = require('@contentstack/management');
@@ -27,6 +34,13 @@ const stackConfig = {
 };
 
 const ENTRY_TITLE = 'Jewelry Flash Sale Banner';
+
+// Pre-uploaded transparent earrings PNG already in the stack. Set to empty
+// string to skip and fall back to uploading rightImageSeed from Unsplash.
+const RIGHT_IMAGE_ASSET_UID =
+  process.env.RIGHT_IMAGE_ASSET_UID !== undefined
+    ? process.env.RIGHT_IMAGE_ASSET_UID
+    : 'blte5e1277320bce682';
 
 // Right-side product image. Cover-style works fine since the component
 // renders it object-contain in a small fixed-aspect slot.
@@ -155,7 +169,21 @@ async function main() {
 
   try {
     console.log('\n--- Step 1: Right Product Image ---');
-    const rightImageAsset = await uploadOrFindAsset(stack, tempDir, rightImageSeed);
+    let rightImageUid;
+    if (RIGHT_IMAGE_ASSET_UID) {
+      // Verify the asset exists before referencing it.
+      try {
+        const existing = await stack.asset(RIGHT_IMAGE_ASSET_UID).fetch();
+        rightImageUid = existing.uid;
+        console.log(`    ~ using existing asset ${existing.filename} (${existing.uid})`);
+      } catch (err) {
+        console.error(`    ! asset ${RIGHT_IMAGE_ASSET_UID} not found: ${err.message}`);
+        process.exit(1);
+      }
+    } else {
+      const rightImageAsset = await uploadOrFindAsset(stack, tempDir, rightImageSeed);
+      rightImageUid = rightImageAsset.uid;
+    }
 
     console.log('\n--- Step 2: Create flash_sale_banner_block entry ---');
     const entryData = {
@@ -185,8 +213,10 @@ async function main() {
       disclaimer_link_text: '*Details',
       disclaimer_link_url: '/sale-details',
 
-      // left_icon left blank — drop your own lightning-bolt PNG/SVG in the CMS
-      right_image: rightImageAsset.uid,
+      // left_icon left blank — rendered as a built-in lightning-bolt SVG by
+      // the component when this field is empty. Editors can override by
+      // uploading their own transparent PNG/SVG to this field.
+      right_image: rightImageUid,
 
       background_color: 'black',
       text_color: 'light',
@@ -206,9 +236,8 @@ async function main() {
 
     console.log('\n' + '='.repeat(60));
     console.log('Done.');
-    console.log('Entry UID:', entryUid);
-    console.log('Tip: add a lightning-bolt transparent icon to the Left Icon');
-    console.log('     field in the CMS to fully match the reference banner.');
+    console.log('Entry UID:      ', entryUid);
+    console.log('Right image UID:', rightImageUid);
     console.log('='.repeat(60));
   } finally {
     if (fs.existsSync(tempDir)) {
