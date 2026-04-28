@@ -711,6 +711,46 @@ export interface FlashSaleBannerBlock {
   height?: 'compact' | 'standard' | 'tall';
 }
 
+export type CTAAnchor =
+  | 'top_left' | 'top_center' | 'top_right'
+  | 'middle_left' | 'center' | 'middle_right'
+  | 'bottom_left' | 'bottom_center' | 'bottom_right';
+
+export type CTAVariant =
+  | 'solid_dark' | 'solid_light'
+  | 'outline_dark' | 'outline_light'
+  | 'pill_dark' | 'pill_light'
+  | 'pill_outline_dark' | 'pill_outline_light'
+  | 'text_link';
+
+export interface ImageCTAButton {
+  label?: string;
+  url?: string;
+  position?: CTAAnchor;
+  offset_x?: number;
+  offset_y?: number;
+  variant?: CTAVariant;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  font_weight?: 'regular' | 'medium' | 'semibold' | 'bold';
+  uppercase?: boolean;
+  open_in_new_tab?: boolean;
+  _metadata?: { uid: string };
+  $?: Record<string, any>;
+}
+
+export interface ImageCTABannerBlock {
+  block_type: 'image_cta_banner';
+  title?: string;
+  image: Image | Image[];
+  image_alt?: string;
+  image_object_fit?: 'cover' | 'contain';
+  aspect_ratio?: 'image_natural' | '21_9' | '16_9' | '5_2' | '4_3' | '3_1' | '2_1' | 'custom';
+  custom_aspect_ratio?: string;
+  background_color?: 'transparent' | 'white' | 'black' | 'soft_gray';
+  link_url?: string;
+  ctas?: ImageCTAButton[];
+}
+
 // Union type of all modular blocks
 export type ModularBlock =
   | HeroSectionBlock
@@ -728,7 +768,8 @@ export type ModularBlock =
   | ProductTileBannerBlock
   | HeroSevenBlock
   | FeatureBannerRowBlock
-  | FlashSaleBannerBlock;
+  | FlashSaleBannerBlock
+  | ImageCTABannerBlock;
 
 // ============================================================================
 // MODULAR PAGE TYPES

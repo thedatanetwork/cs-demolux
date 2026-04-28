@@ -77,7 +77,8 @@
     "create-flash-sale-banner-schema": "node create-flash-sale-banner-schema.js",
     "seed-flash-sale-banner-data": "node seed-flash-sale-banner-data.js",
     "setup-flash-sale-banner": "node create-flash-sale-banner-schema.js && node seed-flash-sale-banner-data.js",
-    "add-flash-sale-banner-to-composable-demo": "node add-flash-sale-banner-to-composable-demo.js"
+    "add-flash-sale-banner-to-composable-demo": "node add-flash-sale-banner-to-composable-demo.js",
+    "create-image-cta-banner-schema": "node create-image-cta-banner-schema.js"
   },
   "dependencies": {
     "@contentstack/management": "^1.16.0",
