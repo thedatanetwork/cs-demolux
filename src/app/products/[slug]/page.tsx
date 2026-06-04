@@ -103,8 +103,13 @@ export default async function ProductPage(props: ProductPageProps) {
         ]}
       />
 
-      {/* Track product view for personalization */}
-      <ProductViewTracker productId={product.uid} productTitle={product.title} />
+      {/* Track product view for personalization (+ local browsing affinity for rec ranking) */}
+      <ProductViewTracker
+        productId={product.uid}
+        productTitle={product.title}
+        category={product.category}
+        tags={product.product_tags}
+      />
       
       <Header 
         navigation={navigation}

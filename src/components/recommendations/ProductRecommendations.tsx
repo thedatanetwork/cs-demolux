@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
 import { sendLyticsEvent } from '@/lib/tracking-utils';
 import { normalizeRecommendations, type LyticsRecommendation } from '@/lib/recommendations';
+import { readBrowsingAffinity, BROWSING_AFFINITY_EVENT } from '@/lib/browsing-affinity';
 
 interface ProductRecommendationsProps {
   title?: string;
@@ -95,6 +96,7 @@ export default function ProductRecommendations({
   const [catalog, setCatalog] = useState<any[]>([]);
   const [liveRecs, setLiveRecs] = useState<RankedProduct[] | null>(null);
   const [affinity, setAffinity] = useState<Record<string, number>>({});
+  const [browsingAffinity, setBrowsingAffinity] = useState<Record<string, number>>({});
   const [profileAffinity, setProfileAffinity] = useState<Record<string, number>>({});
   const [loaded, setLoaded] = useState(false);
   const impressionSent = useRef('');
@@ -120,6 +122,14 @@ export default function ProductRecommendations({
     update();
     window.addEventListener('demo-audience-changed', update);
     return () => window.removeEventListener('demo-audience-changed', update);
+  }, []);
+
+  // 2a) Read browsing affinity (built from the visitor's own product-page views) now + on change.
+  useEffect(() => {
+    const update = () => setBrowsingAffinity(readBrowsingAffinity());
+    update();
+    window.addEventListener(BROWSING_AFFINITY_EVENT, update);
+    return () => window.removeEventListener(BROWSING_AFFINITY_EVENT, update);
   }, []);
 
   // 2b) Read the visitor's LIVE Lytics content-affinity from their profile (built from browsing
@@ -188,8 +198,12 @@ export default function ProductRecommendations({
     const products = catalog.filter((p) => p?.url && p.url !== excludeUrl);
     if (!products.length) return [];
     const maxPrice = Math.max(...products.map((p) => p.price || 0), 1);
-    // Switcher override wins (explicit demo intent); else the live Lytics profile affinity.
-    const activeAffinity = Object.keys(affinity).length ? affinity : profileAffinity;
+    // Priority: Audience switcher (explicit) -> the visitor's own browsing -> live Lytics profile.
+    const activeAffinity = Object.keys(affinity).length
+      ? affinity
+      : Object.keys(browsingAffinity).length
+      ? browsingAffinity
+      : profileAffinity;
     const hasAffinity = Object.keys(activeAffinity).length > 0;
 
     const scored = products.map((p) => {
@@ -218,7 +232,7 @@ export default function ProductRecommendations({
     const top = pool.slice(0, limit);
     const maxScore = top[0]?.score || 1;
     return top.map((r) => ({ ...r, match: Math.round((100 * r.score) / maxScore) }));
-  }, [catalog, liveRecs, affinity, profileAffinity, excludeUrl, limit, shuffle]);
+  }, [catalog, liveRecs, affinity, browsingAffinity, profileAffinity, excludeUrl, limit, shuffle]);
 
   // Impression tracking (once per resolved set).
   useEffect(() => {
