@@ -33,12 +33,13 @@
  */
 
 require('dotenv').config();
+const authCache = require('./auth-cache');
 
 const PERSONALIZE_BASE = process.env.CONTENTSTACK_PERSONALIZE_API || 'https://personalize-api.contentstack.com';
 const CMA_BASE = process.env.CONTENTSTACK_CMA_API || 'https://api.contentstack.io/v3';
 
 const cfg = {
-  authtoken: process.env.CONTENTSTACK_AUTHTOKEN,
+  authtoken: process.env.CONTENTSTACK_AUTHTOKEN || authCache.readToken(),
   projectUid:
     process.env.CONTENTSTACK_PERSONALIZE_PROJECT_UID ||
     process.env.NEXT_PUBLIC_CONTENTSTACK_PERSONALIZE_PROJECT_UID ||
@@ -91,8 +92,29 @@ function preflight() {
   }
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// fetch with retry/backoff on 429 (rate limit) and transient 5xx.
+async function request(label, url, options) {
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, options);
+    const text = await res.text();
+    let json;
+    try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
+    if (res.ok) return json;
+    const retryable = res.status === 429 || res.status >= 500;
+    if (retryable && attempt < 5) {
+      const wait = 1500 * Math.pow(2, attempt); // 1.5s, 3s, 6s, 12s, 24s
+      console.log(`    … ${res.status} on ${label}; retrying in ${wait / 1000}s`);
+      await sleep(wait);
+      continue;
+    }
+    throw new Error(`${label} -> ${res.status}: ${text}`);
+  }
+}
+
 async function px(method, path, body) {
-  const res = await fetch(`${PERSONALIZE_BASE}${path}`, {
+  return request(`Personalize ${method} ${path}`, `${PERSONALIZE_BASE}${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -101,32 +123,19 @@ async function px(method, path, body) {
     },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const text = await res.text();
-  let json;
-  try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
-  if (!res.ok) {
-    throw new Error(`Personalize ${method} ${path} -> ${res.status}: ${text}`);
-  }
-  return json;
 }
 
-async function cma(method, path, body) {
-  const res = await fetch(`${CMA_BASE}${path}`, {
+async function cma(method, path, body, extraHeaders = {}) {
+  return request(`CMA ${method} ${path}`, `${CMA_BASE}${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
       api_key: cfg.apiKey,
       authorization: cfg.managementToken,
+      ...extraHeaders,
     },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const text = await res.text();
-  let json;
-  try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
-  if (!res.ok) {
-    throw new Error(`CMA ${method} ${path} -> ${res.status}: ${text}`);
-  }
-  return json;
 }
 
 async function ensureAttribute() {
@@ -192,44 +201,71 @@ async function ensureExperience() {
     exp = await px('POST', '/experiences', {
       name,
       description: 'Varies the homepage recommendations rail per audience.',
-      __type: 'SegmentedExperience',
+      __type: 'SEGMENTED',
     });
     console.log(`    + created experience (${exp.uid})`);
   } else {
     console.log(`    ~ experience exists (${exp.uid})`);
   }
   const full = await px('GET', `/experiences/${exp.uid}`);
-  const version = (full.latestVersion || full.versions?.[0] || full.draftVersion);
-  const versionUid = version?.uid || version?._id || full.latestVersionUid;
-  if (!versionUid) throw new Error('Could not resolve experience version uid from: ' + JSON.stringify(full).slice(0, 400));
-  return { uid: exp.uid, versionUid };
+  const versionUid = resolveVersionUid(exp) || resolveVersionUid(full);
+  if (!versionUid) {
+    throw new Error('Could not resolve experience version uid from: ' + JSON.stringify(full).slice(0, 600));
+  }
+  return { uid: exp.uid, versionUid, status: full.status, cms: full._cms || full.cms || null };
 }
 
-function buildVariants(audiences) {
-  // One SegmentedVariant per audience.
-  return audiences.map((a) => ({
-    __type: 'SegmentedVariant',
-    name: a.variantName,
-    audiences: [a.uid],
-    lyticsAudiences: [],
-    audienceCombinationType: 'OR',
-  }));
+// Personalize responses vary in how they surface the editable version uid.
+function resolveVersionUid(obj) {
+  if (!obj) return null;
+  const v =
+    obj.latestVersion ||
+    obj.draftVersion ||
+    (Array.isArray(obj.versions) ? obj.versions.find((x) => x?.status === 'DRAFT') || obj.versions[0] : null);
+  if (typeof v === 'string') return v; // API returns latestVersion as a uid string
+  return (v && (v.uid || v._id)) || obj.latestVersionUid || obj.versionUid || null;
 }
 
-async function configureVersion(expUid, versionUid, audiences, status) {
+// Build one SegmentedVariant per audience. When cmsVariants is provided, attach each variant's
+// existing shortUid so the API REUSES them instead of regenerating new variant UIDs (which would
+// orphan already-created entry-variant content).
+function buildVariants(audiences, cmsVariants) {
+  const shortUids = cmsVariants
+    ? Object.keys(cmsVariants).sort((a, b) => Number(a) - Number(b))
+    : null;
+  return audiences.map((a, i) => {
+    const v = {
+      __type: 'SegmentedVariant',
+      name: a.variantName,
+      audiences: [a.uid],
+      lyticsAudiences: [],
+      audienceCombinationType: 'OR',
+    };
+    if (shortUids && shortUids[i] !== undefined) v.shortUid = shortUids[i];
+    return v;
+  });
+}
+
+async function configureVersion(expUid, versionUid, audiences, status, cmsVariants) {
   await px('PUT', `/experiences/${expUid}/versions/${versionUid}`, {
     status,
-    variants: buildVariants(audiences),
+    variants: buildVariants(audiences, cmsVariants),
   });
 }
 
 async function getCmsMapping(expUid) {
-  const full = await px('GET', `/experiences/${expUid}`);
-  const cms = full._cms || full.cms;
-  if (!cms?.variantGroup || !cms?.variants) {
-    throw new Error('Experience _cms mapping not ready: ' + JSON.stringify(full).slice(0, 400));
+  // The variant group + variant UIDs are synced asynchronously after the version is configured.
+  let last;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const full = await px('GET', `/experiences/${expUid}`);
+    const cms = full._cms || full.cms;
+    if (cms?.variantGroup && cms?.variants && Object.keys(cms.variants).length > 0) {
+      return cms; // { variantGroup, variants: { "0": uid, "1": uid } }
+    }
+    last = full;
+    await new Promise((r) => setTimeout(r, 2000));
   }
-  return cms; // { variantGroup, variants: { "0": uid, "1": uid } }
+  throw new Error('Experience _cms mapping not ready after retries: ' + JSON.stringify(last).slice(0, 500));
 }
 
 async function linkVariantGroup(variantGroupUid) {
@@ -292,14 +328,18 @@ async function createEntryVariant(entry, variantUid, recBlockUid, order, rec) {
   await cma('PUT', `/content_types/${PAGE_CT}/entries/${entry.uid}/variants/${variantUid}`, payload);
 }
 
-async function publishVariant(entryUid, variantUid) {
-  // Omit `version` so the LATEST base version is published (avoids the documented footgun).
-  await cma('POST', '/bulk/publish', {
-    entries: [
-      { uid: entryUid, content_type: PAGE_CT, locale: 'en-us', variant_uid: variantUid },
-    ],
-    environments: [cfg.environment],
-    locales: ['en-us'],
+async function publishVariant(entryUid, variantUid, baseVersion) {
+  // Variant publishing goes through the single-entry publish endpoint with the variant referenced
+  // in entry.variants and the `api_version: 3.2` header. (bulk/publish ignores variant_uid and
+  // publishes the base entry; the /variants/{uid}/publish path 404s.) `version` is the CURRENT
+  // base entry version.
+  const body = {
+    entry: { environments: [cfg.environment], locales: ['en-us'], variants: [{ uid: variantUid }] },
+    locale: 'en-us',
+  };
+  if (baseVersion) body.version = baseVersion;
+  await cma('POST', `/content_types/${PAGE_CT}/entries/${entryUid}/publish`, body, {
+    api_version: '3.2',
   });
 }
 
@@ -311,14 +351,19 @@ async function main() {
 
   const attrUid = await ensureAttribute();
   const audiences = await ensureAudiences(attrUid);
-  const { uid: expUid, versionUid } = await ensureExperience();
+  const { uid: expUid, versionUid, status: expStatus, cms: existingCms } = await ensureExperience();
 
-  console.log('\n[4] Configure version variants (DRAFT)');
-  await configureVersion(expUid, versionUid, audiences, 'DRAFT');
-  console.log('    + variants configured');
-
-  console.log('\n[5] Read CMS variant mapping');
-  const cms = await getCmsMapping(expUid);
+  let cms = existingCms;
+  if (!cms?.variants || Object.keys(cms.variants).length === 0) {
+    console.log('\n[4] Configure version variants (DRAFT)');
+    await configureVersion(expUid, versionUid, audiences, 'DRAFT', null);
+    console.log('    + variants configured');
+    console.log('\n[5] Read CMS variant mapping');
+    cms = await getCmsMapping(expUid);
+  } else {
+    // Reuse the existing variants so we don't orphan published entry-variant content.
+    console.log('\n[4/5] Reusing existing variants (no regeneration)');
+  }
   console.log(`    variantGroup=${cms.variantGroup} variants=${JSON.stringify(cms.variants)}`);
 
   await linkVariantGroup(cms.variantGroup);
@@ -338,15 +383,22 @@ async function main() {
     const variantUid = variantUidByIndex[i];
     await createEntryVariant(entry, variantUid, recBlockUid, order, audiences[i].rec);
     console.log(`    + variant for ${audiences[i].variantName} (${variantUid})`);
-    await publishVariant(entry.uid, variantUid);
-    console.log('      -> published');
+    await publishVariant(entry.uid, variantUid, entry._version);
+    console.log(`      -> publish queued (base v${entry._version})`);
+    await sleep(1500); // space out publishes to avoid CMA rate limits
   }
 
-  console.log('\n[9] Activate experience');
-  await configureVersion(expUid, versionUid, audiences, 'ACTIVE');
+  if (expStatus === 'ACTIVE') {
+    console.log('\n[9] Experience already ACTIVE (variants reused) — skipping re-activation');
+  } else {
+    console.log('\n[9] Activate experience');
+    // Pass cms.variants so activation reuses the same variant UIDs we just populated.
+    await configureVersion(expUid, versionUid, audiences, 'ACTIVE', cms.variants);
+  }
   try {
-    await px('PUT', '/experiences-priority', { experiences: [expUid] });
+    await px('PUT', '/experiences-priority', { priorityOrder: [expUid] });
   } catch (e) {
+    // Non-critical: priority only matters with multiple experiences on one content type.
     console.warn('    ! priority set skipped:', e.message);
   }
   console.log('    + active');

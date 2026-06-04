@@ -78,3 +78,6 @@ scripts/**/.env
 # Local development files
 .vercel
 .turbo
+
+# Contentstack user authtoken cache (local dev only)
+scripts/.cs-authtoken

@@ -19,6 +19,7 @@
     "setup-seo": "node add-seo-fields.js && node add-product-faqs.js && node backfill-seo-content.js",
     "create-recommendations-block": "node create-recommendations-block.js",
     "setup-personalize-recommendations": "node setup-personalize-recommendations.js",
+    "personalize-setup": "bash personalize-setup.sh",
     "update-url-fields": "node update-url-fields.js",
     "revert-url-fields": "node revert-url-fields.js",
     "restore-product-urls": "node restore-product-urls.js",
