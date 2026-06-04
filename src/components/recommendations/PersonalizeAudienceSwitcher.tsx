@@ -23,6 +23,14 @@ const OPTIONS = [
 ];
 
 const VARIANT_COOKIE = 'cs_personalize_variants';
+const AUDIENCE_AFFINITY_KEY = 'demo_audience_affinity';
+
+// Content-affinity profile per audience (the topic->weight model the Lytics engine ranks by).
+// Drives live re-ranking of the product recommendation rails.
+const AFFINITY: Record<string, Record<string, number>> = {
+  'wearable-tech': { wearables: 1.0, accessories: 0.8, fitness: 0.7, eyewear: 0.6 },
+  technofurniture: { technofurniture: 1.0, lighting: 0.85, on_the_wall: 0.55, seating: 0.6 },
+};
 
 export default function PersonalizeAudienceSwitcher() {
   const { sdk, isConfigured } = usePersonalize();
@@ -43,6 +51,15 @@ export default function PersonalizeAudienceSwitcher() {
       document.cookie = `${VARIANT_COOKIE}=${encodeURIComponent(
         JSON.stringify(aliases)
       )}; path=/; max-age=86400; SameSite=Lax`;
+
+      // Drive live re-ranking of the recommendation rails by content affinity.
+      if (affinity && AFFINITY[affinity]) {
+        localStorage.setItem(AUDIENCE_AFFINITY_KEY, JSON.stringify(AFFINITY[affinity]));
+      } else {
+        localStorage.removeItem(AUDIENCE_AFFINITY_KEY);
+      }
+      window.dispatchEvent(new Event('demo-audience-changed'));
+
       setActive(affinity);
       // Re-render server components so they fetch variant content for the new audience.
       router.refresh();
