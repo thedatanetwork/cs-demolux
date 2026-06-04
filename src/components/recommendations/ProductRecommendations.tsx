@@ -3,23 +3,18 @@
 /**
  * Lytics-powered product recommendation rail.
  *
- * Renders the REAL DemoLux product catalog (live from Contentstack, with images) ranked by the
- * visitor's content affinity — exactly the model the Lytics recommendation engine uses
- * (see demo/lytics-perry). Ranking source, in priority order:
- *   1. window.jstag.recommend() product docs — used directly when the Lytics content sync is live
- *      and returns product documents (url under /products/ with an image).
- *   2. The visitor's content-affinity (from the demo Audience switcher / Lytics profile topics).
- *   3. Cold-start popularity (price-weighted) when there's no affinity signal yet.
- *
- * Products and images are always real catalog data — never fabricated. If the catalog can't be
- * loaded at all, the rail hides itself.
+ * PRIMARY source is real Lytics Content Recommendations: window.jstag.recommend() against the
+ * account's product content collections (PRODUCTS / Documents With Images on aid 8083). Those
+ * docs carry the product URL + primary_image; we enrich each with price/category from the live
+ * Contentstack catalog. If the Lytics tag isn't present or returns nothing, the rail falls back
+ * to ranking the real catalog by the visitor's browsing affinity (never fabricated data).
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
 import { sendLyticsEvent } from '@/lib/tracking-utils';
-import { normalizeRecommendations, type LyticsRecommendation } from '@/lib/recommendations';
-import { readBrowsingAffinity, BROWSING_AFFINITY_EVENT } from '@/lib/browsing-affinity';
+import { normalizeRecommendations, type LyticsRecommendation, type RecItem } from '@/lib/recommendations';
+import { readBrowsingAffinity, BROWSING_AFFINITY_EVENT, topicsFor } from '@/lib/browsing-affinity';
 
 interface ProductRecommendationsProps {
   title?: string;
@@ -41,50 +36,32 @@ interface RankedProduct {
   price?: number;
   category?: string;
   topics: string[];
-  score: number;
-  match: number; // 0-100 relative match
+  match: number;
 }
 
 const AUDIENCE_AFFINITY_KEY = 'demo_audience_affinity';
-
-// Map our catalog category -> the Lytics topic vocabulary used for affinity scoring.
-function categoryTopic(category?: string): string | null {
-  if (category === 'wearable-tech') return 'wearables';
-  if (category === 'technofurniture') return 'technofurniture';
-  return category || null;
-}
-
-function productTopics(p: any): string[] {
-  const topics = new Set<string>();
-  const ct = categoryTopic(p.category);
-  if (ct) topics.add(ct);
-  for (const tag of p.product_tags || []) topics.add(String(tag).toLowerCase());
-  return Array.from(topics);
-}
+// Lytics content collections on aid 8083 (slug + display name both accepted by the tag).
+const COLLECTION_FALLBACKS = ['products', 'all_documents_with_images', 'PRODUCTS', 'Documents With Images'];
 
 function productImage(p: any): string | undefined {
-  const f = p.featured_image;
+  const f = p?.featured_image;
   const img = Array.isArray(f) ? f[0] : f;
   return img?.url;
 }
 
-// Read the visitor's content affinity: the Audience switcher writes a topic->weight map;
-// otherwise we look at the live Lytics profile's content-affinity topics if available.
 function readAffinity(): Record<string, number> {
   if (typeof window === 'undefined') return {};
   try {
-    const stored = window.localStorage.getItem(AUDIENCE_AFFINITY_KEY);
-    if (stored) return JSON.parse(stored) || {};
+    return JSON.parse(window.localStorage.getItem(AUDIENCE_AFFINITY_KEY) || '{}') || {};
   } catch {
-    /* ignore */
+    return {};
   }
-  return {};
 }
 
 export default function ProductRecommendations({
   title = 'Recommended for you',
   subtitle,
-  collection = 'Default Recommendation Collection',
+  collection = 'PRODUCTS',
   limit = 8,
   visited,
   shuffle,
@@ -94,21 +71,18 @@ export default function ProductRecommendations({
   variant = 'section',
 }: ProductRecommendationsProps) {
   const [catalog, setCatalog] = useState<any[]>([]);
-  const [liveRecs, setLiveRecs] = useState<RankedProduct[] | null>(null);
+  const [liveRecs, setLiveRecs] = useState<RecItem[] | null>(null); // raw, Lytics-ranked
   const [affinity, setAffinity] = useState<Record<string, number>>({});
   const [browsingAffinity, setBrowsingAffinity] = useState<Record<string, number>>({});
-  const [profileAffinity, setProfileAffinity] = useState<Record<string, number>>({});
   const [loaded, setLoaded] = useState(false);
   const impressionSent = useRef('');
 
-  // 1) Load the real catalog (with images) once.
+  // Load the real catalog (price/category/image enrichment + affinity fallback).
   useEffect(() => {
     let cancelled = false;
     fetch('/api/products')
       .then((r) => r.json())
-      .then((d) => {
-        if (!cancelled) setCatalog(Array.isArray(d.products) ? d.products : []);
-      })
+      .then((d) => !cancelled && setCatalog(Array.isArray(d.products) ? d.products : []))
       .catch(() => {})
       .finally(() => !cancelled && setLoaded(true));
     return () => {
@@ -116,15 +90,29 @@ export default function ProductRecommendations({
     };
   }, []);
 
-  // 2) Read affinity now + whenever the Audience switcher changes it.
+  // Index catalog by site path for fast enrichment.
+  const catalogIndex = useMemo(() => {
+    const m = new Map<string, { price?: number; category?: string; image?: string; topics: string[] }>();
+    for (const p of catalog) {
+      if (p?.url) {
+        m.set(p.url, {
+          price: p.price,
+          category: p.category,
+          image: productImage(p),
+          topics: topicsFor(p.category, p.product_tags),
+        });
+      }
+    }
+    return m;
+  }, [catalog]);
+
+  // Affinity for the fallback ranking (Audience switcher + the visitor's own browsing).
   useEffect(() => {
     const update = () => setAffinity(readAffinity());
     update();
     window.addEventListener('demo-audience-changed', update);
     return () => window.removeEventListener('demo-audience-changed', update);
   }, []);
-
-  // 2a) Read browsing affinity (built from the visitor's own product-page views) now + on change.
   useEffect(() => {
     const update = () => setBrowsingAffinity(readBrowsingAffinity());
     update();
@@ -132,98 +120,81 @@ export default function ProductRecommendations({
     return () => window.removeEventListener(BROWSING_AFFINITY_EVENT, update);
   }, []);
 
-  // 2b) Read the visitor's LIVE Lytics content-affinity from their profile (built from browsing
-  // classified product pages). This makes real browsing re-rank the rail even before the product
-  // sync is enabled. Best-effort: the `global` topic->score map can live at a few profile paths.
-  useEffect(() => {
-    const jstag = typeof window !== 'undefined' ? window.jstag : undefined;
-    if (!jstag?.getEntity) return;
-    const extract = (profile: any): Record<string, number> => {
-      const candidates = [profile?.global, profile?.data?.global, profile?.data?.user?.global];
-      for (const c of candidates) {
-        if (c && typeof c === 'object') {
-          const map: Record<string, number> = {};
-          for (const [k, v] of Object.entries(c)) {
-            if (typeof v === 'number') map[String(k).toLowerCase()] = v;
-          }
-          if (Object.keys(map).length) return map;
-        }
-      }
-      return {};
-    };
-    try {
-      jstag.getEntity((profile: any) => setProfileAffinity(extract(profile)));
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  // 3) Try live Lytics recommendations — use them only if they're real product docs with images.
+  // PRIMARY: pull live Lytics recommendations. Try the configured collection + known product
+  // collections in parallel and keep whichever returns the most product docs (with images).
   useEffect(() => {
     const jstag = typeof window !== 'undefined' ? window.jstag : undefined;
     if (!jstag?.recommend) return;
-    const opts: any = { collection, limit: (excludeUrl ? limit + 1 : limit) + 2 };
-    if (visited !== undefined) opts.visited = visited;
-    if (shuffle !== undefined) opts.shuffle = shuffle;
     let cancelled = false;
-    try {
-      jstag.recommend(opts, (recs: LyticsRecommendation[]) => {
-        if (cancelled) return;
-        const items = normalizeRecommendations(recs, excludeUrl)
-          .filter((r) => /\/products\//.test(r.url) && r.image) // products with images only
-          .slice(0, limit)
-          .map<RankedProduct>((r, i, arr) => ({
-            url: r.url,
-            title: r.title,
-            image: r.image,
-            price: r.price,
-            category: r.category,
-            topics: r.topics || [],
-            score: arr.length - i,
-            match: Math.round((100 * (arr.length - i)) / arr.length),
-          }));
-        if (items.length) setLiveRecs(items);
+
+    const candidates = Array.from(new Set([collection, ...COLLECTION_FALLBACKS])).filter(Boolean);
+    const want = (excludeUrl ? limit + 1 : limit) + 2;
+
+    const recommendOnce = (coll: string) =>
+      new Promise<RecItem[]>((resolve) => {
+        let done = false;
+        const t = setTimeout(() => !done && ((done = true), resolve([])), 3000);
+        const opts: any = { collection: coll, limit: want };
+        if (visited !== undefined) opts.visited = visited;
+        if (shuffle !== undefined) opts.shuffle = shuffle;
+        try {
+          jstag.recommend(opts, (recs: LyticsRecommendation[]) => {
+            if (done) return;
+            done = true;
+            clearTimeout(t);
+            const items = normalizeRecommendations(recs, excludeUrl).filter(
+              (r) => /\/products\//.test(r.url) && r.image
+            );
+            resolve(items);
+          });
+        } catch {
+          resolve([]);
+        }
       });
-    } catch {
-      /* fall through to catalog ranking */
-    }
+
+    Promise.all(candidates.map(recommendOnce)).then((results) => {
+      if (cancelled) return;
+      const best = results.reduce((a, b) => (b.length > a.length ? b : a), [] as RecItem[]);
+      if (best.length) setLiveRecs(best.slice(0, limit));
+    });
+
     return () => {
       cancelled = true;
     };
   }, [collection, limit, visited, shuffle, excludeUrl]);
 
-  // 4) Rank the real catalog by affinity (or cold-start popularity) — the Lytics ranking model.
   const ranked = useMemo<RankedProduct[]>(() => {
-    if (liveRecs && liveRecs.length) return liveRecs;
+    // Lytics recommendations win — enrich each with catalog price/category.
+    if (liveRecs && liveRecs.length) {
+      const items = liveRecs.slice(0, limit);
+      const n = items.length;
+      return items.map((r, i) => {
+        const cat = catalogIndex.get(r.url);
+        return {
+          url: r.url,
+          title: r.title,
+          image: r.image || cat?.image,
+          price: r.price ?? cat?.price,
+          category: r.category || cat?.category,
+          topics: (r.topics && r.topics.length ? r.topics : cat?.topics || []).slice(0, 3),
+          match: Math.round((100 * (n - i)) / n),
+        };
+      });
+    }
+
+    // Fallback: rank the real catalog by affinity (switcher > browsing) or cold-start popularity.
     const products = catalog.filter((p) => p?.url && p.url !== excludeUrl);
     if (!products.length) return [];
     const maxPrice = Math.max(...products.map((p) => p.price || 0), 1);
-    // Priority: Audience switcher (explicit) -> the visitor's own browsing -> live Lytics profile.
-    const activeAffinity = Object.keys(affinity).length
-      ? affinity
-      : Object.keys(browsingAffinity).length
-      ? browsingAffinity
-      : profileAffinity;
+    const activeAffinity = Object.keys(affinity).length ? affinity : browsingAffinity;
     const hasAffinity = Object.keys(activeAffinity).length > 0;
 
     const scored = products.map((p) => {
-      const topics = productTopics(p);
-      let score: number;
-      if (hasAffinity) {
-        score = topics.reduce((s, t) => s + (activeAffinity[t] || 0), 0);
-      } else {
-        // cold-start popularity proxy = normalized price (premium catalog)
-        score = 0.15 + 0.85 * ((p.price || 0) / maxPrice);
-      }
-      return {
-        url: p.url,
-        title: p.title,
-        image: productImage(p),
-        price: p.price,
-        category: p.category,
-        topics,
-        score,
-      };
+      const topics = topicsFor(p.category, p.product_tags);
+      const score = hasAffinity
+        ? topics.reduce((s, t) => s + (activeAffinity[t] || 0), 0)
+        : 0.15 + 0.85 * ((p.price || 0) / maxPrice);
+      return { url: p.url, title: p.title, image: productImage(p), price: p.price, category: p.category, topics, score };
     });
 
     let pool = scored;
@@ -231,10 +202,18 @@ export default function ProductRecommendations({
     pool.sort((a, b) => b.score - a.score);
     const top = pool.slice(0, limit);
     const maxScore = top[0]?.score || 1;
-    return top.map((r) => ({ ...r, match: Math.round((100 * r.score) / maxScore) }));
-  }, [catalog, liveRecs, affinity, browsingAffinity, profileAffinity, excludeUrl, limit, shuffle]);
+    return top.map((r) => ({
+      url: r.url,
+      title: r.title,
+      image: r.image,
+      price: r.price,
+      category: r.category,
+      topics: r.topics.slice(0, 3),
+      match: Math.round((100 * r.score) / maxScore),
+    }));
+  }, [liveRecs, catalog, catalogIndex, affinity, browsingAffinity, excludeUrl, limit, shuffle]);
 
-  // Impression tracking (once per resolved set).
+  // Impression (once per resolved set).
   useEffect(() => {
     if (!ranked.length) return;
     const key = ranked.map((r) => r.url).join('|');
@@ -242,27 +221,23 @@ export default function ProductRecommendations({
     impressionSent.current = key;
     sendLyticsEvent('recommendations_view', {
       placement,
-      collection,
       source: liveRecs ? 'lytics_recommend' : 'affinity_rank',
       recommended_count: ranked.length,
       recommended_urls: ranked.map((r) => r.url),
     });
-  }, [ranked, placement, collection, liveRecs]);
+  }, [ranked, placement, liveRecs]);
 
-  // Only hide if the catalog genuinely couldn't load (never show fabricated data).
   if (loaded && ranked.length === 0) return null;
   if (!ranked.length) return null;
 
-  const onCardClick = (item: RankedProduct, index: number) => {
+  const onCardClick = (item: RankedProduct, index: number) =>
     sendLyticsEvent('recommendation_click', {
       placement,
-      collection,
       product_url: item.url,
       product_title: item.title,
       position: index + 1,
       match: item.match,
     });
-  };
 
   const grid = (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -302,12 +277,10 @@ export default function ProductRecommendations({
                 {item.category.replace(/-/g, ' ')}
               </span>
             )}
-            <span className="font-semibold text-gray-900 leading-snug line-clamp-2">
-              {item.title}
-            </span>
+            <span className="font-semibold text-gray-900 leading-snug line-clamp-2">{item.title}</span>
             {item.topics.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-0.5">
-                {item.topics.slice(0, 3).map((t) => (
+                {item.topics.map((t) => (
                   <span key={t} className="text-[0.65rem] text-gray-500 bg-gray-100 rounded px-1.5 py-0.5">
                     {t.replace(/-/g, ' ')}
                   </span>
@@ -325,10 +298,8 @@ export default function ProductRecommendations({
 
   if (variant === 'bare') {
     return (
-      <div className={className} data-rec-placement={placement}>
-        {title && (
-          <h2 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">{title}</h2>
-        )}
+      <div className={className} data-rec-placement={placement} data-rec-source={liveRecs ? 'lytics' : 'catalog'}>
+        {title && <h2 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">{title}</h2>}
         {subtitle && <p className="text-gray-600 mb-6">{subtitle}</p>}
         {grid}
       </div>
@@ -336,7 +307,12 @@ export default function ProductRecommendations({
   }
 
   return (
-    <section className={`section-spacing ${className}`} data-rec-placement={placement} aria-label={title}>
+    <section
+      className={`section-spacing ${className}`}
+      data-rec-placement={placement}
+      data-rec-source={liveRecs ? 'lytics' : 'catalog'}
+      aria-label={title}
+    >
       <div className="container-padding">
         <div className="mb-8">
           <h2 className="font-heading text-2xl md:text-3xl font-bold text-gray-900">{title}</h2>

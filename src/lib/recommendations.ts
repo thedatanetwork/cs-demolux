@@ -32,6 +32,21 @@ export interface RecItem {
   topics?: string[];
 }
 
+/**
+ * Lytics content-doc URLs come back as `cs-demolux-dev.contentstackapps.com/products/x`
+ * (no scheme, no leading slash). Convert to a site-relative path for internal linking + matching.
+ */
+export function toSitePath(url?: string): string {
+  if (!url) return '';
+  try {
+    const withScheme = /^https?:\/\//.test(url) ? url : `https://${url}`;
+    return new URL(withScheme).pathname;
+  } catch {
+    const i = url.indexOf('/products/');
+    return i >= 0 ? url.slice(i) : url;
+  }
+}
+
 function toNumber(value: unknown): number | undefined {
   if (typeof value === 'number') return value;
   if (typeof value === 'string' && value.trim() !== '') {
@@ -51,14 +66,14 @@ export function normalizeRecommendations(
 ): RecItem[] {
   if (!Array.isArray(recs)) return [];
   return recs
-    .filter((r) => r && r.url && r.title && r.url !== excludeUrl)
     .map((r) => ({
-      url: r.url as string,
+      url: toSitePath(r.url),
       title: r.title as string,
       description: r.description,
       image: r.primary_image || r.image,
       price: toNumber(r.price),
       category: typeof r.category === 'string' ? r.category : undefined,
       topics: r.global ? Object.keys(r.global) : r.topics,
-    }));
+    }))
+    .filter((r) => r.url && r.title && r.url !== excludeUrl);
 }
