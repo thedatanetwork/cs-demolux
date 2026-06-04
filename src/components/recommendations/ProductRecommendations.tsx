@@ -95,6 +95,7 @@ export default function ProductRecommendations({
   const [catalog, setCatalog] = useState<any[]>([]);
   const [liveRecs, setLiveRecs] = useState<RankedProduct[] | null>(null);
   const [affinity, setAffinity] = useState<Record<string, number>>({});
+  const [profileAffinity, setProfileAffinity] = useState<Record<string, number>>({});
   const [loaded, setLoaded] = useState(false);
   const impressionSent = useRef('');
 
@@ -119,6 +120,32 @@ export default function ProductRecommendations({
     update();
     window.addEventListener('demo-audience-changed', update);
     return () => window.removeEventListener('demo-audience-changed', update);
+  }, []);
+
+  // 2b) Read the visitor's LIVE Lytics content-affinity from their profile (built from browsing
+  // classified product pages). This makes real browsing re-rank the rail even before the product
+  // sync is enabled. Best-effort: the `global` topic->score map can live at a few profile paths.
+  useEffect(() => {
+    const jstag = typeof window !== 'undefined' ? window.jstag : undefined;
+    if (!jstag?.getEntity) return;
+    const extract = (profile: any): Record<string, number> => {
+      const candidates = [profile?.global, profile?.data?.global, profile?.data?.user?.global];
+      for (const c of candidates) {
+        if (c && typeof c === 'object') {
+          const map: Record<string, number> = {};
+          for (const [k, v] of Object.entries(c)) {
+            if (typeof v === 'number') map[String(k).toLowerCase()] = v;
+          }
+          if (Object.keys(map).length) return map;
+        }
+      }
+      return {};
+    };
+    try {
+      jstag.getEntity((profile: any) => setProfileAffinity(extract(profile)));
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   // 3) Try live Lytics recommendations — use them only if they're real product docs with images.
@@ -161,13 +188,15 @@ export default function ProductRecommendations({
     const products = catalog.filter((p) => p?.url && p.url !== excludeUrl);
     if (!products.length) return [];
     const maxPrice = Math.max(...products.map((p) => p.price || 0), 1);
-    const hasAffinity = Object.keys(affinity).length > 0;
+    // Switcher override wins (explicit demo intent); else the live Lytics profile affinity.
+    const activeAffinity = Object.keys(affinity).length ? affinity : profileAffinity;
+    const hasAffinity = Object.keys(activeAffinity).length > 0;
 
     const scored = products.map((p) => {
       const topics = productTopics(p);
       let score: number;
       if (hasAffinity) {
-        score = topics.reduce((s, t) => s + (affinity[t] || 0), 0);
+        score = topics.reduce((s, t) => s + (activeAffinity[t] || 0), 0);
       } else {
         // cold-start popularity proxy = normalized price (premium catalog)
         score = 0.15 + 0.85 * ((p.price || 0) / maxPrice);
@@ -189,7 +218,7 @@ export default function ProductRecommendations({
     const top = pool.slice(0, limit);
     const maxScore = top[0]?.score || 1;
     return top.map((r) => ({ ...r, match: Math.round((100 * r.score) / maxScore) }));
-  }, [catalog, liveRecs, affinity, excludeUrl, limit, shuffle]);
+  }, [catalog, liveRecs, affinity, profileAffinity, excludeUrl, limit, shuffle]);
 
   // Impression tracking (once per resolved set).
   useEffect(() => {
