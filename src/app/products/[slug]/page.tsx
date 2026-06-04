@@ -6,6 +6,7 @@ import { ProductViewTracker } from '@/components/product/ProductViewTracker';
 import { ProductActions } from '@/components/product/ProductActions';
 import { ProductImageGallery } from '@/components/product/ProductImageGallery';
 import { ProductBlockRenderer } from '@/components/product/ProductBlockRenderer';
+import ProductRecommendations from '@/components/recommendations/ProductRecommendations';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import { configurePreview } from '@/lib/preview-context';
@@ -266,17 +267,18 @@ export default async function ProductPage(props: ProductPageProps) {
           </section>
         )}
 
-        {/* Related Products */}
-        <section className="section-spacing bg-gray-50">
-          <div className="container-padding">
-            <h2 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 text-center mb-12">
-              You Might Also Like
-            </h2>
-            <div className="text-center text-gray-600">
-              <p>Related products will be displayed here based on category and preferences.</p>
-            </div>
-          </div>
-        </section>
+        {/* Related Products — Lytics Content Recommendations (ranked by visitor affinity).
+            Renders only when Lytics returns products; no static fallback. */}
+        <ProductRecommendations
+          title="You might also like"
+          subtitle="Picked for you based on what you're viewing"
+          collection="PRODUCTS"
+          limit={4}
+          visited={false}
+          excludeUrl={product.url}
+          placement="pdp_related"
+          className="bg-gray-50"
+        />
       </main>
 
       <Footer navigation={navigation} siteSettings={fallbackSiteSettings} />

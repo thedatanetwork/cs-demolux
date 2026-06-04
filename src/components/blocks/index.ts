@@ -8,4 +8,5 @@ export { ProcessStepsBlock } from './ProcessStepsBlock';
 export { StatisticsBlock } from './StatisticsBlock';
 export { TestimonialsBlock } from './TestimonialsBlock';
 export { FAQBlock } from './FAQBlock';
+export { RecommendationsBlock } from './RecommendationsBlock';
 export { SectionRenderer } from './SectionRenderer';

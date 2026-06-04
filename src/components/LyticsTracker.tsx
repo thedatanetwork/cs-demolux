@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { getPageContext } from '@/lib/tracking-utils';
+import type { LyticsRecommendation } from '@/lib/recommendations';
 
 // Check if GTM mode is enabled (env var is inlined at build time)
 const isGTMEnabled = !!process.env.NEXT_PUBLIC_GTM_CONTAINER_ID;
@@ -299,6 +300,18 @@ declare global {
       getid: (callback: (id: string) => void) => void;
       isLoaded: boolean;
       config?: any;
+      // Lytics Content Recommendations
+      recommend: (
+        options: {
+          collection: string;
+          limit?: number;
+          visited?: boolean;
+          shuffle?: boolean;
+        },
+        callback: (recommendations: LyticsRecommendation[]) => void
+      ) => void;
+      // Event bus (recommend.requested / recommend.success / recommend.failure, etc.)
+      on: (event: string, callback: (...args: any[]) => void) => void;
     };
     pathfora?: {
       clearAll: () => void;

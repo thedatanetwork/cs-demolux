@@ -17,6 +17,7 @@ import { HeroSevenBlock } from './HeroSevenBlock';
 import { FeatureBannerRowBlock } from './FeatureBannerRowBlock';
 import { FlashSaleBannerBlock } from './FlashSaleBannerBlock';
 import { ImageCTABannerBlock } from './ImageCTABannerBlock';
+import { RecommendationsBlock } from './RecommendationsBlock';
 import { convertDropdownFeedEntry } from '@/lib/rule-engine';
 
 interface SectionRendererProps {
@@ -62,6 +63,7 @@ const BLOCK_TYPE_MAP: Record<string, string> = {
   feature_banner_row: 'feature_banner_row_block',
   flash_sale_banner: 'flash_sale_banner_block',
   image_cta_banner: 'image_cta_banner_block',
+  recommendations: 'recommendations_block',
   // Full UIDs (from reference-based blocks) - map to themselves
   hero_section_block: 'hero_section_block',
   featured_content_grid_block: 'featured_content_grid_block',
@@ -82,6 +84,7 @@ const BLOCK_TYPE_MAP: Record<string, string> = {
   feature_banner_row_block: 'feature_banner_row_block',
   flash_sale_banner_block: 'flash_sale_banner_block',
   image_cta_banner_block: 'image_cta_banner_block',
+  recommendations_block: 'recommendations_block',
 };
 
 /**
@@ -243,6 +246,9 @@ export function SectionRenderer({ sections, entry, fieldPath }: SectionRendererP
 
             case 'image_cta_banner_block':
               return <ImageCTABannerBlock block={data} />;
+
+            case 'recommendations_block':
+              return <RecommendationsBlock block={data} />;
 
             // Additional block types - not yet implemented
             case 'text_media_section_block':

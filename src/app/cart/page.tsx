@@ -11,6 +11,7 @@ import { formatPrice } from '@/lib/utils';
 import { Plus, Minus, Trash2, ArrowRight, ShoppingBag } from 'lucide-react';
 import { dataService } from '@/lib/data-service';
 import { sendLyticsEvent } from '@/lib/tracking-utils';
+import ProductRecommendations from '@/components/recommendations/ProductRecommendations';
 
 export default function CartPage() {
   const { state, updateQuantity, removeItem, clearCart } = useCart();
@@ -347,6 +348,18 @@ export default function CartPage() {
             )}
           </div>
         </section>
+
+        {/* Complete the setup — Lytics Content Recommendations (shuffled for variety).
+            Renders only when Lytics returns products; no static fallback. */}
+        <ProductRecommendations
+          title="Complete the setup"
+          subtitle="Pieces that pair well with your selection"
+          collection="PRODUCTS"
+          limit={4}
+          shuffle
+          placement="cart_complete_setup"
+          className="bg-gray-50"
+        />
       </main>
 
       <Footer navigation={navigation} siteSettings={fallbackSiteSettings} />

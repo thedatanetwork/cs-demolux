@@ -210,6 +210,21 @@ Lytics content crawler all read rich, accurate content from the raw HTML (no cli
   tags + JSON-LD + keywords. Populating the `seo`/`faqs` fields is what gives Lytics content docs
   their primary images, excerpts, and topics — no extra SDK calls needed.
 
+## Recommendations & Personalization
+
+Every recommendation/personalization experience is driven by **real Lytics** or **Contentstack
+Personalize** — never fabricated or hardcoded fallback data. If Lytics returns nothing, the
+placement hides itself.
+
+- Lytics recommendation rails: `src/components/recommendations/ProductRecommendations.tsx`
+  (calls `window.jstag.recommend`). Used on the PDP and cart pages, and inside the homepage
+  `recommendations` modular block (`src/components/blocks/RecommendationsBlock.tsx`).
+- Homepage rail is varied per audience by a Contentstack Personalize experience; the on-page
+  `PersonalizeAudienceSwitcher` drives the real SDK for demos.
+- Idle/exit-intent modals are Lytics Pathfora experiences (handled by `LyticsTracker`).
+- Full setup + admin steps: see `RECOMMENDATIONS.md` and `scripts/` (`create-recommendations-block`,
+  `setup-personalize-recommendations`).
+
 ## Styling
 
 ### Tailwind Configuration
