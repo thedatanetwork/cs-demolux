@@ -10,6 +10,9 @@ import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import { configurePreview } from '@/lib/preview-context';
 import { formatPrice } from '@/lib/utils';
+import { buildMetadata, firstImage } from '@/lib/seo';
+import { productSchema, breadcrumbSchema, faqSchema } from '@/lib/structured-data';
+import { JsonLd } from '@/components/seo/JsonLd';
 import { Star, Truck, Shield, RotateCcw } from 'lucide-react';
 
 // Force dynamic rendering - Contentstack credentials not available at build time
@@ -20,6 +23,31 @@ interface ProductPageProps {
     slug: string;
   }>;
   searchParams: Promise<Record<string, string>>;
+}
+
+export async function generateMetadata(props: ProductPageProps) {
+  const { slug } = await props.params;
+  const variantAliases = await getVariantAliasesFromCookies();
+  const product = await dataService.getProductBySlug(slug, variantAliases);
+
+  if (!product) {
+    return { title: 'Product Not Found' };
+  }
+
+  return buildMetadata({
+    title: product.seo?.meta_title || product.title,
+    description:
+      product.seo?.meta_description ||
+      product.description ||
+      product.detailed_description,
+    path: product.url,
+    canonical: product.seo?.canonical_url,
+    image: firstImage(product.featured_image, product.seo?.og_image),
+    type: 'product',
+    keywords:
+      product.seo?.keywords ||
+      [...(product.product_tags || []), product.category].filter(Boolean).join(', '),
+  });
 }
 
 export default async function ProductPage(props: ProductPageProps) {
@@ -57,8 +85,23 @@ export default async function ProductPage(props: ProductPageProps) {
   const categoryPath = product.category === 'wearable-tech' ? 'wearable-tech' : 'technofurniture';
   const categoryName = product.category === 'wearable-tech' ? 'Wearable Tech' : 'Technofurniture';
 
+  const breadcrumbItems = [
+    { name: 'Home', path: '/' },
+    { name: categoryName, path: `/categories/${categoryPath}` },
+    { name: product.title, path: product.url },
+  ];
+
   return (
     <div className="min-h-screen bg-white">
+      {/* Structured data: Product + Breadcrumb + FAQ (SEO + AEO) */}
+      <JsonLd
+        data={[
+          productSchema(product),
+          breadcrumbSchema(breadcrumbItems),
+          faqSchema(product.faqs),
+        ]}
+      />
+
       {/* Track product view for personalization */}
       <ProductViewTracker productId={product.uid} productTitle={product.title} />
       
@@ -200,6 +243,27 @@ export default async function ProductPage(props: ProductPageProps) {
           <div className="bg-white">
             <ProductBlockRenderer blocks={product.content_blocks} />
           </div>
+        )}
+
+        {/* FAQ — visible content backing the FAQPage structured data (AEO) */}
+        {product.faqs && product.faqs.length > 0 && (
+          <section className="section-spacing">
+            <div className="container-padding">
+              <div className="max-w-3xl mx-auto">
+                <h2 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-8 text-center">
+                  Frequently Asked Questions
+                </h2>
+                <dl className="divide-y divide-gray-200 border-t border-gray-200">
+                  {product.faqs.map((faq, index) => (
+                    <div key={index} className="py-6">
+                      <dt className="text-lg font-semibold text-gray-900">{faq.question}</dt>
+                      <dd className="mt-2 text-gray-600 leading-relaxed">{faq.answer}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </div>
+          </section>
         )}
 
         {/* Related Products */}

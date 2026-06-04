@@ -7,6 +7,9 @@ import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import { configurePreview } from '@/lib/preview-context';
 import { formatDate } from '@/lib/utils';
+import { buildMetadata, firstImage } from '@/lib/seo';
+import { blogPostingSchema, breadcrumbSchema } from '@/lib/structured-data';
+import { JsonLd } from '@/components/seo/JsonLd';
 import { Calendar, User, ArrowLeft, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { jsonToHTML } from '@contentstack/utils';
@@ -19,6 +22,29 @@ interface BlogPostPageProps {
     slug: string;
   }>;
   searchParams: Promise<Record<string, string>>;
+}
+
+export async function generateMetadata(props: BlogPostPageProps) {
+  const { slug } = await props.params;
+  const variantAliases = await getVariantAliasesFromCookies();
+  const post = await dataService.getBlogPostBySlug(slug, variantAliases);
+
+  if (!post) {
+    return { title: 'Article Not Found' };
+  }
+
+  return buildMetadata({
+    title: post.seo?.meta_title || post.title,
+    description: post.seo?.meta_description || post.excerpt,
+    path: post.url,
+    canonical: post.seo?.canonical_url,
+    image: firstImage(post.featured_image, post.seo?.og_image),
+    type: 'article',
+    publishedTime: post.publish_date,
+    modifiedTime: post.updated_at,
+    tags: post.post_tags,
+    keywords: post.seo?.keywords || (post.post_tags || []).join(', '),
+  });
 }
 
 export default async function BlogPostPage(props: BlogPostPageProps) {
@@ -68,6 +94,18 @@ export default async function BlogPostPage(props: BlogPostPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Structured data: BlogPosting + Breadcrumb (SEO + AEO) */}
+      <JsonLd
+        data={[
+          blogPostingSchema(blogPost),
+          breadcrumbSchema([
+            { name: 'Home', path: '/' },
+            { name: 'Blog', path: '/blog' },
+            { name: blogPost.title, path: blogPost.url },
+          ]),
+        ]}
+      />
+
       <Header
         navigation={navigation}
         siteName={fallbackSiteSettings.site_name}

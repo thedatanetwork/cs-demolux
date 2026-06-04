@@ -77,8 +77,24 @@ export interface Product {
   category?: string;
   product_tags?: string[]; // New field for product tags
   content_blocks?: any[]; // Modular blocks for rich product pages
+  seo?: SeoFields; // Editor-controlled SEO/AEO metadata
+  faqs?: Array<{ question: string; answer: string }>; // AEO: powers FAQPage schema + on-page FAQ
   created_at: string;
   updated_at: string;
+}
+
+// Editor-controlled SEO/AEO group field (added to product & blog_post content types).
+export interface SeoFields {
+  meta_title?: string;
+  meta_description?: string;
+  og_image?: {
+    uid?: string;
+    url: string;
+    title?: string;
+    filename?: string;
+  };
+  canonical_url?: string;
+  keywords?: string; // comma-separated topics; feeds <meta keywords> + Lytics topics
 }
 
 export interface BlogPost {
@@ -101,6 +117,7 @@ export interface BlogPost {
   author?: string;
   publish_date: string;
   post_tags?: string[];
+  seo?: SeoFields; // Editor-controlled SEO/AEO metadata
   created_at: string;
   updated_at: string;
 }

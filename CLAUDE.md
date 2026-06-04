@@ -179,6 +179,37 @@ setAttributes({ age: 25, interests: ['wearable-tech'] });
 - CTA clicks: Homepage hero section
 - Lytics tracking: `LyticsTracker` component for analytics
 
+## SEO, AEO & Lytics Content Sync
+
+The site renders SEO/AEO signals **server-side** so search engines, AI answer engines, and the
+Lytics content crawler all read rich, accurate content from the raw HTML (no client render needed).
+
+**Key files:**
+- `src/lib/seo.ts`: `SITE_URL`, `absoluteUrl()`, `firstImage()` (normalizes Contentstack file
+  fields), and `buildMetadata()` — the single builder for Next.js `Metadata` (Open Graph + Twitter
+  + canonical + keywords). Resolution order: CMS `seo.*` → existing entry fields → default.
+- `src/lib/structured-data.ts`: JSON-LD builders (`productSchema`, `blogPostingSchema`,
+  `breadcrumbSchema`, `faqSchema`, `organizationSchema`, `webSiteSchema`).
+- `src/components/seo/JsonLd.tsx`: renders `<script type="application/ld+json">` (server component).
+- `src/app/sitemap.ts` + `src/app/robots.ts`: dynamic sitemap (products, blog, collections,
+  lookbooks, categories, static pages) and robots rules.
+- Root `src/app/layout.tsx`: `metadataBase`, title template, default OG/Twitter, and site-wide
+  Organization + WebSite JSON-LD.
+
+**CMS fields (added via `scripts/`):** product & blog_post have an `seo` group
+(meta_title, meta_description, og_image, canonical_url, keywords); product also has repeatable
+`faqs` (question/answer) powering `FAQPage` schema. See `scripts/README.md` → "SEO & AEO Setup"
+(`npm run setup-seo`).
+
+**Patterns to follow:**
+- New detail routes must export `generateMetadata` using `buildMetadata` (see
+  `products/[slug]/page.tsx` and `blog/[slug]/page.tsx`), reading `entry.seo` with fallbacks.
+- Render relevant JSON-LD via `<JsonLd data={[...]} />`. Keep FAQ JSON-LD in sync with a **visible**
+  on-page FAQ section (required for valid rich results).
+- **Lytics content sync is automatic:** the Lytics content crawler ingests the server-rendered OG
+  tags + JSON-LD + keywords. Populating the `seo`/`faqs` fields is what gives Lytics content docs
+  their primary images, excerpts, and topics — no extra SDK calls needed.
+
 ## Styling
 
 ### Tailwind Configuration

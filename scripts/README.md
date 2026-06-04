@@ -193,6 +193,32 @@ This will:
 4. Save and publish products
 5. View products on the site to see the new image gallery and hover effects
 
+### SEO & AEO Setup
+Add editor-controlled SEO/AEO fields and backfill existing entries. Run all three in order
+(or use the combined `setup-seo` script):
+
+```bash
+npm run add-seo-fields        # adds an `seo` group field to product + blog_post
+npm run add-product-faqs      # adds a repeatable `faqs` field to product (AEO / FAQPage)
+npm run backfill-seo-content  # fills + publishes seo/faqs on existing entries (idempotent)
+
+# or, all at once:
+npm run setup-seo
+```
+
+What this enables:
+- **`seo` group** (meta_title, meta_description, og_image, canonical_url, keywords) on products
+  and blog posts. The app reads these in `generateMetadata` and falls back to existing fields
+  when empty — producing per-page `<title>`, Open Graph, Twitter, canonical, and keyword tags.
+- **`faqs`** on products power both a visible FAQ section and `FAQPage` JSON-LD for AI answer
+  engines (AEO).
+- **Lytics content sync:** the server-rendered meta tags + JSON-LD are exactly what the Lytics
+  content crawler ingests, so content docs gain primary images, excerpts, and topics
+  automatically once these fields are populated.
+
+Safety: `backfill-seo-content` only fills empty fields (never overwrites editor edits), skips
+`og_image` (the app falls back to `featured_image`), and is safe to re-run.
+
 ### Update URL Fields to URL Field Type
 Convert text fields to URL field type for proper URL handling:
 
