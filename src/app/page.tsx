@@ -1,7 +1,7 @@
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { SectionRenderer } from '@/components/blocks';
-import PersonalizeAudienceSwitcher from '@/components/recommendations/PersonalizeAudienceSwitcher';
+import RecommendationsDetails from '@/components/recommendations/RecommendationsDetails';
 import { dataService } from '@/lib/data-service';
 import { getVariantAliasesFromCookies } from '@/lib/personalize-server';
 import { configurePreview } from '@/lib/preview-context';
@@ -92,8 +92,8 @@ export default async function HomePage({
         )}
       </main>
 
-      {/* Demo control: assume a Personalize audience on demand (drives real Personalize). */}
-      <PersonalizeAudienceSwitcher />
+      {/* Read-only diagnostics of how the recommendation rail is produced for this visitor. */}
+      <RecommendationsDetails />
 
       <Footer navigation={navigation} siteSettings={fallbackSiteSettings} />
     </div>

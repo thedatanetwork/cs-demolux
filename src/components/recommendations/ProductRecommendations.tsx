@@ -3,18 +3,14 @@
 /**
  * Lytics-powered product recommendation rail.
  *
- * PRIMARY source is real Lytics Content Recommendations: window.jstag.recommend() against the
- * account's product content collections (PRODUCTS / Documents With Images on aid 8083). Those
- * docs carry the product URL + primary_image; we enrich each with price/category from the live
- * Contentstack catalog. If the Lytics tag isn't present or returns nothing, the rail falls back
- * to ranking the real catalog by the visitor's browsing affinity (never fabricated data).
+ * Renders real products with images, served from Lytics Content Recommendations (with catalog
+ * top-up while the collection finishes classifying — see useRecommendations). No fabricated data.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
 import { sendLyticsEvent } from '@/lib/tracking-utils';
-import { normalizeRecommendations, type LyticsRecommendation, type RecItem } from '@/lib/recommendations';
-import { readBrowsingAffinity, BROWSING_AFFINITY_EVENT, topicsFor } from '@/lib/browsing-affinity';
+import { useRecommendations, type RankedProduct } from './useRecommendations';
 
 interface ProductRecommendationsProps {
   title?: string;
@@ -29,35 +25,6 @@ interface ProductRecommendationsProps {
   variant?: 'section' | 'bare';
 }
 
-interface RankedProduct {
-  url: string;
-  title: string;
-  image?: string;
-  price?: number;
-  category?: string;
-  topics: string[];
-  match: number;
-}
-
-const AUDIENCE_AFFINITY_KEY = 'demo_audience_affinity';
-// Lytics content collections on aid 8083 (slug + display name both accepted by the tag).
-const COLLECTION_FALLBACKS = ['products', 'all_documents_with_images', 'PRODUCTS', 'Documents With Images'];
-
-function productImage(p: any): string | undefined {
-  const f = p?.featured_image;
-  const img = Array.isArray(f) ? f[0] : f;
-  return img?.url;
-}
-
-function readAffinity(): Record<string, number> {
-  if (typeof window === 'undefined') return {};
-  try {
-    return JSON.parse(window.localStorage.getItem(AUDIENCE_AFFINITY_KEY) || '{}') || {};
-  } catch {
-    return {};
-  }
-}
-
 export default function ProductRecommendations({
   title = 'Recommended for you',
   subtitle,
@@ -70,161 +37,9 @@ export default function ProductRecommendations({
   className = '',
   variant = 'section',
 }: ProductRecommendationsProps) {
-  const [catalog, setCatalog] = useState<any[]>([]);
-  const [liveRecs, setLiveRecs] = useState<RecItem[] | null>(null); // raw, Lytics-ranked
-  const [affinity, setAffinity] = useState<Record<string, number>>({});
-  const [browsingAffinity, setBrowsingAffinity] = useState<Record<string, number>>({});
-  const [loaded, setLoaded] = useState(false);
+  const { ranked, meta } = useRecommendations({ collection, limit, visited, shuffle, excludeUrl });
   const impressionSent = useRef('');
 
-  // Load the real catalog (price/category/image enrichment + affinity fallback).
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/products')
-      .then((r) => r.json())
-      .then((d) => !cancelled && setCatalog(Array.isArray(d.products) ? d.products : []))
-      .catch(() => {})
-      .finally(() => !cancelled && setLoaded(true));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Index catalog by site path for fast enrichment.
-  const catalogIndex = useMemo(() => {
-    const m = new Map<string, { price?: number; category?: string; image?: string; topics: string[] }>();
-    for (const p of catalog) {
-      if (p?.url) {
-        m.set(p.url, {
-          price: p.price,
-          category: p.category,
-          image: productImage(p),
-          topics: topicsFor(p.category, p.product_tags),
-        });
-      }
-    }
-    return m;
-  }, [catalog]);
-
-  // Affinity for the fallback ranking (Audience switcher + the visitor's own browsing).
-  useEffect(() => {
-    const update = () => setAffinity(readAffinity());
-    update();
-    window.addEventListener('demo-audience-changed', update);
-    return () => window.removeEventListener('demo-audience-changed', update);
-  }, []);
-  useEffect(() => {
-    const update = () => setBrowsingAffinity(readBrowsingAffinity());
-    update();
-    window.addEventListener(BROWSING_AFFINITY_EVENT, update);
-    return () => window.removeEventListener(BROWSING_AFFINITY_EVENT, update);
-  }, []);
-
-  // PRIMARY: pull live Lytics recommendations. Try the configured collection + known product
-  // collections in parallel and keep whichever returns the most product docs (with images).
-  useEffect(() => {
-    const jstag = typeof window !== 'undefined' ? window.jstag : undefined;
-    if (!jstag?.recommend) return;
-    let cancelled = false;
-
-    const candidates = Array.from(new Set([collection, ...COLLECTION_FALLBACKS])).filter(Boolean);
-    const want = (excludeUrl ? limit + 1 : limit) + 2;
-
-    const recommendOnce = (coll: string) =>
-      new Promise<RecItem[]>((resolve) => {
-        let done = false;
-        const t = setTimeout(() => !done && ((done = true), resolve([])), 3000);
-        const opts: any = { collection: coll, limit: want };
-        if (visited !== undefined) opts.visited = visited;
-        if (shuffle !== undefined) opts.shuffle = shuffle;
-        try {
-          jstag.recommend(opts, (recs: LyticsRecommendation[]) => {
-            if (done) return;
-            done = true;
-            clearTimeout(t);
-            const items = normalizeRecommendations(recs, excludeUrl).filter(
-              (r) => /\/products\//.test(r.url) && r.image
-            );
-            resolve(items);
-          });
-        } catch {
-          resolve([]);
-        }
-      });
-
-    Promise.all(candidates.map(recommendOnce)).then((results) => {
-      if (cancelled) return;
-      const best = results.reduce((a, b) => (b.length > a.length ? b : a), [] as RecItem[]);
-      if (best.length) setLiveRecs(best.slice(0, limit));
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [collection, limit, visited, shuffle, excludeUrl]);
-
-  const ranked = useMemo<RankedProduct[]>(() => {
-    const result: RankedProduct[] = [];
-    const seen = new Set<string>();
-
-    // 1) Lytics recommendations first (enriched with catalog price/category), with % match.
-    if (liveRecs && liveRecs.length) {
-      const items = liveRecs.slice(0, limit);
-      const n = items.length;
-      items.forEach((r, i) => {
-        const cat = catalogIndex.get(r.url);
-        result.push({
-          url: r.url,
-          title: r.title,
-          image: r.image || cat?.image,
-          price: r.price ?? cat?.price,
-          category: r.category || cat?.category,
-          topics: (r.topics && r.topics.length ? r.topics : cat?.topics || []).slice(0, 3),
-          match: Math.round((100 * (n - i)) / n),
-        });
-        seen.add(r.url);
-      });
-    }
-
-    // 2) Top up to `limit` from the real catalog, ranked by affinity (switcher > browsing) or
-    //    cold-start popularity. These carry no % match badge (they're catalog fill, not Lytics
-    //    recs) and disappear automatically once Lytics returns a full row.
-    if (result.length < limit) {
-      const products = catalog.filter((p) => p?.url && p.url !== excludeUrl && !seen.has(p.url));
-      if (products.length) {
-        const maxPrice = Math.max(...products.map((p) => p.price || 0), 1);
-        const activeAffinity = Object.keys(affinity).length ? affinity : browsingAffinity;
-        const hasAffinity = Object.keys(activeAffinity).length > 0;
-        const scored = products.map((p) => {
-          const topics = topicsFor(p.category, p.product_tags);
-          const score = hasAffinity
-            ? topics.reduce((s, t) => s + (activeAffinity[t] || 0), 0)
-            : 0.15 + 0.85 * ((p.price || 0) / maxPrice);
-          return { p, topics, score };
-        });
-        let pool = scored;
-        if (shuffle) pool = [...scored].sort(() => Math.random() - 0.5);
-        pool.sort((a, b) => b.score - a.score);
-        for (const { p, topics } of pool) {
-          if (result.length >= limit) break;
-          result.push({
-            url: p.url,
-            title: p.title,
-            image: productImage(p),
-            price: p.price,
-            category: p.category,
-            topics: topics.slice(0, 3),
-            match: 0, // catalog fill — no personalized-match badge
-          });
-          seen.add(p.url);
-        }
-      }
-    }
-
-    return result;
-  }, [liveRecs, catalog, catalogIndex, affinity, browsingAffinity, excludeUrl, limit, shuffle]);
-
-  // Impression (once per resolved set).
   useEffect(() => {
     if (!ranked.length) return;
     const key = ranked.map((r) => r.url).join('|');
@@ -232,13 +47,13 @@ export default function ProductRecommendations({
     impressionSent.current = key;
     sendLyticsEvent('recommendations_view', {
       placement,
-      source: liveRecs ? 'lytics_recommend' : 'affinity_rank',
+      source: meta.source,
       recommended_count: ranked.length,
       recommended_urls: ranked.map((r) => r.url),
     });
-  }, [ranked, placement, liveRecs]);
+  }, [ranked, placement, meta.source]);
 
-  if (loaded && ranked.length === 0) return null;
+  if (meta.loaded && ranked.length === 0) return null;
   if (!ranked.length) return null;
 
   const onCardClick = (item: RankedProduct, index: number) =>
@@ -248,6 +63,7 @@ export default function ProductRecommendations({
       product_title: item.title,
       position: index + 1,
       match: item.match,
+      source: item.source,
     });
 
   const grid = (
@@ -260,9 +76,6 @@ export default function ProductRecommendations({
           className="group relative flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200"
         >
           <div className="relative aspect-square bg-gray-50 overflow-hidden">
-            <span className="absolute top-2 left-2 z-10 rounded-md bg-gray-900/85 text-white text-[0.7rem] font-bold px-2 py-0.5">
-              #{index + 1}
-            </span>
             {item.match > 0 && (
               <span className="absolute top-2 right-2 z-10 rounded-md bg-gold-500 text-white text-[0.7rem] font-bold px-2 py-0.5">
                 {item.match}% match
@@ -309,9 +122,7 @@ export default function ProductRecommendations({
 
   if (variant === 'bare') {
     return (
-      <div className={className} data-rec-placement={placement} data-rec-source={
-        liveRecs && liveRecs.length ? (liveRecs.length >= limit ? 'lytics' : 'lytics+catalog') : 'catalog'
-      }>
+      <div className={className} data-rec-placement={placement} data-rec-source={meta.source}>
         {title && <h2 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">{title}</h2>}
         {subtitle && <p className="text-gray-600 mb-6">{subtitle}</p>}
         {grid}
@@ -320,14 +131,7 @@ export default function ProductRecommendations({
   }
 
   return (
-    <section
-      className={`section-spacing ${className}`}
-      data-rec-placement={placement}
-      data-rec-source={
-        liveRecs && liveRecs.length ? (liveRecs.length >= limit ? 'lytics' : 'lytics+catalog') : 'catalog'
-      }
-      aria-label={title}
-    >
+    <section className={`section-spacing ${className}`} data-rec-placement={placement} data-rec-source={meta.source} aria-label={title}>
       <div className="container-padding">
         <div className="mb-8">
           <h2 className="font-heading text-2xl md:text-3xl font-bold text-gray-900">{title}</h2>
