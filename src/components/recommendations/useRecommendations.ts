@@ -85,10 +85,11 @@ export function useRecommendations({
   }, []);
 
   const catalogIndex = useMemo(() => {
-    const m = new Map<string, { price?: number; category?: string; image?: string; topics: string[] }>();
+    const m = new Map<string, { title: string; price?: number; category?: string; image?: string; topics: string[] }>();
     for (const p of catalog) {
       if (p?.url) {
         m.set(p.url, {
+          title: p.title,
           price: p.price,
           category: p.category,
           image: productImage(p),
@@ -170,17 +171,24 @@ export function useRecommendations({
     const seen = new Set<string>();
 
     if (liveRecs && liveRecs.length) {
-      const items = liveRecs.slice(0, limit);
-      const n = items.length;
-      items.forEach((r, i) => {
-        const cat = catalogIndex.get(r.url);
+      // Keep only Lytics recs that map to a real catalog product, and use the clean catalog
+      // title/category/topics (Lytics docs sometimes carry the site's default <title>).
+      // Wait for the catalog to load so we don't drop everything before enrichment is possible.
+      const enriched = catalog.length
+        ? liveRecs
+            .slice(0, limit)
+            .map((r) => ({ r, cat: catalogIndex.get(r.url) }))
+            .filter((x) => x.cat)
+        : [];
+      const n = enriched.length;
+      enriched.forEach(({ r, cat }, i) => {
         result.push({
           url: r.url,
-          title: r.title,
-          image: r.image || cat?.image,
-          price: r.price ?? cat?.price,
-          category: r.category || cat?.category,
-          topics: (r.topics && r.topics.length ? r.topics : cat?.topics || []).slice(0, 3),
+          title: cat!.title || r.title,
+          image: cat!.image || r.image,
+          price: cat!.price ?? r.price,
+          category: cat!.category || r.category,
+          topics: (cat!.topics && cat!.topics.length ? cat!.topics : r.topics || []).slice(0, 3),
           match: Math.round((100 * (n - i)) / n),
           source: 'lytics',
         });
