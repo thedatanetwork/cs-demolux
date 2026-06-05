@@ -117,29 +117,38 @@ export default function ProductRecommendations({
               </div>
             )}
 
-            {/* Recommendation details overlay (toggled via "Why these?") */}
+            {/* Recommendation details overlay (toggled via "Why these?") — lightweight text pills
+                over the image so the product stays visible. */}
             {showDetails && (
-              <div className="absolute inset-0 z-20 bg-gray-950/95 backdrop-blur-sm text-white p-3 flex flex-col gap-2 text-xs">
-                <div className="flex items-center gap-2">
+              <div className="absolute inset-0 z-20 p-2.5 flex flex-col justify-between text-xs pointer-events-none">
+                <div className="flex items-start justify-between gap-2">
                   <span
-                    className={`rounded px-1.5 py-0.5 text-[0.6rem] font-bold tracking-wide ${
-                      item.source === 'lytics' ? 'bg-gold-500 text-white' : 'bg-white/25 text-white'
+                    className={`rounded px-1.5 py-0.5 text-[0.6rem] font-bold tracking-wide shadow ${
+                      item.source === 'lytics' ? 'bg-gold-500 text-white' : 'bg-gray-900/80 text-white'
                     }`}
                   >
                     {item.source === 'lytics' ? 'LYTICS REC' : 'CATALOG FILL'}
                   </span>
-                  {item.match > 0 && <span className="ml-auto font-bold text-gold-300">{item.match}% match</span>}
+                  {item.match > 0 && (
+                    <span className="rounded bg-gray-900/80 text-gold-300 font-bold px-1.5 py-0.5 shadow">
+                      {item.match}% match
+                    </span>
+                  )}
                 </div>
-                <div className="text-white leading-snug font-medium">{whyLine(item, meta)}</div>
-                {item.topics.length > 0 && (
-                  <div className="mt-auto flex flex-wrap gap-1">
-                    {item.topics.map((t) => (
-                      <span key={t} className="text-[0.6rem] bg-white/15 rounded px-1.5 py-0.5">
-                        {t.replace(/-/g, ' ')}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <div className="flex flex-col items-start gap-1.5">
+                  <span className="inline-block bg-gray-900/85 text-white font-medium rounded px-2 py-1 leading-snug shadow">
+                    {whyLine(item, meta)}
+                  </span>
+                  {item.topics.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {item.topics.map((t) => (
+                        <span key={t} className="text-[0.6rem] bg-gray-900/75 text-white rounded px-1.5 py-0.5">
+                          {t.replace(/-/g, ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
