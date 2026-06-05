@@ -119,18 +119,18 @@ export default function ProductRecommendations({
 
             {/* Recommendation details overlay (toggled via "Why these?") */}
             {showDetails && (
-              <div className="absolute inset-0 z-20 bg-gray-900/88 text-white p-3 flex flex-col gap-2 text-xs">
+              <div className="absolute inset-0 z-20 bg-gray-950/95 backdrop-blur-sm text-white p-3 flex flex-col gap-2 text-xs">
                 <div className="flex items-center gap-2">
                   <span
                     className={`rounded px-1.5 py-0.5 text-[0.6rem] font-bold tracking-wide ${
-                      item.source === 'lytics' ? 'bg-gold-500 text-white' : 'bg-white/20 text-white/90'
+                      item.source === 'lytics' ? 'bg-gold-500 text-white' : 'bg-white/25 text-white'
                     }`}
                   >
                     {item.source === 'lytics' ? 'LYTICS REC' : 'CATALOG FILL'}
                   </span>
-                  {item.match > 0 && <span className="ml-auto font-bold">{item.match}% match</span>}
+                  {item.match > 0 && <span className="ml-auto font-bold text-gold-300">{item.match}% match</span>}
                 </div>
-                <div className="text-white/90 leading-snug">{whyLine(item, meta)}</div>
+                <div className="text-white leading-snug font-medium">{whyLine(item, meta)}</div>
                 {item.topics.length > 0 && (
                   <div className="mt-auto flex flex-wrap gap-1">
                     {item.topics.map((t) => (

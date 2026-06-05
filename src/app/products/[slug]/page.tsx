@@ -279,7 +279,6 @@ export default async function ProductPage(props: ProductPageProps) {
           subtitle="Picked for you based on what you're viewing"
           collection="PRODUCTS"
           limit={4}
-          visited={false}
           excludeUrl={product.url}
           placement="pdp_related"
           className="bg-gray-50"
