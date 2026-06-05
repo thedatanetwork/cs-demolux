@@ -164,13 +164,16 @@ export default function ProductRecommendations({
   }, [collection, limit, visited, shuffle, excludeUrl]);
 
   const ranked = useMemo<RankedProduct[]>(() => {
-    // Lytics recommendations win — enrich each with catalog price/category.
+    const result: RankedProduct[] = [];
+    const seen = new Set<string>();
+
+    // 1) Lytics recommendations first (enriched with catalog price/category), with % match.
     if (liveRecs && liveRecs.length) {
       const items = liveRecs.slice(0, limit);
       const n = items.length;
-      return items.map((r, i) => {
+      items.forEach((r, i) => {
         const cat = catalogIndex.get(r.url);
-        return {
+        result.push({
           url: r.url,
           title: r.title,
           image: r.image || cat?.image,
@@ -178,39 +181,47 @@ export default function ProductRecommendations({
           category: r.category || cat?.category,
           topics: (r.topics && r.topics.length ? r.topics : cat?.topics || []).slice(0, 3),
           match: Math.round((100 * (n - i)) / n),
-        };
+        });
+        seen.add(r.url);
       });
     }
 
-    // Fallback: rank the real catalog by affinity (switcher > browsing) or cold-start popularity.
-    const products = catalog.filter((p) => p?.url && p.url !== excludeUrl);
-    if (!products.length) return [];
-    const maxPrice = Math.max(...products.map((p) => p.price || 0), 1);
-    const activeAffinity = Object.keys(affinity).length ? affinity : browsingAffinity;
-    const hasAffinity = Object.keys(activeAffinity).length > 0;
+    // 2) Top up to `limit` from the real catalog, ranked by affinity (switcher > browsing) or
+    //    cold-start popularity. These carry no % match badge (they're catalog fill, not Lytics
+    //    recs) and disappear automatically once Lytics returns a full row.
+    if (result.length < limit) {
+      const products = catalog.filter((p) => p?.url && p.url !== excludeUrl && !seen.has(p.url));
+      if (products.length) {
+        const maxPrice = Math.max(...products.map((p) => p.price || 0), 1);
+        const activeAffinity = Object.keys(affinity).length ? affinity : browsingAffinity;
+        const hasAffinity = Object.keys(activeAffinity).length > 0;
+        const scored = products.map((p) => {
+          const topics = topicsFor(p.category, p.product_tags);
+          const score = hasAffinity
+            ? topics.reduce((s, t) => s + (activeAffinity[t] || 0), 0)
+            : 0.15 + 0.85 * ((p.price || 0) / maxPrice);
+          return { p, topics, score };
+        });
+        let pool = scored;
+        if (shuffle) pool = [...scored].sort(() => Math.random() - 0.5);
+        pool.sort((a, b) => b.score - a.score);
+        for (const { p, topics } of pool) {
+          if (result.length >= limit) break;
+          result.push({
+            url: p.url,
+            title: p.title,
+            image: productImage(p),
+            price: p.price,
+            category: p.category,
+            topics: topics.slice(0, 3),
+            match: 0, // catalog fill — no personalized-match badge
+          });
+          seen.add(p.url);
+        }
+      }
+    }
 
-    const scored = products.map((p) => {
-      const topics = topicsFor(p.category, p.product_tags);
-      const score = hasAffinity
-        ? topics.reduce((s, t) => s + (activeAffinity[t] || 0), 0)
-        : 0.15 + 0.85 * ((p.price || 0) / maxPrice);
-      return { url: p.url, title: p.title, image: productImage(p), price: p.price, category: p.category, topics, score };
-    });
-
-    let pool = scored;
-    if (shuffle) pool = [...scored].sort(() => Math.random() - 0.5);
-    pool.sort((a, b) => b.score - a.score);
-    const top = pool.slice(0, limit);
-    const maxScore = top[0]?.score || 1;
-    return top.map((r) => ({
-      url: r.url,
-      title: r.title,
-      image: r.image,
-      price: r.price,
-      category: r.category,
-      topics: r.topics.slice(0, 3),
-      match: Math.round((100 * r.score) / maxScore),
-    }));
+    return result;
   }, [liveRecs, catalog, catalogIndex, affinity, browsingAffinity, excludeUrl, limit, shuffle]);
 
   // Impression (once per resolved set).
@@ -298,7 +309,9 @@ export default function ProductRecommendations({
 
   if (variant === 'bare') {
     return (
-      <div className={className} data-rec-placement={placement} data-rec-source={liveRecs ? 'lytics' : 'catalog'}>
+      <div className={className} data-rec-placement={placement} data-rec-source={
+        liveRecs && liveRecs.length ? (liveRecs.length >= limit ? 'lytics' : 'lytics+catalog') : 'catalog'
+      }>
         {title && <h2 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">{title}</h2>}
         {subtitle && <p className="text-gray-600 mb-6">{subtitle}</p>}
         {grid}
@@ -310,7 +323,9 @@ export default function ProductRecommendations({
     <section
       className={`section-spacing ${className}`}
       data-rec-placement={placement}
-      data-rec-source={liveRecs ? 'lytics' : 'catalog'}
+      data-rec-source={
+        liveRecs && liveRecs.length ? (liveRecs.length >= limit ? 'lytics' : 'lytics+catalog') : 'catalog'
+      }
       aria-label={title}
     >
       <div className="container-padding">
