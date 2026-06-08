@@ -3,27 +3,19 @@
 import { useEffect } from 'react';
 import { useProductTracking } from '@/components/PersonalizeEventTracker';
 import { usePersonalize } from '@/contexts/PersonalizeContext';
-import { recordProductView } from '@/lib/browsing-affinity';
 
 interface ProductViewTrackerProps {
   productId: string;
   productTitle: string;
-  category?: string;
-  tags?: string[];
 }
 
 /**
- * Client component that tracks product view events
- * This should be added to product detail pages
+ * Client component that tracks product view events. The view event feeds Lytics' own content
+ * affinity (which is what ranks jstag.recommend) — no front-end affinity model.
  */
-export function ProductViewTracker({ productId, productTitle, category, tags }: ProductViewTrackerProps) {
+export function ProductViewTracker({ productId, productTitle }: ProductViewTrackerProps) {
   const { trackProductView, isConfigured } = useProductTracking();
   const { isLoading } = usePersonalize();
-
-  // Record the view into local browsing affinity immediately (drives rec re-ranking).
-  useEffect(() => {
-    recordProductView(category, tags);
-  }, [productId, category, tags]);
 
   useEffect(() => {
     // Wait for SDK to finish initializing before tracking

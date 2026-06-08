@@ -3,17 +3,16 @@
 /**
  * Lytics-powered product recommendation rail.
  *
- * Renders real products with images, served from Lytics Content Recommendations (with catalog
- * top-up while the collection finishes classifying — see useRecommendations). A per-rail
- * "Why these?" toggle overlays the recommendation diagnostics directly on each card (source,
- * match score, the affinity reason, topics). No fabricated data.
+ * The products and their order come ONLY from window.jstag.recommend() (real Lytics Content
+ * Recommendations). Catalog data is used solely to hydrate display price/image. If Lytics returns
+ * nothing, the rail renders nothing — no fabricated or front-end-computed fallback.
  */
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Info } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { sendLyticsEvent } from '@/lib/tracking-utils';
-import { useRecommendations, type RankedProduct, type RecMeta } from './useRecommendations';
+import { useRecommendations, type RankedProduct } from './useRecommendations';
 
 interface ProductRecommendationsProps {
   title?: string;
@@ -28,17 +27,9 @@ interface ProductRecommendationsProps {
   variant?: 'section' | 'bare';
 }
 
-const SOURCE_LABEL: Record<string, string> = {
-  lytics: 'Lytics Content Recommendations',
-  'lytics+catalog': 'Lytics recs + catalog fill',
-  catalog: 'Catalog (browsing affinity)',
-};
-
-function whyLine(item: RankedProduct, meta: RecMeta): string {
-  const matched = item.topics.find((t) => (meta.affinity || {})[t] > 0);
-  if (matched) return `Matches your interest in ${matched.replace(/-/g, ' ')}`;
-  if (item.source === 'lytics') return 'Recommended by Lytics for this visitor';
-  return meta.affinitySource === 'none' ? 'Popular pick (no profile yet)' : 'Catalog pick';
+function whyLine(item: RankedProduct): string {
+  if (item.topics.length) return `Matched on ${item.topics[0].replace(/-/g, ' ')}`;
+  return 'Recommended by Lytics for this visitor';
 }
 
 export default function ProductRecommendations({
@@ -64,19 +55,15 @@ export default function ProductRecommendations({
     impressionSent.current = key;
     sendLyticsEvent('recommendations_view', {
       placement,
-      source: meta.source,
+      source: 'lytics',
+      collection: meta.collectionUsed,
       recommended_count: ranked.length,
       recommended_urls: ranked.map((r) => r.url),
     });
-  }, [ranked, placement, meta.source]);
+  }, [ranked, placement, meta.collectionUsed]);
 
-  if (meta.loaded && ranked.length === 0) return null;
+  // Pure Lytics: render only when Lytics returns products.
   if (!ranked.length) return null;
-
-  const topAffinity = Object.entries(meta.affinity)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([t]) => t.replace(/-/g, ' '));
 
   const onCardClick = (item: RankedProduct, index: number) =>
     sendLyticsEvent('recommendation_click', {
@@ -85,7 +72,7 @@ export default function ProductRecommendations({
       product_title: item.title,
       position: index + 1,
       match: item.match,
-      source: item.source,
+      source: 'lytics',
     });
 
   const grid = (
@@ -117,17 +104,12 @@ export default function ProductRecommendations({
               </div>
             )}
 
-            {/* Recommendation details overlay (toggled via "Why these?") — lightweight text pills
-                over the image so the product stays visible. */}
+            {/* "Why these?" overlay — lightweight pills over a visible image */}
             {showDetails && (
               <div className="absolute inset-0 z-20 p-2.5 flex flex-col justify-between text-xs pointer-events-none">
                 <div className="flex items-start justify-between gap-2">
-                  <span
-                    className={`rounded px-1.5 py-0.5 text-[0.6rem] font-bold tracking-wide shadow ${
-                      item.source === 'lytics' ? 'bg-gold-500 text-white' : 'bg-gray-900/80 text-white'
-                    }`}
-                  >
-                    {item.source === 'lytics' ? 'LYTICS REC' : 'CATALOG FILL'}
+                  <span className="rounded px-1.5 py-0.5 text-[0.6rem] font-bold tracking-wide shadow bg-gold-500 text-white">
+                    LYTICS REC
                   </span>
                   {item.match > 0 && (
                     <span className="rounded bg-gray-900/80 text-gold-300 font-bold px-1.5 py-0.5 shadow">
@@ -137,7 +119,7 @@ export default function ProductRecommendations({
                 </div>
                 <div className="flex flex-col items-start gap-1.5">
                   <span className="inline-block bg-gray-900/85 text-white font-medium rounded px-2 py-1 leading-snug shadow">
-                    {whyLine(item, meta)}
+                    {whyLine(item)}
                   </span>
                   {item.topics.length > 0 && (
                     <div className="flex flex-wrap gap-1">
@@ -175,18 +157,15 @@ export default function ProductRecommendations({
         {subtitle && <p className="text-gray-600 mt-1">{subtitle}</p>}
         {showDetails && (
           <p className="text-xs text-gray-500 mt-2">
-            {SOURCE_LABEL[meta.source]} · {meta.liveCount} from Lytics
-            {meta.catalogCount > 0 && `, ${meta.catalogCount} catalog`}
-            {topAffinity.length > 0 && ` · affinity: ${topAffinity.join(', ')}`}
+            Lytics Content Recommendations · {meta.liveCount} product{meta.liveCount === 1 ? '' : 's'}
+            {meta.collectionUsed && ` · collection ${meta.collectionUsed}`}
           </p>
         )}
       </div>
       <button
         onClick={() => setShowDetails((v) => !v)}
         className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-          showDetails
-            ? 'border-gold-400 bg-gold-50 text-gold-800'
-            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+          showDetails ? 'border-gold-400 bg-gold-50 text-gold-800' : 'border-gray-200 text-gray-600 hover:border-gray-300'
         }`}
         aria-pressed={showDetails}
       >
@@ -198,7 +177,7 @@ export default function ProductRecommendations({
 
   if (variant === 'bare') {
     return (
-      <div className={className} data-rec-placement={placement} data-rec-source={meta.source}>
+      <div className={className} data-rec-placement={placement} data-rec-source="lytics">
         {header}
         {grid}
       </div>
@@ -206,7 +185,7 @@ export default function ProductRecommendations({
   }
 
   return (
-    <section className={`section-spacing ${className}`} data-rec-placement={placement} data-rec-source={meta.source} aria-label={title}>
+    <section className={`section-spacing ${className}`} data-rec-placement={placement} data-rec-source="lytics" aria-label={title}>
       <div className="container-padding">
         {header}
         {grid}
