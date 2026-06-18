@@ -112,7 +112,11 @@ export function useRecommendations({
     const timers: ReturnType<typeof setTimeout>[] = [];
     const sleep = (ms: number) => new Promise<void>((r) => timers.push(setTimeout(r, ms)));
     const affinityColls = Array.from(new Set([collection, ...COLLECTION_FALLBACKS])).filter(Boolean);
-    const want = (excludeUrl ? limit + 1 : limit) + 2;
+    // Request a LARGE candidate set, not just `limit`. Static pages (about,
+    // shipping, blog, etc.) often outrank products for a cold visitor, so a small
+    // limit returns only those and zero products. Pull a deep set, then filter to
+    // products and keep the top `limit` below.
+    const want = Math.max((excludeUrl ? limit + 1 : limit) + 2, 30);
 
     const recommendOnce = (jstag: any, coll: string, forceShuffle: boolean) =>
       new Promise<{ coll: string; items: RecItem[] }>((resolve) => {
