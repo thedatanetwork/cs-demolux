@@ -30,7 +30,11 @@ export function RecommendationsBlock({ block }: { block: RecommendationsBlockDat
       subtitle={block.subheading}
       collection={block.lytics_collection || 'PRODUCTS'}
       limit={block.limit ?? 8}
-      visited={block.visited}
+      // CMS field "Exclude Already-Viewed" (block.visited) is a human toggle, but
+      // jstag's `visited` param is inverted: `visited:false` EXCLUDES already-viewed.
+      // So map ON -> false (exclude); OFF -> undefined (omit = include everything).
+      // Passing block.visited straight through made OFF still exclude viewed products.
+      visited={block.visited ? false : undefined}
       shuffle={block.shuffle}
       placement={block.placement || 'home_recommended'}
       className={block.background === 'gray' ? 'bg-gray-50' : ''}
