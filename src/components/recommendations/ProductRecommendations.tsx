@@ -62,8 +62,10 @@ export default function ProductRecommendations({
     });
   }, [ranked, placement, meta.collectionUsed]);
 
-  // Pure Lytics: render only when Lytics returns products.
-  if (!ranked.length) return null;
+  // Pure Lytics: render only when Lytics returns products. While empty, emit a
+  // hidden diagnostic marker so the live component's internal state is inspectable.
+  if (!ranked.length)
+    return <span data-rec-debug={meta.debug} data-rec-placement={placement} style={{ display: 'none' }} />;
 
   const onCardClick = (item: RankedProduct, index: number) =>
     sendLyticsEvent('recommendation_click', {

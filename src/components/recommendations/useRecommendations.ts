@@ -27,6 +27,7 @@ export interface RecMeta {
   collectionUsed: string | null;
   loaded: boolean;
   hasTag: boolean;
+  debug?: string;
 }
 
 interface Options {
@@ -37,8 +38,11 @@ interface Options {
   excludeUrl?: string;
 }
 
-// Lytics content collections on aid 8083 (slug + display name both tried).
-const COLLECTION_FALLBACKS = ['products', 'all_documents_with_images', 'PRODUCTS', 'Documents With Images'];
+// Lytics content collections on aid 8083 (verified to return product docs).
+const COLLECTION_FALLBACKS = ['PRODUCTS', 'Documents With Images', 'Default Recommendation Collection'];
+// For cold-start (new visitor, no affinity) recommend() can return only static
+// pages; shuffling against the broadest collection reliably surfaces products.
+const SHUFFLE_FALLBACKS = ['All Documents', 'PRODUCTS', 'Default Recommendation Collection'];
 
 function productImage(p: any): string | undefined {
   const f = p?.featured_image;
@@ -72,6 +76,7 @@ export function useRecommendations({
   const [collectionUsed, setCollectionUsed] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [hasTag, setHasTag] = useState(false);
+  const [debug, setDebug] = useState<string>('init');
 
   // Catalog is for display hydration only (price/title/image) — never as a rec source.
   useEffect(() => {
@@ -105,17 +110,19 @@ export function useRecommendations({
   useEffect(() => {
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
-    const candidates = Array.from(new Set([collection, ...COLLECTION_FALLBACKS])).filter(Boolean);
+    const sleep = (ms: number) => new Promise<void>((r) => timers.push(setTimeout(r, ms)));
+    const affinityColls = Array.from(new Set([collection, ...COLLECTION_FALLBACKS])).filter(Boolean);
     const want = (excludeUrl ? limit + 1 : limit) + 2;
 
-    const recommendOnce = (jstag: any, coll: string) =>
+    const recommendOnce = (jstag: any, coll: string, forceShuffle: boolean) =>
       new Promise<{ coll: string; items: RecItem[] }>((resolve) => {
         let done = false;
         // Generous timeout: jstag.recommend can be slow on a cold tag / first call.
         const t = setTimeout(() => !done && ((done = true), resolve({ coll, items: [] })), 6000);
         const opts: any = { collection: coll, limit: want };
         if (visited !== undefined) opts.visited = visited;
-        if (shuffle !== undefined) opts.shuffle = shuffle;
+        if (forceShuffle) opts.shuffle = true;
+        else if (shuffle !== undefined) opts.shuffle = shuffle;
         try {
           jstag.recommend(opts, (recs: LyticsRecommendation[]) => {
             if (done) return;
@@ -133,13 +140,12 @@ export function useRecommendations({
 
     // IMPORTANT: call collections SEQUENTIALLY, not concurrently. jstag.recommend
     // returns an empty set when several calls are in flight at once (a concurrent
-    // Promise.all burst yields nothing), whereas sequential calls return products
-    // reliably — even for a brand-new visitor on the very first call.
-    const runRound = async (jstag: any) => {
+    // Promise.all burst yields nothing), whereas sequential calls return products.
+    const runRound = async (jstag: any, colls: string[], forceShuffle: boolean) => {
       let best: { coll: string; items: RecItem[] } = { coll: '', items: [] };
-      for (const c of candidates) {
+      for (const c of colls) {
         if (cancelled) break;
-        const r = await recommendOnce(jstag, c);
+        const r = await recommendOnce(jstag, c, forceShuffle);
         if (r.items.length > best.items.length) best = r;
         if (best.items.length >= limit) break; // enough to fill the rail
       }
@@ -147,39 +153,51 @@ export function useRecommendations({
     };
 
     const start = async (jstag: any) => {
-      // A brand-new visitor's Lytics profile takes ~10s to resolve; until it does,
-      // recommend() returns no products. Retry on an empty product set across a
-      // ~16s window so the rail fills once the profile/affinity is ready, instead
-      // of giving up permanently on the first (cold) call.
-      let best = await runRound(jstag);
-      for (let attempt = 0; attempt < 8 && !cancelled && best.items.length === 0; attempt++) {
-        await new Promise<void>((r) => timers.push(setTimeout(r, 2000)));
-        if (cancelled) return;
-        best = await runRound(jstag);
+      // Let the visitor's Lytics profile begin resolving before the first call —
+      // calling the instant the tag loads tends to return only static pages.
+      await sleep(2000);
+      if (cancelled) return;
+      let best: { coll: string; items: RecItem[] } = { coll: '', items: [] };
+      // Up to 6 rounds: affinity-ranked first (personalized for warm visitors);
+      // if that yields no products, shuffle the broadest collections so a cold
+      // visitor still gets popularity-based picks. Retry across a ~12s window.
+      for (let attempt = 0; attempt < 6 && !cancelled && best.items.length === 0; attempt++) {
+        best = await runRound(jstag, affinityColls, false);
+        if (best.items.length === 0) {
+          best = await runRound(jstag, SHUFFLE_FALLBACKS, true);
+        }
+        if (best.items.length) break;
+        setDebug(`retry ${attempt + 1}`);
+        await sleep(2000);
       }
       if (cancelled) return;
       setLiveRecs(best.items.slice(0, limit));
       setCollectionUsed(best.items.length ? best.coll : null);
+      setDebug(`done items=${best.items.length} coll=${best.coll || 'none'}`);
     };
 
-    // The Lytics tag (window.jstag) loads asynchronously and may not be ready when
-    // this effect first runs. Poll briefly for it instead of bailing out forever.
+    // The Lytics tag (window.jstag) loads asynchronously (and starts life as a
+    // command-queue array without .recommend). Poll for the real SDK instead of
+    // bailing out forever if it isn't ready when this effect first runs.
     let waited = 0;
     const tick = () => {
       if (cancelled) return;
       const jstag = typeof window !== 'undefined' ? (window as any).jstag : undefined;
       if (jstag?.recommend) {
         setHasTag(true);
+        setDebug('jstag-ready');
         void start(jstag);
         return;
       }
       waited += 250;
-      if (waited >= 15000) {
+      if (waited >= 20000) {
         setHasTag(false);
+        setDebug('no-jstag-timeout');
         return;
       }
       timers.push(setTimeout(tick, 250));
     };
+    setDebug('waiting-jstag');
     tick();
 
     return () => {
@@ -207,6 +225,12 @@ export function useRecommendations({
     }));
   }, [liveRecs, catalog, catalogIndex, limit]);
 
-  const meta: RecMeta = { liveCount: ranked.length, collectionUsed, loaded, hasTag };
+  const meta: RecMeta = {
+    liveCount: ranked.length,
+    collectionUsed,
+    loaded,
+    hasTag,
+    debug: `${debug} | live=${liveRecs?.length ?? 'null'} cat=${catalog.length} ranked=${ranked.length}`,
+  };
   return { ranked, meta };
 }
