@@ -103,17 +103,16 @@ export function useRecommendations({
   }, [catalog]);
 
   useEffect(() => {
-    const jstag = typeof window !== 'undefined' ? window.jstag : undefined;
-    setHasTag(!!jstag?.recommend);
-    if (!jstag?.recommend) return;
     let cancelled = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
     const candidates = Array.from(new Set([collection, ...COLLECTION_FALLBACKS])).filter(Boolean);
     const want = (excludeUrl ? limit + 1 : limit) + 2;
 
-    const recommendOnce = (coll: string) =>
+    const recommendOnce = (jstag: any, coll: string) =>
       new Promise<{ coll: string; items: RecItem[] }>((resolve) => {
         let done = false;
-        const t = setTimeout(() => !done && ((done = true), resolve({ coll, items: [] })), 3000);
+        // Generous timeout: jstag.recommend can be slow on a cold tag / first call.
+        const t = setTimeout(() => !done && ((done = true), resolve({ coll, items: [] })), 6000);
         const opts: any = { collection: coll, limit: want };
         if (visited !== undefined) opts.visited = visited;
         if (shuffle !== undefined) opts.shuffle = shuffle;
@@ -132,17 +131,60 @@ export function useRecommendations({
         }
       });
 
-    Promise.all(candidates.map(recommendOnce)).then((results) => {
+    // IMPORTANT: call collections SEQUENTIALLY, not concurrently. jstag.recommend
+    // returns an empty set when several calls are in flight at once (a concurrent
+    // Promise.all burst yields nothing), whereas sequential calls return products
+    // reliably — even for a brand-new visitor on the very first call.
+    const runRound = async (jstag: any) => {
+      let best: { coll: string; items: RecItem[] } = { coll: '', items: [] };
+      for (const c of candidates) {
+        if (cancelled) break;
+        const r = await recommendOnce(jstag, c);
+        if (r.items.length > best.items.length) best = r;
+        if (best.items.length >= limit) break; // enough to fill the rail
+      }
+      return best;
+    };
+
+    const start = async (jstag: any) => {
+      // A brand-new visitor's Lytics profile takes ~10s to resolve; until it does,
+      // recommend() returns no products. Retry on an empty product set across a
+      // ~16s window so the rail fills once the profile/affinity is ready, instead
+      // of giving up permanently on the first (cold) call.
+      let best = await runRound(jstag);
+      for (let attempt = 0; attempt < 8 && !cancelled && best.items.length === 0; attempt++) {
+        await new Promise<void>((r) => timers.push(setTimeout(r, 2000)));
+        if (cancelled) return;
+        best = await runRound(jstag);
+      }
       if (cancelled) return;
-      const best = results.reduce((a, b) => (b.items.length > a.items.length ? b : a), {
-        coll: '',
-        items: [] as RecItem[],
-      });
       setLiveRecs(best.items.slice(0, limit));
       setCollectionUsed(best.items.length ? best.coll : null);
-    });
+    };
+
+    // The Lytics tag (window.jstag) loads asynchronously and may not be ready when
+    // this effect first runs. Poll briefly for it instead of bailing out forever.
+    let waited = 0;
+    const tick = () => {
+      if (cancelled) return;
+      const jstag = typeof window !== 'undefined' ? (window as any).jstag : undefined;
+      if (jstag?.recommend) {
+        setHasTag(true);
+        void start(jstag);
+        return;
+      }
+      waited += 250;
+      if (waited >= 15000) {
+        setHasTag(false);
+        return;
+      }
+      timers.push(setTimeout(tick, 250));
+    };
+    tick();
+
     return () => {
       cancelled = true;
+      timers.forEach(clearTimeout);
     };
   }, [collection, limit, visited, shuffle, excludeUrl]);
 
