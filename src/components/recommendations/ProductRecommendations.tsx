@@ -85,11 +85,8 @@ export default function ProductRecommendations({
           className="group relative flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200"
         >
           <div className="relative aspect-square bg-gray-50 overflow-hidden">
-            {!showDetails && item.match > 0 && (
-              <span className="absolute top-2 right-2 z-10 rounded-md bg-gold-500 text-white text-[0.7rem] font-bold px-2 py-0.5">
-                {item.match}% match
-              </span>
-            )}
+            {/* Match rate is intentionally shown only inside the "Why these?" overlay,
+                not by default — see the showDetails block below. */}
             {item.image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
