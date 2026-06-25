@@ -27,6 +27,9 @@ export interface RecMeta {
   collectionUsed: string | null;
   loaded: boolean;
   hasTag: boolean;
+  // True while we're still fetching (tag/catalog not ready, or recs not yet
+  // resolved). Once false, an empty rail is genuinely empty — collapse it.
+  resolving: boolean;
   debug?: string;
 }
 
@@ -76,6 +79,7 @@ export function useRecommendations({
   const [collectionUsed, setCollectionUsed] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [hasTag, setHasTag] = useState(false);
+  const [settled, setSettled] = useState(false);
   const [debug, setDebug] = useState<string>('init');
 
   // Catalog is for display hydration only (price/title/image) — never as a rec source.
@@ -157,14 +161,17 @@ export function useRecommendations({
     };
 
     const start = async (jstag: any) => {
-      // Let the visitor's Lytics profile begin resolving before the first call —
-      // calling the instant the tag loads tends to return only static pages.
-      await sleep(2000);
       if (cancelled) return;
       let best: { coll: string; items: RecItem[] } = { coll: '', items: [] };
+      // Try IMMEDIATELY on the first attempt — a warm visitor whose Lytics profile
+      // already has affinity returns products right away, so the rail can render
+      // with no artificial delay. Results are filtered to products anyway, so if a
+      // cold visitor's first call returns only static pages it yields an empty set
+      // and falls into the backoff+retry loop below (same resilient fallback as before).
+      //
       // Up to 6 rounds: affinity-ranked first (personalized for warm visitors);
       // if that yields no products, shuffle the broadest collections so a cold
-      // visitor still gets popularity-based picks. Retry across a ~12s window.
+      // visitor still gets popularity-based picks. Backoff retries across a ~10s window.
       for (let attempt = 0; attempt < 6 && !cancelled && best.items.length === 0; attempt++) {
         best = await runRound(jstag, affinityColls, false);
         if (best.items.length === 0) {
@@ -172,11 +179,14 @@ export function useRecommendations({
         }
         if (best.items.length) break;
         setDebug(`retry ${attempt + 1}`);
-        await sleep(2000);
+        // Only wait when the immediate try came back empty — gives the cold-start
+        // profile time to resolve. Short first backoff, then steady 2s.
+        await sleep(attempt === 0 ? 1000 : 2000);
       }
       if (cancelled) return;
       setLiveRecs(best.items.slice(0, limit));
       setCollectionUsed(best.items.length ? best.coll : null);
+      setSettled(true);
       setDebug(`done items=${best.items.length} coll=${best.coll || 'none'}`);
     };
 
@@ -196,11 +206,13 @@ export function useRecommendations({
       waited += 250;
       if (waited >= 20000) {
         setHasTag(false);
+        setSettled(true);
         setDebug('no-jstag-timeout');
         return;
       }
       timers.push(setTimeout(tick, 250));
     };
+    setSettled(false);
     setDebug('waiting-jstag');
     tick();
 
@@ -234,6 +246,8 @@ export function useRecommendations({
     collectionUsed,
     loaded,
     hasTag,
+    // Still working if recs haven't settled or the display catalog hasn't loaded.
+    resolving: !settled || !loaded,
     debug: `${debug} | live=${liveRecs?.length ?? 'null'} cat=${catalog.length} ranked=${ranked.length}`,
   };
   return { ranked, meta };

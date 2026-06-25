@@ -7,7 +7,7 @@
  * Recommendations). Catalog data is used solely to hydrate display price/image. If Lytics returns
  * nothing, the rail renders nothing — no fabricated or front-end-computed fallback.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Info } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
@@ -62,8 +62,49 @@ export default function ProductRecommendations({
     });
   }, [ranked, placement, meta.collectionUsed]);
 
-  // Pure Lytics: render only when Lytics returns products.
-  if (!ranked.length) return null;
+  // Shared section/bare wrapper so the skeleton and the real rail share layout.
+  const shell = (children: ReactNode) =>
+    variant === 'bare' ? (
+      <div className={className} data-rec-placement={placement} data-rec-source="lytics">
+        {children}
+      </div>
+    ) : (
+      <section
+        className={`section-spacing ${className}`}
+        data-rec-placement={placement}
+        data-rec-source="lytics"
+        aria-label={title}
+      >
+        <div className="container-padding">{children}</div>
+      </section>
+    );
+
+  // Pure Lytics: render only when Lytics returns products. While we're still
+  // fetching, show a skeleton so the space is reserved and the load feels instant;
+  // once resolving is done with no products, collapse to nothing.
+  if (!ranked.length) {
+    if (!meta.resolving) return null;
+    return shell(
+      <>
+        <div className="mb-6">
+          <h2 className="font-heading text-2xl md:text-3xl font-bold text-gray-900">{title}</h2>
+          {subtitle && <p className="text-gray-600 mt-1">{subtitle}</p>}
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" aria-hidden="true">
+          {Array.from({ length: Math.min(limit, 4) }).map((_, i) => (
+            <div key={i} className="flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="aspect-square bg-gray-100 animate-pulse" />
+              <div className="p-4 flex flex-col gap-2 flex-1">
+                <div className="h-2.5 w-16 bg-gray-100 rounded animate-pulse" />
+                <div className="h-3.5 w-3/4 bg-gray-100 rounded animate-pulse" />
+                <div className="h-3.5 w-1/3 bg-gray-100 rounded animate-pulse mt-1" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }
 
   const onCardClick = (item: RankedProduct, index: number) =>
     sendLyticsEvent('recommendation_click', {
@@ -172,21 +213,10 @@ export default function ProductRecommendations({
     </div>
   );
 
-  if (variant === 'bare') {
-    return (
-      <div className={className} data-rec-placement={placement} data-rec-source="lytics">
-        {header}
-        {grid}
-      </div>
-    );
-  }
-
-  return (
-    <section className={`section-spacing ${className}`} data-rec-placement={placement} data-rec-source="lytics" aria-label={title}>
-      <div className="container-padding">
-        {header}
-        {grid}
-      </div>
-    </section>
+  return shell(
+    <>
+      {header}
+      {grid}
+    </>
   );
 }
