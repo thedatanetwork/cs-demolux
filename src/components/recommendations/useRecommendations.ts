@@ -20,6 +20,9 @@ export interface RankedProduct {
   category?: string;
   topics: string[];
   match: number;
+  // True when this card is a catalog backfill (not a Lytics rec) used to keep the
+  // rail at a fixed size. Lytics-ranked cards are `false`.
+  filled?: boolean;
 }
 
 export interface RecMeta {
@@ -39,6 +42,10 @@ interface Options {
   visited?: boolean;
   shuffle?: boolean;
   excludeUrl?: string;
+  // When true, keep the rail at exactly `limit` cards: Lytics recs first, then
+  // real catalog products as backfill if Lytics returns fewer than `limit`.
+  // When false (default), the rail is pure Lytics and may render fewer.
+  fill?: boolean;
 }
 
 // Lytics content collections on aid 8083 (verified to return product docs).
@@ -73,6 +80,7 @@ export function useRecommendations({
   visited,
   shuffle,
   excludeUrl,
+  fill = false,
 }: Options): { ranked: RankedProduct[]; meta: RecMeta } {
   const [catalog, setCatalog] = useState<any[]>([]);
   const [liveRecs, setLiveRecs] = useState<RecItem[] | null>(null);
@@ -223,26 +231,73 @@ export function useRecommendations({
   }, [collection, limit, visited, shuffle, excludeUrl]);
 
   const ranked = useMemo<RankedProduct[]>(() => {
-    if (!liveRecs || !liveRecs.length || !catalog.length) return [];
-    // Keep only Lytics recs that map to a real catalog product; hydrate display fields from it.
-    const items = liveRecs
+    if (!catalog.length) return [];
+    // Lytics-ranked products first: keep only recs that map to a real catalog
+    // product, and hydrate display fields (price/title/image) from it.
+    const items = (liveRecs || [])
       .slice(0, limit)
       .map((r) => ({ r, cat: catalogIndex.get(r.url) }))
       .filter((x) => x.cat);
     const n = items.length;
-    return items.map(({ r, cat }, i) => ({
+    const lyticsRanked: RankedProduct[] = items.map(({ r, cat }, i) => ({
       url: r.url,
       title: cat!.title || r.title,
       image: cat!.image || r.image,
       price: cat!.price,
       category: cat!.category,
       topics: (cat!.topics && cat!.topics.length ? cat!.topics : r.topics || []).slice(0, 3),
-      match: Math.round((100 * (n - i)) / n),
+      // Real Lytics recommendation confidence (0..1) → percentage. Falls back to a
+      // positional value only if a rec somehow lacks a confidence score.
+      match:
+        r.score != null
+          ? Math.max(1, Math.round(r.score * 100))
+          : n
+            ? Math.round((100 * (n - i)) / n)
+            : 0,
+      filled: false,
     }));
-  }, [liveRecs, catalog, catalogIndex, limit]);
+
+    // Pure-Lytics rails (fill=false): render exactly what Lytics returned.
+    if (!fill) return lyticsRanked;
+
+    // Backfill rails (fill=true): keep the rail at exactly `limit` cards. Wait
+    // until Lytics has settled so we don't flash catalog products first, then
+    // top up any shortfall with real catalog products the visitor hasn't been
+    // recommended (preferring the same categories so the row stays coherent).
+    if (!settled) return lyticsRanked;
+    if (lyticsRanked.length >= limit) return lyticsRanked.slice(0, limit);
+
+    const used = new Set(lyticsRanked.map((p) => p.url));
+    if (excludeUrl) used.add(excludeUrl);
+    const preferredCats = new Set(lyticsRanked.map((p) => p.category).filter(Boolean));
+    const candidates = catalog
+      .filter((p) => p?.url && !used.has(p.url) && productImage(p) && p.price != null)
+      .sort((a, b) => {
+        const aw = preferredCats.has(a.category) ? 0 : 1;
+        const bw = preferredCats.has(b.category) ? 0 : 1;
+        return aw - bw;
+      });
+
+    const fillers: RankedProduct[] = [];
+    for (const p of candidates) {
+      if (lyticsRanked.length + fillers.length >= limit) break;
+      fillers.push({
+        url: p.url,
+        title: p.title,
+        image: productImage(p),
+        price: p.price,
+        category: p.category,
+        topics: topicsFor(p.category, p.product_tags).slice(0, 3),
+        match: 0,
+        filled: true,
+      });
+    }
+    return [...lyticsRanked, ...fillers].slice(0, limit);
+  }, [liveRecs, catalog, catalogIndex, limit, fill, excludeUrl, settled]);
 
   const meta: RecMeta = {
-    liveCount: ranked.length,
+    // Report the true Lytics-sourced count (excludes catalog backfill).
+    liveCount: ranked.filter((r) => !r.filled).length,
     collectionUsed,
     loaded,
     hasTag,

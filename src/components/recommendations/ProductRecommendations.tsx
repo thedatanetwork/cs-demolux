@@ -25,9 +25,15 @@ interface ProductRecommendationsProps {
   placement?: string;
   className?: string;
   variant?: 'section' | 'bare';
+  // Keep the rail at exactly `limit` cards by backfilling from the catalog when
+  // Lytics returns fewer. Off by default (pure-Lytics rails render fewer).
+  fill?: boolean;
 }
 
 function whyLine(item: RankedProduct): string {
+  if (item.filled) {
+    return item.topics.length ? `Popular in ${item.topics[0].replace(/-/g, ' ')}` : 'Popular pick';
+  }
   if (item.topics.length) return `Matched on ${item.topics[0].replace(/-/g, ' ')}`;
   return 'Recommended by Lytics for this visitor';
 }
@@ -43,8 +49,9 @@ export default function ProductRecommendations({
   placement = 'recommendations',
   className = '',
   variant = 'section',
+  fill = false,
 }: ProductRecommendationsProps) {
-  const { ranked, meta } = useRecommendations({ collection, limit, visited, shuffle, excludeUrl });
+  const { ranked, meta } = useRecommendations({ collection, limit, visited, shuffle, excludeUrl, fill });
   const [showDetails, setShowDetails] = useState(false);
   const impressionSent = useRef('');
 
@@ -146,8 +153,12 @@ export default function ProductRecommendations({
             {showDetails && (
               <div className="absolute inset-0 z-20 p-2.5 flex flex-col justify-between text-xs pointer-events-none">
                 <div className="flex items-start justify-between gap-2">
-                  <span className="rounded px-1.5 py-0.5 text-[0.6rem] font-bold tracking-wide shadow bg-gold-500 text-white">
-                    LYTICS REC
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[0.6rem] font-bold tracking-wide shadow text-white ${
+                      item.filled ? 'bg-gray-700' : 'bg-gold-500'
+                    }`}
+                  >
+                    {item.filled ? 'POPULAR PICK' : 'LYTICS REC'}
                   </span>
                   {item.match > 0 && (
                     <span className="rounded bg-gray-900/80 text-gold-300 font-bold px-1.5 py-0.5 shadow">

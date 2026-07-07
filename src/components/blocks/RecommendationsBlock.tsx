@@ -32,6 +32,9 @@ export function RecommendationsBlock({ block }: { block: RecommendationsBlockDat
       // Cap at 4 so the rail is always a single row on desktop (lg:grid-cols-4),
       // regardless of the CMS limit field.
       limit={Math.min(block.limit ?? 4, 4)}
+      // Always present a full row: show Lytics recs first, then backfill from the
+      // real catalog so the rail is exactly 4 cards (never 3, never 5+).
+      fill
       // CMS field "Exclude Already-Viewed" (block.visited) is a human toggle, but
       // jstag's `visited` param is inverted: `visited:false` EXCLUDES already-viewed.
       // So map ON -> false (exclude); OFF -> undefined (omit = include everything).

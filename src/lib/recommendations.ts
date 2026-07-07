@@ -18,6 +18,8 @@ export interface LyticsRecommendation {
   /** Topic -> affinity score map used for ranking. */
   global?: Record<string, number>;
   topics?: string[];
+  /** Real Lytics recommendation strength for this doc/visitor (0..1). */
+  confidence?: number;
   [key: string]: unknown;
 }
 
@@ -30,6 +32,8 @@ export interface RecItem {
   price?: number;
   category?: string;
   topics?: string[];
+  /** Real Lytics confidence score (0..1) as returned by recommend(); undefined if absent. */
+  score?: number;
 }
 
 /**
@@ -74,6 +78,7 @@ export function normalizeRecommendations(
       price: toNumber(r.price),
       category: typeof r.category === 'string' ? r.category : undefined,
       topics: r.global ? Object.keys(r.global) : r.topics,
+      score: toNumber(r.confidence),
     }))
     .filter((r) => r.url && r.title && r.url !== excludeUrl);
 }
