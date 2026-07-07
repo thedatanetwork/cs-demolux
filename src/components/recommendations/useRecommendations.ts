@@ -170,32 +170,43 @@ export function useRecommendations({
 
     const start = async (jstag: any) => {
       if (cancelled) return;
-      let best: { coll: string; items: RecItem[] } = { coll: '', items: [] };
-      // Try IMMEDIATELY on the first attempt — a warm visitor whose Lytics profile
-      // already has affinity returns products right away, so the rail can render
-      // with no artificial delay. Results are filtered to products anyway, so if a
-      // cold visitor's first call returns only static pages it yields an empty set
-      // and falls into the backoff+retry loop below (same resilient fallback as before).
-      //
-      // Up to 6 rounds: affinity-ranked first (personalized for warm visitors);
-      // if that yields no products, shuffle the broadest collections so a cold
-      // visitor still gets popularity-based picks. Backoff retries across a ~10s window.
-      for (let attempt = 0; attempt < 6 && !cancelled && best.items.length === 0; attempt++) {
-        best = await runRound(jstag, affinityColls, false);
-        if (best.items.length === 0) {
-          best = await runRound(jstag, SHUFFLE_FALLBACKS, true);
+      // Accumulate UNIQUE real-Lytics products until the rail is full (`limit`).
+      // Affinity-ranked come first (personalized for warm visitors); if that
+      // yields FEWER than the rail needs — not just zero — top up from the
+      // shuffle/popularity fallback across the broadest collections. The old
+      // logic only fell back when affinity returned nothing, so a visitor whose
+      // affinity returned 1–3 products got a short rail even though the
+      // collection had more. Backoff retries across a ~10s window for cold start.
+      const seen = new Set<string>();
+      const collected: RecItem[] = [];
+      let usedColl = '';
+      const addUnique = (coll: string, items: RecItem[]) => {
+        for (const it of items) {
+          if (it.url && !seen.has(it.url)) {
+            seen.add(it.url);
+            collected.push(it);
+            if (!usedColl) usedColl = coll;
+          }
         }
-        if (best.items.length) break;
-        setDebug(`retry ${attempt + 1}`);
-        // Only wait when the immediate try came back empty — gives the cold-start
+      };
+      for (let attempt = 0; attempt < 6 && !cancelled && collected.length < limit; attempt++) {
+        const aff = await runRound(jstag, affinityColls, false);
+        addUnique(aff.coll, aff.items);
+        if (collected.length < limit) {
+          const shuf = await runRound(jstag, SHUFFLE_FALLBACKS, true);
+          addUnique(shuf.coll, shuf.items);
+        }
+        if (collected.length >= limit) break;
+        setDebug(`retry ${attempt + 1} have=${collected.length}`);
+        // Only wait when we still don't have a full set — gives the cold-start
         // profile time to resolve. Short first backoff, then steady 2s.
         await sleep(attempt === 0 ? 1000 : 2000);
       }
       if (cancelled) return;
-      setLiveRecs(best.items.slice(0, limit));
-      setCollectionUsed(best.items.length ? best.coll : null);
+      setLiveRecs(collected.slice(0, limit));
+      setCollectionUsed(collected.length ? usedColl : null);
       setSettled(true);
-      setDebug(`done items=${best.items.length} coll=${best.coll || 'none'}`);
+      setDebug(`done items=${collected.length} coll=${usedColl || 'none'}`);
     };
 
     // The Lytics tag (window.jstag) loads asynchronously (and starts life as a
