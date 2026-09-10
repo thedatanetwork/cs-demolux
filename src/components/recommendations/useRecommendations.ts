@@ -212,7 +212,11 @@ export function useRecommendations({
     // The Lytics tag (window.jstag) loads asynchronously (and starts life as a
     // command-queue array without .recommend). Poll for the real SDK instead of
     // bailing out forever if it isn't ready when this effect first runs.
-    let waited = 0;
+    // Wall-clock deadline, NOT a tick count. Browsers throttle setTimeout to roughly
+    // once a minute in a hidden tab, so the old `waited += 250` per tick meant the
+    // bail-out needed ~80 minutes of real time: open the site in a background tab and
+    // the rail sat on its loading skeleton essentially forever instead of settling.
+    const deadline = Date.now() + 20000;
     const tick = () => {
       if (cancelled) return;
       const jstag = typeof window !== 'undefined' ? (window as any).jstag : undefined;
@@ -222,8 +226,7 @@ export function useRecommendations({
         void start(jstag);
         return;
       }
-      waited += 250;
-      if (waited >= 20000) {
+      if (Date.now() >= deadline) {
         setHasTag(false);
         setSettled(true);
         setDebug('no-jstag-timeout');
